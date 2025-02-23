@@ -1,11 +1,13 @@
 // components/Forms/CardForm/CardForm.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   useFieldArray,
   Control,
   UseFormRegister,
   FieldErrors,
-  useWatch
+  useWatch,
+  useFormContext,
+  UseFormSetValue
 } from 'react-hook-form';
 import { IRegisterForm } from '@/validations/RegisterSchema';
 import Input from '@/components/Inputs/Input/Input';
@@ -15,16 +17,28 @@ interface CardFormProps {
   control: Control<IRegisterForm>;
   register: UseFormRegister<IRegisterForm>;
   errors: FieldErrors<IRegisterForm>;
+  setValue: UseFormSetValue<IRegisterForm>;
 }
 
-const CardForm: React.FC<CardFormProps> = ({ control, register, errors }) => {
+const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue }) => {
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'Cards'
   });
 
   // Obtém os valores de todos os cartões de uma só vez
-  const cards = useWatch({ control, name: 'Cards' });
+  const cards = useWatch({ control, name: 'Cards' }) || [];
+
+  useEffect(() => {
+    cards.forEach((card, index) => {
+      const computedFlag = getCardFlag(card.numberCard || '');
+      // Só atualiza se o valor da bandeira for diferente
+      if (card.flagCard !== computedFlag) {
+        setValue(`Cards.${index}.flagCard`, computedFlag);
+      }
+    });
+  }, [cards, setValue]);
 
   return (
     <div>
@@ -51,7 +65,7 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors }) => {
             <Input
               id={`Cards[${index}].numberCard`}
               label="Número do Cartão"
-              placeholder="xxxx.xxxx.xxxx.xxxx"
+              placeholder="1111.2222.3333.4444"
               maskFunction={maskCreditCard}
               {...register(`Cards.${index}.numberCard` as const)}
               error={errors?.Cards && errors.Cards[index]?.numberCard?.message}
@@ -68,6 +82,7 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors }) => {
               id={`Cards[${index}].safeNumber`}
               label="Código de Segurança"
               placeholder="123"
+              maxLength={3}
               {...register(`Cards.${index}.safeNumber` as const)}
               error={errors?.Cards && errors.Cards[index]?.safeNumber?.message}
             />

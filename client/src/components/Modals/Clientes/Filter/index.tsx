@@ -17,7 +17,7 @@ import UpArrow from '@/components/icons/UpArrow';
 import DownArrow from '@/components/icons/DownArrow';
 
 interface FormData {
-    acesso: string[];
+    status: string[];
 }
 
 interface FilterModalProps {
@@ -25,7 +25,7 @@ interface FilterModalProps {
 }
 
 const FilterModal: React.FC<FilterModalProps> = ({ onClose }) => {
-    const [formData, setFormData] = useState<FormData>({ acesso: [] });
+    const [formData, setFormData] = useState<FormData>({ status: [] });
     const [isExpanded, setIsExpanded] = useState(false); // Estado para controlar a expansão
 
     // Estado para controlar a visibilidade do modal
@@ -58,15 +58,15 @@ const FilterModal: React.FC<FilterModalProps> = ({ onClose }) => {
 
         setFormData(prevData => {
             if (checked) {
-                return { ...prevData, acesso: [...prevData.acesso, value] };
+                return { ...prevData, status: [...prevData.status, value] };
             } else {
-                return { ...prevData, acesso: prevData.acesso.filter(item => item !== value) };
+                return { ...prevData, status: prevData.status.filter(item => item !== value) };
             }
         });
     };
 
     const clearFilters = () => {
-        setFormData({ acesso: [] });
+        setFormData({ status: [] });
         console.log('Filtros limpos');
     };
 
@@ -83,19 +83,19 @@ const FilterModal: React.FC<FilterModalProps> = ({ onClose }) => {
             <ModalContent>
                 <RadioBox>
                     <RadioTitle>
-                        Acesso
+                        Status
                         <ArrowWrapper onClick={toggleExpand}>
                             {isExpanded ? <UpArrow /> : <DownArrow />}
                         </ArrowWrapper>
                     </RadioTitle>
                     <RadioGroup isExpanded={isExpanded}>
-                        {['Suporte', 'Jogos', 'Financeiro', 'Admin'].map(option => (
+                        {['Ativados', 'Desativados'].map(option => (
                             <RadioButton key={option}>
-                                <input 
-                                    type="checkbox" 
-                                    name="acesso" 
-                                    value={option} 
-                                    checked={formData.acesso.includes(option)}
+                                <input
+                                    type="checkbox"
+                                    name="status"
+                                    value={option}
+                                    checked={formData.status.includes(option)}
                                     onChange={handleInputChange}
                                 />
                                 {option}
@@ -105,12 +105,12 @@ const FilterModal: React.FC<FilterModalProps> = ({ onClose }) => {
                 </RadioBox>
             </ModalContent>
             <ModalFooter>
-                <Button 
-                    text="Limpar" 
-                    variant="outline" 
-                    type="button" 
-                    width="80px" 
-                    height="36px" 
+                <Button
+                    text="Limpar"
+                    variant="outline"
+                    type="button"
+                    width="80px"
+                    height="36px"
                     onClick={clearFilters}
                 />
             </ModalFooter>

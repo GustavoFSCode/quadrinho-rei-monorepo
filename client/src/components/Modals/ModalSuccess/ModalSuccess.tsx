@@ -33,7 +33,7 @@ const ModalSuccess = ({
       maxwidth={maxwidth}
       maxheight={maxheight}
       image={{
-        url: '/img/confirm-green-withbg.svg',
+        url: '/assets/images/CheckBox.png',
         alt: 'icone de sucesso',
       }}
       text={text}

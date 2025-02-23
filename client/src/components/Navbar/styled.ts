@@ -122,7 +122,7 @@ export const IconPart = styled(Link)<SidebarProps & IconPartProps & { isActive?:
             right: ${props.isExpanded ? '0px' : '0px'};
             height: 40px;
             width: 15px;
-            background-color: red;
+            background-color: #FFE812;
             border-radius: 10px 0 0 10px;
             transition: right 0.3s ease;
         }`}

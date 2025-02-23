@@ -73,12 +73,12 @@ export const StyledButton = styled.button<{
     css`
       background-color: transparent;
       border: 2px solid;
-      border-color: var(--blue-100);
-      color: var(--blue-100);
+      border-color: var(--yellow-100);
+      color: var(--yellow-100);
 
       &:hover {
-        border-color: var(--blue-140); /* Tom mais escuro */
-        color: var(--blue-80);
+        border-color: var(--alert-yellow-40); /* Tom mais escuro */
+        color: var(--alert-yellow-40);
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
       }
 

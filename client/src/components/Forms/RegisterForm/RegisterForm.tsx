@@ -1,6 +1,6 @@
 // components/Forms/RegisterForm/RegisterForm.tsx
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, FieldErrors, SubmitHandler, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import handleError from '@/utils/handleToast';
 import Input from '@/components/Inputs/Input/Input';
@@ -13,6 +13,7 @@ import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import { useRouter } from 'next/navigation';
 import CustomSelect from '@/components/Select';
 import { maskCPFOrCNPJ, maskPhone } from '@/utils/masks';
+import { getCardFlag } from '@/utils/masks';
 
 interface RegisterFormProps {
   onClose: () => void;
@@ -23,7 +24,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
   const [showSucessModal, setShowSucessModal] = useState(false);
   const router = useRouter();
 
+  const onError = (errors: FieldErrors<IRegisterForm>) => {
+    console.log('Erros de validação:', errors);
+
+    // Verifica se o erro de array (Address) está com a mensagem do teste customizado
+    if (errors.Address?.root?.message === "É necessário pelo menos um endereço de Cobrança e um de Entrega") {
+      handleError(errors.Address.root);
+    }
+  };
+
   const {
+    setValue,
     register,
     handleSubmit,
     control,
@@ -31,10 +42,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
   } = useForm<IRegisterForm>({
     resolver: yupResolver(RegisterSchema),
     defaultValues: {
+      // Já inicia com 2 endereços (um de Cobrança e outro de Entrega)
       Address: [
         { TypeAddress: 'Cobrança' },
         { TypeAddress: 'Entrega' }
       ],
+      // Inicia com 1 cartão (os demais campos serão preenchidos pelo usuário)
       Cards: [{}]
     }
   });
@@ -52,10 +65,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
 
   const onSubmit: SubmitHandler<IRegisterForm> = async (data) => {
     try {
+      console.log("onSubmit chamado"); // Debug
       setIsSubmitting(true);
-      console.log(data);
+
+      // Antes de enviar, atualiza cada cartão para definir flagCard com base no número do cartão
+      data.Cards = (data.Cards || []).map(card => ({
+        ...card,
+        flagCard: getCardFlag(card.numberCard || '')
+      }));
+
+      console.log("Dados do formulário:", data); // Debug
+
       setShowSucessModal(true);
     } catch (error) {
+      console.error("Erro no onSubmit:", error);
       handleError(error);
     } finally {
       setIsSubmitting(false);
@@ -76,7 +99,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
           }}
         />
       )}
-      <FormContainer onSubmit={handleSubmit(onSubmit)}>
+      <FormContainer onSubmit={handleSubmit(onSubmit, onError)}>
         <Flex $direction="column" $gap="1.15rem">
           <h3>Dados do Cliente</h3>
           <Input
@@ -182,7 +205,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
           />
         </Flex>
         <AddressForm control={control} register={register} errors={errors} />
-        <CardForm control={control} register={register} errors={errors} />
+        <CardForm control={control} register={register} errors={errors} setValue={setValue} />
         <Flex $direction="row" $gap="1.25rem" $justify="space-between">
           <SubmitButton type="submit" disabled={isSubmitting}>
             Salvar

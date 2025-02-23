@@ -69,7 +69,7 @@ export const ShowPasswordButton = styled.button<ShowPasswordButtonProps>`
   right: 1.25rem;
   transform: translateY(-50%);
   background-image: ${({ $show }) =>
-    $show ? 'url(/img/eye-grey.svg)' : 'url(/img/eye-green.svg)'};
+    $show ? 'url(/assets/images/eye-grey.svg)' : 'url(/assets/images/eye-green.svg)'};
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
