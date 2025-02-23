@@ -56,7 +56,7 @@ export const RegisterSchema = yup.object({
       holderName: yup.string().required('Nome do titular é obrigatório'),
       numberCard: yup.string().required('Número do cartão é obrigatório'),
       flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
-      safeNumber: yup.string().required('Código de segurança é obrigatório')
+      safeNumber: yup.string().required('Código de segurança é obrigatório'),
     })
   )
 });

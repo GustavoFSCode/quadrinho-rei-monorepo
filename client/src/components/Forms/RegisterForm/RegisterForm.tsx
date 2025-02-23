@@ -6,7 +6,7 @@ import handleError from '@/utils/handleToast';
 import Input from '@/components/Inputs/Input/Input';
 import { Flex } from '@/styles/global';
 import { IRegisterForm, RegisterSchema } from '@/validations/RegisterSchema';
-import { Container, FormContainer, SubmitButton } from './styles';
+import { Container, ErrorMessage, FormContainer, SubmitButton } from './styles';
 import AddressForm from '../AddressForm/AddressForm';
 import CardForm from '../CardForm/CardForm';
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
@@ -133,7 +133,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
               />
             )}
           />
-          {errors?.gender && <p>{errors.gender.message}</p>}
+          {errors?.gender && <ErrorMessage>{errors.gender.message}</ErrorMessage>}
           <Input
             id="cpf"
             label="CPF"
@@ -169,7 +169,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
               />
             )}
           />
-          {errors?.typePhone && <p>{errors.typePhone.message}</p>}
+          {errors?.typePhone && <ErrorMessage>{errors.typePhone.message}</ErrorMessage>}
           <Input
             id="email"
             autoComplete="email"

@@ -60,3 +60,9 @@ export const BackButton = styled.button`
     background-color: rgba(0, 0, 0, 0.05);
   }
 `;
+
+export const ErrorMessage = styled.p`
+  font-size: 14px;
+  font-weight: 400;
+  color: #DE3737;
+`;

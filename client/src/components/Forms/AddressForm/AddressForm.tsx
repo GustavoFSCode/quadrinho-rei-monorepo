@@ -12,6 +12,9 @@ import Input from '@/components/Inputs/Input/Input';
 import CustomSelect from '@/components/Select';
 import { Flex } from '@/styles/global';
 import { maskCEP } from '@/utils/masks';
+import { ErrorMessage, SubmitButton } from './styled';
+import ToggleButton from '@/components/Button/ToggleButton';
+import { LabelStyled } from '../stylesForm';
 
 interface AddressFormProps {
   control: Control<IRegisterForm>;
@@ -39,10 +42,10 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors }) 
   ];
 
   return (
-    <Flex $direction="column" $gap="1rem">
+    <Flex $direction="column">
       <h3>Endereços</h3>
       {fields.map((field, index) => (
-        <div
+        <Flex $direction="column" $gap="1rem"
           key={field.id}
           style={{ marginBottom: '1rem', border: '1px solid #eee', padding: '1rem' }}
         >
@@ -70,7 +73,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors }) 
             )}
           />
           {errors?.Address && errors.Address[index]?.TypeAddress && (
-            <p>{errors.Address[index]?.TypeAddress?.message}</p>
+            <ErrorMessage>{errors.Address[index]?.TypeAddress?.message}</ErrorMessage>
           )}
           {/* Select para Tipo de Logradouro */}
           <Controller
@@ -88,7 +91,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors }) 
             )}
           />
           {errors?.Address && errors.Address[index]?.typeLogradouro && (
-            <p>{errors.Address[index]?.typeLogradouro?.message}</p>
+            <ErrorMessage>{errors.Address[index]?.typeLogradouro?.message}</ErrorMessage>
           )}
           <Input
             id={`Address[${index}].nameLogradouro`}
@@ -147,15 +150,19 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors }) 
             {...register(`Address.${index}.observation` as const)}
             error={errors?.Address && errors.Address[index]?.observation?.message}
           />
+          <LabelStyled>
+            Favorito
+            <ToggleButton />
+          </LabelStyled>
           {/* Renderiza o botão de remover apenas se houver mais de 2 endereços */}
           {fields.length > 2 && (
-            <button type="button" onClick={() => remove(index)}>
+            <SubmitButton type="button" onClick={() => remove(index)}>
               Remover Endereço
-            </button>
+            </SubmitButton>
           )}
-        </div>
+        </Flex>
       ))}
-      <button
+      <SubmitButton
         type="button"
         onClick={() =>
           append({
@@ -174,7 +181,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors }) 
         }
       >
         Adicionar Endereço
-      </button>
+      </SubmitButton>
     </Flex>
   );
 };

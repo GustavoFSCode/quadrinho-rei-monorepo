@@ -25,8 +25,8 @@ const ButtonPrimary = ({
       $size={size}
       $maxwidth={maxwidth}
       $height={height}
-      $backgroundcolor={theme.colors.alert5}
-      $hoveredbackgroundcolor={`linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), ${theme.colors.alert6};`}
+      $backgroundcolor={theme.colors.secondary5}
+      $hoveredbackgroundcolor={theme.colors.alert5}
       color={theme.colors.neutral1}
       {...rest}
     >

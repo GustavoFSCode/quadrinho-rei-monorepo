@@ -12,6 +12,10 @@ import {
 import { IRegisterForm } from '@/validations/RegisterSchema';
 import Input from '@/components/Inputs/Input/Input';
 import { maskCreditCard, getCardFlag } from '@/utils/masks';
+import { SubmitButton } from './styled';
+import { Flex } from '@/styles/global';
+import { LabelStyled } from '../stylesForm';
+import ToggleButton from '@/components/Button/ToggleButton';
 
 interface CardFormProps {
   control: Control<IRegisterForm>;
@@ -41,13 +45,13 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
   }, [cards, setValue]);
 
   return (
-    <div>
+    <Flex $direction="column">
       <h3>Dados do Cartão</h3>
       {fields.map((field, index) => {
         const cardNumber = cards && cards[index] ? cards[index].numberCard : '';
         const computedCardFlag = getCardFlag(cardNumber || '');
         return (
-          <div
+          <Flex $direction="column" $gap="1rem"
             key={field.id}
             style={{
               marginBottom: '1rem',
@@ -86,16 +90,20 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
               {...register(`Cards.${index}.safeNumber` as const)}
               error={errors?.Cards && errors.Cards[index]?.safeNumber?.message}
             />
+            <LabelStyled>
+              Favorito
+              <ToggleButton />
+            </LabelStyled>
             {/* Renderiza o botão de remover somente se houver mais de 1 cartão */}
             {fields.length > 1 && (
-              <button type="button" onClick={() => remove(index)}>
+              <SubmitButton type="button" onClick={() => remove(index)}>
                 Remover Cartão
-              </button>
+              </SubmitButton>
             )}
-          </div>
+          </Flex>
         );
       })}
-      <button
+      <SubmitButton
         type="button"
         onClick={() =>
           append({
@@ -107,8 +115,8 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
         }
       >
         Adicionar Cartão
-      </button>
-    </div>
+      </SubmitButton>
+    </Flex>
   );
 };
 
