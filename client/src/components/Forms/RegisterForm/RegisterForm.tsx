@@ -44,17 +44,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
       Address: [
         {
           TypeAddress: 'Cobrança',
-          favorite: true // Se quiser iniciar como favorito
+          isFavorite: true // Se quiser iniciar como favorito
         },
         {
           TypeAddress: 'Entrega',
-          favorite: true // Se quiser iniciar como favorito
+          isFavorite: true // Se quiser iniciar como favorito
         }
       ],
       // Inicia com 1 cartão
       Cards: [
         {
-          favorite: true // ou false, dependendo se quer começar favorito
+          isFavorite: true // ou false, dependendo se quer começar favorito
         }
       ]
     }

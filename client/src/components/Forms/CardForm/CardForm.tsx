@@ -35,7 +35,7 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
   const cards = useWatch({ control, name: 'Cards' }) || [];
 
 function handleToggleFavorite(index: number) {
-  const currentFavorite = cards[index].favorite;
+  const currentFavorite = cards[index].isFavorite;
 
   // Se existe apenas 1 cartão e ele já está favorito, não desativa
   if (cards.length === 1 && currentFavorite) {
@@ -47,19 +47,19 @@ function handleToggleFavorite(index: number) {
     if (cards.length === 2) {
       // Se existem 2 cartões, desativa este e ativa o outro
       const otherIndex = index === 0 ? 1 : 0;
-      setValue(`Cards.${index}.favorite`, false);
-      setValue(`Cards.${otherIndex}.favorite`, true);
+      setValue(`Cards.${index}.isFavorite`, false);
+      setValue(`Cards.${otherIndex}.isFavorite`, true);
     } else {
       // Se existem mais de 2, desativa este e ativa o próximo (ou o primeiro, por exemplo)
-      setValue(`Cards.${index}.favorite`, false);
+      setValue(`Cards.${index}.isFavorite`, false);
       const nextIndex = index + 1 < cards.length ? index + 1 : 0;
-      setValue(`Cards.${nextIndex}.favorite`, true);
+      setValue(`Cards.${nextIndex}.isFavorite`, true);
     }
   } else {
     // Se o toggle estava desativado e o usuário clicou para ativar
     // Desativa todos os outros e ativa somente este
     cards.forEach((_, i) => {
-      setValue(`Cards.${i}.favorite`, i === index);
+      setValue(`Cards.${i}.isFavorite`, i === index);
     });
   }
 }
@@ -75,11 +75,11 @@ function handleToggleFavorite(index: number) {
   }, [cards, setValue]);
 
   useEffect(() => {
-    const favoriteCount = cards.filter(card => card.favorite).length;
+    const favoriteCount = cards.filter(card => card.isFavorite).length;
 
     // Se não existir nenhum favorito mas existir ao menos 1 cartão, marca o primeiro
     if (favoriteCount === 0 && cards.length > 0) {
-      setValue(`Cards.0.favorite`, true);
+      setValue(`Cards.0.isFavorite`, true);
     }
   }, [cards, setValue]);
 
@@ -132,7 +132,7 @@ function handleToggleFavorite(index: number) {
              <LabelStyled>
             Favorito
             <ToggleButton
-              isActive={cards[index]?.favorite || false}
+              isActive={cards[index]?.isFavorite || false}
               onToggle={() => handleToggleFavorite(index)}
             />
           </LabelStyled>
@@ -153,7 +153,7 @@ function handleToggleFavorite(index: number) {
             numberCard: '',
             flagCard: '',
             safeNumber: '',
-            favorite: false
+            isFavorite: false
           })
         }
       >

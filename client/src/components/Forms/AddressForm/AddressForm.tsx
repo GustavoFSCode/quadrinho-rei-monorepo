@@ -61,7 +61,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
       state: '',
       country: '',
       observation: '',
-      favorite: false
+      isFavorite: false
     });
   };
 
@@ -85,8 +85,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
     }
 
     // 3) Se for o único favorito naquele tipo, não podemos remover
-    const favoritesOfType = sameTypeAddresses.filter(addr => addr.favorite);
-    const isThisFavorite = addresses[index]?.favorite;
+    const favoritesOfType = sameTypeAddresses.filter(addr => addr.isFavorite);
+    const isThisFavorite = addresses[index]?.isFavorite;
     if (isThisFavorite && favoritesOfType.length === 1) {
       // É o único favorito do tipo. Não removemos até que o usuário marque outro como favorito.
       return false;
@@ -104,7 +104,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
     // Se não houver tipo selecionado ainda, não faz nada
     if (!currentType) return;
 
-    const isCurrentlyFavorite = current.favorite;
+    const isCurrentlyFavorite = current.isFavorite;
 
     // Filtrar todos os endereços do mesmo tipo
     const sameTypeIndexes = addresses
@@ -113,20 +113,20 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
 
     if (isCurrentlyFavorite) {
       // Está desativando o favorito
-      const favoritesOfType = sameTypeIndexes.filter(addr => addr.favorite);
+      const favoritesOfType = sameTypeIndexes.filter(addr => addr.isFavorite);
       // Se só existe 1 favorito daquele tipo, não pode desativar
       if (favoritesOfType.length === 1) {
         return;
       }
       // Senão, pode desativar livremente
-      setValue(`Address.${index}.favorite`, false);
+      setValue(`Address.${index}.isFavorite`, false);
     } else {
       // Ativando o favorito
       // Desativar todos os outros do mesmo tipo
       sameTypeIndexes.forEach(addr => {
-        setValue(`Address.${addr.i}.favorite`, false);
+        setValue(`Address.${addr.i}.isFavorite`, false);
       });
-      setValue(`Address.${index}.favorite`, true);
+      setValue(`Address.${index}.isFavorite`, true);
     }
   };
 
@@ -140,11 +140,11 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
 
       if (!typeList.length) return; // Se não existir nenhum endereço do tipo, ignore
 
-      const hasFavorite = typeList.some(addr => addr.favorite);
+      const hasFavorite = typeList.some(addr => addr.isFavorite);
       if (!hasFavorite) {
         // Força o primeiro a ser favorito
         const firstIndex = typeList[0].i;
-        setValue(`Address.${firstIndex}.favorite`, true);
+        setValue(`Address.${firstIndex}.isFavorite`, true);
       }
     });
   }, [addresses, setValue]);
@@ -278,7 +278,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
           <LabelStyled>
             Favorito
             <ToggleButton
-              isActive={addresses[index]?.favorite || false}
+              isActive={addresses[index]?.isFavorite || false}
               onToggle={() => handleToggleFavorite(index)}
             />
           </LabelStyled>

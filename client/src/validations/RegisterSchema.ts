@@ -39,7 +39,7 @@ export const RegisterSchema = yup.object({
         state: yup.string().required('Estado é obrigatório'),
         country: yup.string().required('País é obrigatório'),
         observation: yup.string(),
-        favorite: yup.boolean().required()
+        isFavorite: yup.boolean().required()
       })
     )
     .min(2, 'É necessário pelo menos 2 endereços')
@@ -58,7 +58,7 @@ export const RegisterSchema = yup.object({
       numberCard: yup.string().required('Número do cartão é obrigatório'),
       flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
       safeNumber: yup.string().required('Código de segurança é obrigatório'),
-      favorite: yup.boolean().required(),
+      isFavorite: yup.boolean().required(),
     })
   )
 });
