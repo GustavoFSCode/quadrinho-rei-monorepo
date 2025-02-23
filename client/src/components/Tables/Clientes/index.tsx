@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { TableContainer, Table, TableHeadCell, TableHeadAction, TableBodyCell, TableRow, ActionCell } from './styled';
 import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
-import ToggleButton from '@/components/Button/ToggleButton';
+import ToggleButton from '@/components/Button/ToggleTable';
 import ModalEditarAdministrador from '@/components/Modals/Clientes/EditarCliente';
 import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
 
 function Tabela() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDescartationModalOpen, setDescartationModalOpen] = useState(false); // Estado para o modal de descarte
+  const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState({
     nome: '',
     email: '',

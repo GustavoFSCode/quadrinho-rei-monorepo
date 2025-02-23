@@ -34,6 +34,36 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
   // Obtém os valores de todos os cartões de uma só vez
   const cards = useWatch({ control, name: 'Cards' }) || [];
 
+function handleToggleFavorite(index: number) {
+  const currentFavorite = cards[index].favorite;
+
+  // Se existe apenas 1 cartão e ele já está favorito, não desativa
+  if (cards.length === 1 && currentFavorite) {
+    return;
+  }
+
+  if (currentFavorite) {
+    // Está tentando desativar o favorito
+    if (cards.length === 2) {
+      // Se existem 2 cartões, desativa este e ativa o outro
+      const otherIndex = index === 0 ? 1 : 0;
+      setValue(`Cards.${index}.favorite`, false);
+      setValue(`Cards.${otherIndex}.favorite`, true);
+    } else {
+      // Se existem mais de 2, desativa este e ativa o próximo (ou o primeiro, por exemplo)
+      setValue(`Cards.${index}.favorite`, false);
+      const nextIndex = index + 1 < cards.length ? index + 1 : 0;
+      setValue(`Cards.${nextIndex}.favorite`, true);
+    }
+  } else {
+    // Se o toggle estava desativado e o usuário clicou para ativar
+    // Desativa todos os outros e ativa somente este
+    cards.forEach((_, i) => {
+      setValue(`Cards.${i}.favorite`, i === index);
+    });
+  }
+}
+
   useEffect(() => {
     cards.forEach((card, index) => {
       const computedFlag = getCardFlag(card.numberCard || '');
@@ -42,6 +72,15 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
         setValue(`Cards.${index}.flagCard`, computedFlag);
       }
     });
+  }, [cards, setValue]);
+
+  useEffect(() => {
+    const favoriteCount = cards.filter(card => card.favorite).length;
+
+    // Se não existir nenhum favorito mas existir ao menos 1 cartão, marca o primeiro
+    if (favoriteCount === 0 && cards.length > 0) {
+      setValue(`Cards.0.favorite`, true);
+    }
   }, [cards, setValue]);
 
   return (
@@ -90,10 +129,13 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
               {...register(`Cards.${index}.safeNumber` as const)}
               error={errors?.Cards && errors.Cards[index]?.safeNumber?.message}
             />
-            <LabelStyled>
-              Favorito
-              <ToggleButton />
-            </LabelStyled>
+             <LabelStyled>
+            Favorito
+            <ToggleButton
+              isActive={cards[index]?.favorite || false}
+              onToggle={() => handleToggleFavorite(index)}
+            />
+          </LabelStyled>
             {/* Renderiza o botão de remover somente se houver mais de 1 cartão */}
             {fields.length > 1 && (
               <SubmitButton type="button" onClick={() => remove(index)}>
@@ -110,7 +152,8 @@ const CardForm: React.FC<CardFormProps> = ({ control, register, errors, setValue
             holderName: '',
             numberCard: '',
             flagCard: '',
-            safeNumber: ''
+            safeNumber: '',
+            favorite: false
           })
         }
       >

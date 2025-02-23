@@ -26,8 +26,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
 
   const onError = (errors: FieldErrors<IRegisterForm>) => {
     console.log('Erros de validação:', errors);
-
-    // Verifica se o erro de array (Address) está com a mensagem do teste customizado
     if (errors.Address?.root?.message === "É necessário pelo menos um endereço de Cobrança e um de Entrega") {
       handleError(errors.Address.root);
     }
@@ -44,11 +42,21 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
     defaultValues: {
       // Já inicia com 2 endereços (um de Cobrança e outro de Entrega)
       Address: [
-        { TypeAddress: 'Cobrança' },
-        { TypeAddress: 'Entrega' }
+        {
+          TypeAddress: 'Cobrança',
+          favorite: true // Se quiser iniciar como favorito
+        },
+        {
+          TypeAddress: 'Entrega',
+          favorite: true // Se quiser iniciar como favorito
+        }
       ],
-      // Inicia com 1 cartão (os demais campos serão preenchidos pelo usuário)
-      Cards: [{}]
+      // Inicia com 1 cartão
+      Cards: [
+        {
+          favorite: true // ou false, dependendo se quer começar favorito
+        }
+      ]
     }
   });
 
@@ -57,7 +65,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
     { value: 'Masculino', label: 'Masculino' },
     { value: 'Feminino', label: 'Feminino' }
   ];
-
   const phoneOptions = [
     { value: 'Celular', label: 'Celular' },
     { value: 'Fixo', label: 'Fixo' }
@@ -65,16 +72,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
 
   const onSubmit: SubmitHandler<IRegisterForm> = async (data) => {
     try {
-      console.log("onSubmit chamado"); // Debug
       setIsSubmitting(true);
 
-      // Antes de enviar, atualiza cada cartão para definir flagCard com base no número do cartão
+      // Ajusta as bandeiras de cada cartão antes de enviar (boa prática)
       data.Cards = (data.Cards || []).map(card => ({
         ...card,
         flagCard: getCardFlag(card.numberCard || '')
       }));
 
-      console.log("Dados do formulário:", data); // Debug
+      console.log("Dados do formulário:", data);
 
       setShowSucessModal(true);
     } catch (error) {
@@ -99,9 +105,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
           }}
         />
       )}
+
       <FormContainer onSubmit={handleSubmit(onSubmit, onError)}>
         <Flex $direction="column" $gap="1.15rem">
           <h3>Dados do Cliente</h3>
+
           <Input
             id="name"
             autoComplete="name"
@@ -110,6 +118,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('name')}
             error={errors?.name?.message}
           />
+
           <Input
             id="birthDate"
             type="date"
@@ -118,6 +127,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('birthDate')}
             error={errors?.birthDate?.message}
           />
+
           {/* Campo Select para Gênero */}
           <Controller
             control={control}
@@ -134,6 +144,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             )}
           />
           {errors?.gender && <ErrorMessage>{errors.gender.message}</ErrorMessage>}
+
           <Input
             id="cpf"
             label="CPF"
@@ -143,6 +154,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('cpf')}
             error={errors?.cpf?.message}
           />
+
           <Input
             id="phone"
             autoComplete="tel-national"
@@ -154,6 +166,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('phone')}
             error={errors?.phone?.message}
           />
+
           {/* Campo Select para Tipo de Telefone */}
           <Controller
             control={control}
@@ -170,6 +183,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             )}
           />
           {errors?.typePhone && <ErrorMessage>{errors.typePhone.message}</ErrorMessage>}
+
           <Input
             id="email"
             autoComplete="email"
@@ -179,6 +193,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('email')}
             error={errors?.email?.message}
           />
+
           <Input
             id="password"
             label="Senha"
@@ -187,6 +202,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('password')}
             error={errors?.password?.message}
           />
+
           <Input
             id="confirm_password"
             label="Confirmar Senha"
@@ -195,6 +211,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('confirm_password')}
             error={errors?.confirm_password?.message}
           />
+
           <Input
             id="ranking"
             type="number"
@@ -204,8 +221,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             error={errors?.ranking?.message}
           />
         </Flex>
-        <AddressForm control={control} register={register} errors={errors} />
+
+        {/* Form de Endereços (com toggle de favorito por tipo) */}
+        <AddressForm control={control} register={register} errors={errors} setValue={setValue} />
+
+        {/* Form de Cartões (já com lógica de favorito) */}
         <CardForm control={control} register={register} errors={errors} setValue={setValue} />
+
         <Flex $direction="row" $gap="1.25rem" $justify="space-between">
           <SubmitButton type="submit" disabled={isSubmitting}>
             Salvar
