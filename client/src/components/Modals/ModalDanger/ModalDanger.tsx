@@ -31,7 +31,7 @@ const ModalDanger = ({
       maxwidth={maxwidth}
       maxheight={maxheight}
       image={{
-        url: '/img/modal_warning_icon.svg',
+        url: '/assets/images/ExcludeBox.png',
         alt: 'icone de alerta',
       }}
       text={text}

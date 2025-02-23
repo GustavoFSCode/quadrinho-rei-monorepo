@@ -8,17 +8,17 @@ import Closed from "@/components/icons/Closed";
 import EditClientForm from "@/components/Forms/EditClientForm/EditClientForm";
 
 
-interface ModalEditarClienteProps {
+interface ModalEditarCartaoProps {
   onClose: () => void;
   data: any;
 }
 
-const ModalEditarCliente: React.FC<ModalEditarClienteProps> = ({ onClose }) => {
+const ModalEditarCartao: React.FC<ModalEditarCartaoProps> = ({ onClose }) => {
   return (
     <ModalOverlay>
       <ModalContent>
         <ModalHeader>
-          Editar Cliente
+          Editar Cartão
           <Closed onClick={onClose} />
         </ModalHeader>
         <ModalBody>
@@ -29,4 +29,4 @@ const ModalEditarCliente: React.FC<ModalEditarClienteProps> = ({ onClose }) => {
   );
 };
 
-export default ModalEditarCliente;
+export default ModalEditarCartao;

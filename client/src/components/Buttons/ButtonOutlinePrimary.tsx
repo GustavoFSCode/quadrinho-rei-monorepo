@@ -23,8 +23,8 @@ const ButtonOutlinePrimary = ({
       $maxwidth={maxwidth}
       $height={height}
       $backgroundcolor="transparent"
-      $border={`0.125rem solid ${theme.colors.primary10}`}
-      $textcolor={theme.colors.primary10}
+      $border={`0.2rem solid ${theme.colors.secondary5}`}
+      $textcolor={theme.colors.alert5}
       {...rest}
     >
       {children}

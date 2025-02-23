@@ -32,7 +32,6 @@ const ModalChangePassword = ({ title, setShowModal, onSuccess }: Props) => {
 
   async function onSubmit(form: IChangeForm) {
     try {
-      onSuccess(form);
       setShowSuccessModal(true);
     } catch (error) {
       handleError(error);
@@ -71,7 +70,7 @@ const ModalChangePassword = ({ title, setShowModal, onSuccess }: Props) => {
           }}
         />
       )}
-      <Box $maxwidth="490px" $maxheight="460px">
+      <Box $maxwidth="490px" $maxheight="fit-content">
         <BoxOverflow>
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Flex $direction="column" $gap="1.875rem">
@@ -90,8 +89,8 @@ const ModalChangePassword = ({ title, setShowModal, onSuccess }: Props) => {
                   type="password"
                   label="Confirme a nova senha"
                   placeholder="Confirme sua senha..."
-                  {...register('confirmPassword')}
-                  error={errors?.confirmPassword?.message}
+                  {...register('confirm_password')}
+                  error={errors?.confirm_password?.message}
                 />
               </Flex>
               <Flex $wrap="wrap" $justify="center" $gap="20px">

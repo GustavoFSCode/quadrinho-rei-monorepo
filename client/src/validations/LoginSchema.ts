@@ -25,13 +25,15 @@ export const RecoverySchema = yup.object({
 export type IChangeForm = yup.InferType<typeof ChangeySchema>;
 
 export const ChangeySchema = yup.object({
-  password: yup
-    .string()
-    .required('Senha é obrigatória')
-    .min(6, 'Mínimo de 6 digitos'),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref('password')], 'As senhas devem coincidir')
-    .required('Confirmação de senha é obrigatória')
-    .min(6, 'Mínimo de 6 digitos'),
+    password: yup
+      .string()
+      .required('Senha é obrigatória')
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
+        'A senha deve ter no mínimo 8 caracteres, incluindo 1 letra maiúscula, 1 minúscula e 1 caractere especial'
+      ),
+    confirm_password: yup
+      .string()
+      .oneOf([yup.ref('password')], 'As senhas devem coincidir')
+      .required('Confirmação de senha é obrigatória'),
 });

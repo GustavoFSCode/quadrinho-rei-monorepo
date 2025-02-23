@@ -44,11 +44,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
       Address: [
         {
           TypeAddress: 'Cobrança',
-          isFavorite: true // Se quiser iniciar como favorito
         },
         {
           TypeAddress: 'Entrega',
-          isFavorite: true // Se quiser iniciar como favorito
         }
       ],
       // Inicia com 1 cartão
@@ -230,7 +228,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
 
         <Flex $direction="row" $gap="1.25rem" $justify="space-between">
           <SubmitButton type="submit" disabled={isSubmitting}>
-            Salvar
+            Cadastrar
           </SubmitButton>
         </Flex>
       </FormContainer>

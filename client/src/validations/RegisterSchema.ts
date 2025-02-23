@@ -39,7 +39,6 @@ export const RegisterSchema = yup.object({
         state: yup.string().required('Estado é obrigatório'),
         country: yup.string().required('País é obrigatório'),
         observation: yup.string(),
-        isFavorite: yup.boolean().required()
       })
     )
     .min(2, 'É necessário pelo menos 2 endereços')

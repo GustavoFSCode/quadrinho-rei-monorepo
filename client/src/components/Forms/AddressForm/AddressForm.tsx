@@ -1,5 +1,4 @@
-// components/Forms/AddressForm/AddressForm.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   useFieldArray,
   Control,
@@ -15,17 +14,27 @@ import CustomSelect from '@/components/Select';
 import { Flex } from '@/styles/global';
 import { maskCEP } from '@/utils/masks';
 import { ErrorMessage, SubmitButton } from './styled';
-import ToggleButton from '@/components/Button/ToggleButton';
-import { LabelStyled } from '../stylesForm';
 
 interface AddressFormProps {
   control: Control<IRegisterForm>;
   register: UseFormRegister<IRegisterForm>;
   errors: FieldErrors<IRegisterForm>;
   setValue: UseFormSetValue<IRegisterForm>;
+
+  /**
+   * Nova prop para sabermos se o formulário está sendo
+   * exibido dentro do ModalEditarEndereco
+   */
+  isFromModal?: boolean;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, setValue }) => {
+const AddressForm: React.FC<AddressFormProps> = ({
+  control,
+  register,
+  errors,
+  setValue,
+  isFromModal = false // default false
+}) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'Address'
@@ -60,8 +69,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
       city: '',
       state: '',
       country: '',
-      observation: '',
-      isFavorite: false
+      observation: ''
     });
   };
 
@@ -84,70 +92,9 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
       return false;
     }
 
-    // 3) Se for o único favorito naquele tipo, não podemos remover
-    const favoritesOfType = sameTypeAddresses.filter(addr => addr.isFavorite);
-    const isThisFavorite = addresses[index]?.isFavorite;
-    if (isThisFavorite && favoritesOfType.length === 1) {
-      // É o único favorito do tipo. Não removemos até que o usuário marque outro como favorito.
-      return false;
-    }
-
-    // Se nenhuma das condições acima foi atendida, podemos remover
+    // Se nenhuma das condições acima se aplicar, podemos remover
     return true;
   };
-
-  // Toggle para garantir 1 favorito por tipo
-  const handleToggleFavorite = (index: number) => {
-    const current = addresses[index];
-    const currentType = current?.TypeAddress;
-
-    // Se não houver tipo selecionado ainda, não faz nada
-    if (!currentType) return;
-
-    const isCurrentlyFavorite = current.isFavorite;
-
-    // Filtrar todos os endereços do mesmo tipo
-    const sameTypeIndexes = addresses
-      .map((addr, i) => ({ ...addr, i }))
-      .filter(addr => addr.TypeAddress === currentType);
-
-    if (isCurrentlyFavorite) {
-      // Está desativando o favorito
-      const favoritesOfType = sameTypeIndexes.filter(addr => addr.isFavorite);
-      // Se só existe 1 favorito daquele tipo, não pode desativar
-      if (favoritesOfType.length === 1) {
-        return;
-      }
-      // Senão, pode desativar livremente
-      setValue(`Address.${index}.isFavorite`, false);
-    } else {
-      // Ativando o favorito
-      // Desativar todos os outros do mesmo tipo
-      sameTypeIndexes.forEach(addr => {
-        setValue(`Address.${addr.i}.isFavorite`, false);
-      });
-      setValue(`Address.${index}.isFavorite`, true);
-    }
-  };
-
-  // useEffect para garantir sempre ao menos 1 favorito de cada tipo
-  useEffect(() => {
-    const checkTypes = ['Cobrança', 'Entrega'] as const;
-    checkTypes.forEach(type => {
-      const typeList = addresses
-        .map((addr, i) => ({ ...addr, i }))
-        .filter(addr => addr.TypeAddress === type);
-
-      if (!typeList.length) return; // Se não existir nenhum endereço do tipo, ignore
-
-      const hasFavorite = typeList.some(addr => addr.isFavorite);
-      if (!hasFavorite) {
-        // Força o primeiro a ser favorito
-        const firstIndex = typeList[0].i;
-        setValue(`Address.${firstIndex}.isFavorite`, true);
-      }
-    });
-  }, [addresses, setValue]);
 
   return (
     <Flex $direction="column">
@@ -274,16 +221,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
             error={errors?.Address && errors.Address[index]?.observation?.message}
           />
 
-          {/* Toggle para marcar como favorito */}
-          <LabelStyled>
-            Favorito
-            <ToggleButton
-              isActive={addresses[index]?.isFavorite || false}
-              onToggle={() => handleToggleFavorite(index)}
-            />
-          </LabelStyled>
-
-          {/* Só mostra/remover se a função permitir */}
+          {/* Botão para remover o endereço, se permitido */}
           {canRemoveAddress(index) && (
             <SubmitButton type="button" onClick={() => remove(index)}>
               Remover Endereço
@@ -295,6 +233,13 @@ const AddressForm: React.FC<AddressFormProps> = ({ control, register, errors, se
       <SubmitButton type="button" onClick={handleAddAddress}>
         Adicionar Endereço
       </SubmitButton>
+
+      {/* Se estiver no modal, mostra o botão "Salvar mudança" (type="submit") */}
+      {isFromModal && (
+        <SubmitButton type="submit" style={{ marginTop: '1rem' }}>
+          Salvar mudança
+        </SubmitButton>
+      )}
     </Flex>
   );
 };

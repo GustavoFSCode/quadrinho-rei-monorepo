@@ -22,8 +22,8 @@ const ButtonDanger = ({
       $width={width}
       $maxwidth={maxwidth}
       $height={height}
-      $backgroundcolor={theme.colors.primary7}
-      $hoveredbackgroundcolor={`linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), ${theme.colors.primary7};`}
+      $backgroundcolor={theme.colors.alert1}
+      $hoveredbackgroundcolor={`linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), ${theme.colors.alert1};`}
       color={theme.colors.neutral1}
       {...rest}
     >

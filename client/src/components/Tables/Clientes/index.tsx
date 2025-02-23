@@ -3,7 +3,7 @@ import { TableContainer, Table, TableHeadCell, TableHeadAction, TableBodyCell, T
 import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import ToggleButton from '@/components/Button/ToggleTable';
-import ModalEditarAdministrador from '@/components/Modals/Clientes/EditarCliente';
+import ModalEditarCliente from '@/components/Modals/Clientes/EditarCliente';
 import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
 
 function Tabela() {
@@ -68,7 +68,7 @@ function Tabela() {
           </tbody>
         </Table>
       </TableContainer>
-      {isModalOpen && <ModalEditarAdministrador onClose={closeModal} data={selectedData} />}
+      {isModalOpen && <ModalEditarCliente onClose={closeModal} data={selectedData} />}
       {isDescartationModalOpen && <ModalDescartation onClose={closeDescartationModal} />}
     </>
   );

@@ -23,8 +23,8 @@ const ButtonOutlineDanger = ({
       $maxwidth={maxwidth}
       $height={height}
       $backgroundcolor={theme.colors.neutral1}
-      $border={`0.125rem solid ${theme.colors.primary7}`}
-      $textcolor={theme.colors.primary7}
+      $border={`0.125rem solid ${theme.colors.alert1}`}
+      $textcolor={theme.colors.alert1}
       {...rest}
     >
       {children}
