@@ -1,5 +1,9 @@
+// Tabela.tsx
 import React, { useState } from 'react';
-import { TableContainer, Table, TableHeadCell, TableHeadAction, TableBodyCell, TableRow, ActionCell } from './styled';
+import {
+  TableContainer, Table, TableHeadCell, TableHeadAction,
+  TableBodyCell, TableRow, ActionCell
+} from './styled';
 import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import ToggleButton from '@/components/Button/ToggleTable';
@@ -9,14 +13,94 @@ import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Desca
 function Tabela() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState({
-    nome: '',
-    email: '',
-    acesso: ''
-  });
 
-  const openModal = (data: { nome: string; email: string; acesso: string }) => {
-    setSelectedData(data);
+  // Aqui guardamos o user selecionado
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  // EXEMPLO DE DADO FAKE COMPLETO:
+  const fakeUser = {
+    name: 'Tony Stark',
+    birthDate: '1970-05-29',
+    gender: 'Masculino',
+    cpf: '123.456.789-10',
+    phone: '(21) 99999-8888',
+    typePhone: 'Celular',
+    email: 'tony@starkindustries.com',
+    ranking: 5,
+    addresses: [
+      {
+        addressId: 1, // ID do endereço -> se tiver, consideramos já existente
+        nameAddress: 'Cobrança #1',
+        TypeAddress: 'Cobrança',
+        typeLogradouro: 'Avenida',
+        nameLogradouro: 'Stark Indústrias',
+        number: '100',
+        neighborhood: 'Brooklyn',
+        cep: '00000-001',
+        city: 'New York',
+        state: 'NY',
+        country: 'EUA',
+        observation: ''
+      },
+      {
+        addressId: 2,
+        nameAddress: 'Entrega #1',
+        TypeAddress: 'Entrega',
+        typeLogradouro: 'Rua',
+        nameLogradouro: 'Stark Tower',
+        number: '200',
+        neighborhood: 'Manhattan',
+        cep: '00000-002',
+        city: 'New York',
+        state: 'NY',
+        country: 'EUA',
+        observation: ''
+      },
+      {
+        addressId: 3,
+        nameAddress: 'Entrega #2',
+        TypeAddress: 'Entrega',
+        typeLogradouro: 'Rua',
+        nameLogradouro: 'Stark Labs',
+        number: '300',
+        neighborhood: 'Queens',
+        cep: '00000-003',
+        city: 'New York',
+        state: 'NY',
+        country: 'EUA',
+        observation: ''
+      },
+    ],
+    cards: [
+      {
+        cardId: 1,
+        holderName: 'Tony Stark',
+        numberCard: '1111 2222 3333 4444',
+        flagCard: 'Visa',
+        safeNumber: '123',
+        isFavorite: false
+      },
+      {
+        cardId: 2,
+        holderName: 'Pepper Potts',
+        numberCard: '5555 6666 7777 8888',
+        flagCard: 'Mastercard',
+        safeNumber: '999',
+        isFavorite: true
+      }
+    ]
+  };
+
+  // Apenas uns nomes para renderizar linhas na tabela
+  const nomes = [
+    'Maria Santos', 'Ana Paula', 'Gabriel Rodrigues', 'Rafael Costa',
+    'Gustavo Santos', 'Peter Parker', 'Bruce Wayne', 'Clark Kent',
+    'Tony Stark', 'Bruce Banner', 'Peter Quill', 'Wanda Maximoff',
+    'Steve Rogers'
+  ];
+
+  const openModal = () => {
+    setSelectedUser(fakeUser);
     setIsModalOpen(true);
   };
 
@@ -32,13 +116,6 @@ function Tabela() {
       closeModal(); // Fecha o modal de edição se necessário
     }
   };
-
-  const nomes = [
-    'Maria Santos', 'Ana Paula', 'Gabriel Rodrigues', 'Rafael Costa',
-    'Gustavo Santos', 'Peter Parker', 'Bruce Wayne', 'Clark Kent',
-    'Tony Stark', 'Bruce Banner', 'Peter Quill', 'Wanda Maximoff',
-    'Steve Rogers', 'Natasha Romanoff', 'Scott Lang'
-  ].slice(0, 13);
 
   return (
     <>
@@ -60,7 +137,11 @@ function Tabela() {
                 <TableBodyCell>01/01/2000</TableBodyCell>
                 <ActionCell>
                   <Trash onClick={openDescartationModal} /> {/* Abre o modal de descarte */}
-                  <Pencil onClick={() => openModal({ nome, email: 'email@email.com', acesso: 'Admin' })} />
+                  {/*
+                    Ao clicar no Pencil, chamamos "openModal", que
+                    seta "fakeUser" para selectedUser e abre modal.
+                  */}
+                  <Pencil onClick={openModal} />
                   <ToggleButton />
                 </ActionCell>
               </TableRow>
@@ -68,8 +149,19 @@ function Tabela() {
           </tbody>
         </Table>
       </TableContainer>
-      {isModalOpen && <ModalEditarCliente onClose={closeModal} data={selectedData} />}
-      {isDescartationModalOpen && <ModalDescartation onClose={closeDescartationModal} />}
+
+      {/* Modal de Edição de Cliente */}
+      {isModalOpen && (
+        <ModalEditarCliente
+          onClose={closeModal}
+          data={selectedUser} // passamos todo o fakeUser
+        />
+      )}
+
+      {/* Modal de Exclusão (Descartation) */}
+      {isDescartationModalOpen && (
+        <ModalDescartation onClose={closeDescartationModal} />
+      )}
     </>
   );
 }

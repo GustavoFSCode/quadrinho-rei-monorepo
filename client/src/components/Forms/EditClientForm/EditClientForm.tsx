@@ -10,23 +10,23 @@ import { Container, ErrorMessage, FormContainer, ModalButton, SubmitButton } fro
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import CustomSelect from '@/components/Select';
 import { maskCPFOrCNPJ, maskPhone, onlyDigits } from '@/utils/masks';
-import { getCardFlag } from '@/utils/masks';
-import ButtonOutlinePrimary from '@/components/Buttons/ButtonOutlinePrimary';
 import ModalChangePassword from '@/components/Modals/ModalChangePassword/ModalChangePassword';
 import ModalEndereco from '@/components/Modals/Clientes/EditarCliente/ModalEndereco';
 import ModalCartao from '@/components/Modals/Clientes/EditarCliente/ModalCartao';
 
 interface EditClientFormProps {
   onClose: () => void;
+  data: any; // Recebe o fakeUser
 }
 
-const EditClientForm: React.FC<EditClientFormProps> = ({ onClose }) => {
+const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSucessModal, setShowSucessModal] = useState(false);
   const [isModalPasswordOpen, setIsModalPasswordOpen] = useState(false);
   const [isModalCartaoOpen, setIsModalCartaoOpen] = useState(false);
   const [isModalEnderecoOpen, setIsModalEnderecoOpen] = useState(false);
 
+  // Ajustamos defaultValues para preencher o form
   const {
     register,
     handleSubmit,
@@ -34,6 +34,16 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose }) => {
     formState: { errors }
   } = useForm<IEditClientForm>({
     resolver: yupResolver(EditClientSchema),
+    defaultValues: {
+      name: data?.name || '',
+      birthDate: data?.birthDate || '',
+      gender: data?.gender || '',
+      cpf: data?.cpf || '',
+      phone: data?.phone || '',
+      typePhone: data?.typePhone || '',
+      email: data?.email || '',
+      ranking: data?.ranking || 0
+    }
   });
 
   // Opções para os selects
@@ -46,10 +56,11 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose }) => {
     { value: 'Fixo', label: 'Fixo' }
   ];
 
-  const onSubmit: SubmitHandler<IEditClientForm> = async (data) => {
+  const onSubmit: SubmitHandler<IEditClientForm> = async (formData) => {
     try {
       setIsSubmitting(true);
-      console.log("Dados do formulário:", data);
+      console.log("Dados do formulário de EDIÇÃO DE CLIENTE:", formData);
+      // Aqui faria a requisição PUT/POST do client
 
       setShowSucessModal(true);
     } catch (error) {
@@ -61,16 +72,17 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose }) => {
   };
 
   function onSuccessModalPassword(form: { password: string; confirm_password: string; }): void {
-    throw new Error('Function not implemented.');
+    // Exemplo de callback
+    console.log("Nova senha:", form.password);
   }
 
   const handleCloseEnderecoModal = () => {
     setIsModalEnderecoOpen(false);
-}
+  };
 
-const handleCloseCartaoModal = () => {
-  setIsModalCartaoOpen(false);
-}
+  const handleCloseCartaoModal = () => {
+    setIsModalCartaoOpen(false);
+  };
 
   return (
     <>
@@ -88,6 +100,7 @@ const handleCloseCartaoModal = () => {
           />
         )}
 
+        {/* Form principal para editar dados do CLIENTE */}
         <FormContainer onSubmit={handleSubmit(onSubmit)}>
           <Flex $direction="column" $gap="1.15rem">
             <h3>Dados do Cliente</h3>
@@ -186,15 +199,17 @@ const handleCloseCartaoModal = () => {
               error={errors?.ranking?.message}
             />
           </Flex>
+
           <Flex $direction="row" $gap="1.25rem" $justify="space-between">
             <SubmitButton type="submit" disabled={isSubmitting}>
               Editar
             </SubmitButton>
           </Flex>
         </FormContainer>
+
+        {/* Botões para abrir modais secundários (Endereço, Cartão, etc.) */}
         <Flex $direction='column' $gap='1.25rem'>
           <Flex $direction='row' $justify='center' $gap='2rem' $align='center'>
-            {/* Em vez de chamar onClose, chamamos setIsModalEnderecoOpen(true) */}
             <ModalButton type='button' onClick={() => setIsModalEnderecoOpen(true)}>
               Gerenciar endereços
             </ModalButton>
@@ -211,9 +226,29 @@ const handleCloseCartaoModal = () => {
           </Flex>
         </Flex>
       </Container>
-      {isModalPasswordOpen && <ModalChangePassword title='Alterar Senha' setShowModal={setIsModalPasswordOpen} onSuccess={onSuccessModalPassword} />}
-      {isModalEnderecoOpen && <ModalEndereco onClose={handleCloseEnderecoModal} data="Endereços do cliente" />}
-      {isModalCartaoOpen && <ModalCartao onClose={handleCloseCartaoModal} data="Cartões do cliente" />}
+
+      {/* Modais Secundários */}
+      {isModalPasswordOpen && (
+        <ModalChangePassword
+          title='Alterar Senha'
+          setShowModal={setIsModalPasswordOpen}
+          onSuccess={onSuccessModalPassword}
+        />
+      )}
+
+      {isModalEnderecoOpen && (
+        <ModalEndereco
+          onClose={handleCloseEnderecoModal}
+          data={data} // Passamos o usuário inteiro ou só data.addresses
+        />
+      )}
+
+      {isModalCartaoOpen && (
+        <ModalCartao
+          onClose={handleCloseCartaoModal}
+          data={data} // Aqui passaria data.cards, por exemplo
+        />
+      )}
     </>
   );
 };

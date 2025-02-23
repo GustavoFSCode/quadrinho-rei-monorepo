@@ -24,10 +24,14 @@ export const RegisterSchema = yup.object({
   phone: yup.string().required('Telefone é obrigatório'),
   typePhone: yup.string().required('Tipo de telefone é obrigatório'),
   ranking: yup.number().required('Ranking é obrigatório'),
+
   Address: yup
     .array()
     .of(
       yup.object({
+
+        addressId: yup.number().notRequired(),
+
         nameAddress: yup.string().required('Nome do endereço é obrigatório'),
         TypeAddress: yup.string().required('Tipo de endereço é obrigatório'),
         typeLogradouro: yup.string().required('Tipo de logradouro é obrigatório'),
@@ -51,8 +55,10 @@ export const RegisterSchema = yup.object({
         return hasCobranca && hasEntrega;
       }
     ),
+
   Cards: yup.array().of(
     yup.object({
+      cardId: yup.number().notRequired(),
       holderName: yup.string().required('Nome do titular é obrigatório'),
       numberCard: yup.string().required('Número do cartão é obrigatório'),
       flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
@@ -62,4 +68,5 @@ export const RegisterSchema = yup.object({
   )
 });
 
+// Esse tipo é gerado a partir do schema acima
 export type IRegisterForm = yup.InferType<typeof RegisterSchema>;
