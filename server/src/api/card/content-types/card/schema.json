@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cards",
+  "info": {
+    "singularName": "card",
+    "pluralName": "cards",
+    "displayName": "Card",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "holderName": {
+      "type": "string"
+    },
+    "numberCard": {
+      "type": "string"
+    },
+    "flagCard": {
+      "type": "enumeration",
+      "enum": [
+        "Visa",
+        "Elo",
+        "Mastercard"
+      ]
+    },
+    "safeNumber": {
+      "type": "string"
+    },
+    "client": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::client.client",
+      "inversedBy": "cards"
+    },
+    "isFavorite": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
