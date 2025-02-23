@@ -63,8 +63,8 @@ const ChangeForm = () => {
               label="Confirmar nova senha"
               type="password"
               placeholder="Confirme a senha"
-              {...register('confirmPassword')}
-              error={errors?.confirmPassword?.message}
+              {...register('confirm_password')}
+              error={errors?.confirm_password?.message}
             />
         </Flex>
 
