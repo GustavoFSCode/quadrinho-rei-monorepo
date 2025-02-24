@@ -36,10 +36,7 @@ class clientService {
                 typePhone,
                 ranking,
                 Address,
-                holderName,
-                numberCard,
-                flagCard,
-                safeNumber
+                Card,
             } = data
             
             const users = await strapi.documents('plugin::users-permissions.user').findMany({
@@ -69,7 +66,7 @@ class clientService {
                         state: field.state,
                         country: field.country,
                         observation: field.observation,
-                        isFavorite: true
+                        isFavorite: field.isFavorite
                     }
                 })
                 if(field.TypeAddress === 'Cobrança'){
@@ -90,6 +87,22 @@ class clientService {
                 throw new ApplicationError("O cliente precisa ter um endereço de cobrança e um endereço de entrega");
             }
 
+            
+            let cards = [];
+
+            for(const field of Card){
+                const createCard = await strapi.documents('api::card.card').create({
+                    data: {
+                        holderName: field.holderName,
+                        numberCard: field.numberCard,
+                        flagCard: field.flagCard,
+                        safeNumber : field.safeNumber,
+                        isFavorite: field.isFavorite
+                    }
+                })
+                cards.push(createCard.documentId)
+            }
+            
             const user = await strapi.documents('plugin::users-permissions.user').create({
                 data: {
                     username: email.toLowerCase(),
@@ -102,15 +115,6 @@ class clientService {
                 }
             })
 
-            const createCard = await strapi.documents('api::card.card').create({
-                data: {
-                    holderName,
-                    numberCard,
-                    flagCard,
-                    safeNumber,
-                    isFavorite: true
-                }
-            })
 
            const client = await strapi.documents('api::client.client').create({
                 data: {
@@ -122,11 +126,10 @@ class clientService {
                     typePhone,
                     ranking,
                     user: user.documentId,
-                    cards: {connect: [createCard.documentId]},
+                    cards: cards,
                     addresses: addresses
                 }
             })
-
             return await strapi.documents('api::client.client').findOne({
                 documentId: client.documentId,
                 populate: ['addresses', 'cards', 'user']
