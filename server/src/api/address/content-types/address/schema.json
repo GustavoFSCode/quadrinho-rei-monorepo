@@ -60,10 +60,6 @@
       "relation": "manyToOne",
       "target": "api::client.client",
       "inversedBy": "addresses"
-    },
-    "isFavorite": {
-      "type": "boolean",
-      "default": false
     }
   }
 }

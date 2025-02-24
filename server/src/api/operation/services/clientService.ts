@@ -66,7 +66,6 @@ class clientService {
                         state: field.state,
                         country: field.country,
                         observation: field.observation,
-                        isFavorite: field.isFavorite
                     }
                 })
                 if(field.TypeAddress === 'Cobrança'){
