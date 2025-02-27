@@ -24,6 +24,11 @@ module.exports = {
             handler: "operation.editClient",
         },
         {
+            method: "PUT",
+            path: "/blockUser/:userDocumentId",
+            handler: "operation.blockUser",
+        },
+        {
             method: "DELETE",
             path: "/deleteUser/:userDocumentId",
             handler: "operation.deleteUser",
@@ -42,6 +47,11 @@ module.exports = {
             method: "PUT",
             path: "/editCard/:cardDocumentId",
             handler: "operation.editCard",
+        },
+        {
+            method: "POST",
+            path: "/createAddress/:clientDocumentId",
+            handler: "operation.createAddress",
         }
     ]
 };

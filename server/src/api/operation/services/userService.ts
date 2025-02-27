@@ -2,6 +2,28 @@ const utils = require('@strapi/utils');
 const { ApplicationError } = require('@strapi/utils').errors;
 
 class UserService {
+
+    async blockUser(ctx){
+        const {userDocumentId} = ctx.request.params;
+        if(!userDocumentId){
+            throw new ApplicationError("ID nao localizado.");
+        }
+
+        let blockedStatus = await strapi .documents('plugin::users-permissions.user').findOne({
+            documentId: userDocumentId,
+            fields: ['blocked']
+        })
+        if(!blockedStatus){
+            throw new ApplicationError("Cliente nao encontrado");
+        }
+
+        return await strapi.documents('plugin::users-permissions.user').update({
+            documentId: userDocumentId,
+            data: {
+                blocked: !blockedStatus.blocked
+            }
+        })
+    }
     async deleteUser(ctx){
         try{
             const {userDocumentId} = ctx.request.params;
