@@ -52,6 +52,16 @@ module.exports = {
             method: "POST",
             path: "/createAddress/:clientDocumentId",
             handler: "operation.createAddress",
-        }
+        },
+        {
+            method: "PUT",
+            path: "/editAddress/:addressDocumentId",
+            handler: "operation.editAddress",
+        },
+        {
+            method: "DELETE",
+            path: "/deleteAddress/:addressDocumentId",
+            handler: "operation.deleteAddress",
+        },
     ]
 };

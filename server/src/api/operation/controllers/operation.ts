@@ -44,5 +44,13 @@ export default factories.createCoreController('api::operation.operation', ({ str
     async createAddress(ctx){
         const sales = new AddressService();
         return sales.createAddress(ctx);
-    }
+    },
+    async editAddress(ctx){
+        const sales = new AddressService();
+        return sales.editAddress(ctx);
+    },
+    async deleteAddress(ctx){
+        const sales = new AddressService();
+        return sales.deleteAddress(ctx);
+    },
  }));
