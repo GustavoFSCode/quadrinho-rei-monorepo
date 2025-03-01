@@ -1,3 +1,4 @@
+"use client";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { ILoginForm, LoginSchema } from '@/validations/LoginSchema';
@@ -14,10 +15,12 @@ import {
   SubmitButton,
 } from './styles';
 
+// Importe o serviço de login
+import { login } from '@/services/authService';
+
 const LoginForm = () => {
   const router = useRouter();
-  const { setUser } = useAuth();
-
+  const { setUser } = useAuth(); // se você estiver usando algum contexto para armazenar o usuário
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -28,26 +31,33 @@ const LoginForm = () => {
     resolver: yupResolver(LoginSchema),
   });
 
-  const onSubmit: SubmitHandler<ILoginForm> = async () => {
+  // Função de submit
+  const onSubmit: SubmitHandler<ILoginForm> = async (formData) => {
     try {
       setIsSubmitting(true);
 
-      setUser({ id: 1, username: 'Admin', email: 'GoAdmin@gmail.com' });
+      // formData.email -> vira 'identifier'
+      // formData.password -> vira 'password'
+      const { jwt, user } = await login(formData.email, formData.password);
 
-      localStorage.setItem(localStorageKeys.accessToken, '123');
-      localStorage.setItem(
-        localStorageKeys.user,
-        JSON.stringify({
-          id: 1,
-          username: 'Admin',
-          email: 'QuadrinhosRei@gmail.com',
-        }),
-      );
-      localStorage.setItem(localStorageKeys.refreshToken, '123');
+      // Salva o token e o user no localStorage (ou sessionStorage)
+      localStorage.setItem(localStorageKeys.accessToken, jwt);
+      localStorage.setItem(localStorageKeys.user, JSON.stringify(user));
 
+      // Caso Strapi retorne refreshToken, você pode armazená-lo aqui também
+      // localStorage.setItem(localStorageKeys.refreshToken, data.refreshToken);
+
+      // Se estiver usando um contexto global (ex: Redux ou useAuth), você pode setar o user
+      setUser({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      });
+
+      // Redireciona para a rota de clientes
       router.push('/clientes');
     } catch (error) {
-      handleError(error);
+      handleError(error); // ou exibir mensagem de erro
     } finally {
       setIsSubmitting(false);
     }
@@ -76,14 +86,13 @@ const LoginForm = () => {
             error={errors?.password?.message}
           />
         </Flex>
+
         <Flex $direction="column" $gap="1.375rem" $align="center">
           <SubmitButton size='1.18rem' type="submit" disabled={isSubmitting}>
-            Entrar
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
           </SubmitButton>
-
         </Flex>
       </FormContainer>
-
     </Container>
   );
 };

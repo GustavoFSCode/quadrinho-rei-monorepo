@@ -9,8 +9,11 @@ export const LoginSchema = yup.object({
     .email('Insira um e-mail válido'),
   password: yup
     .string()
-    .min(6, 'Mínimo de 6 digitos')
-    .required('Senha é obrigatória'),
+    .required('Senha é obrigatória')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
+      'A senha deve ter no mínimo 8 caracteres, incluindo 1 letra maiúscula, 1 minúscula e 1 caractere especial'
+    )
 });
 
 export type IRecoveryForm = yup.InferType<typeof RecoverySchema>;

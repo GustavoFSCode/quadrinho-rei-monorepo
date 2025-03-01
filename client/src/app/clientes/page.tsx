@@ -1,5 +1,6 @@
 "use client";
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import {
     ContentContainer,
     Header,
@@ -14,20 +15,31 @@ import {
 } from './styled';
 import Filter from '@/components/icons/Filter';
 import Plus from '@/components/icons/Plus';
-import Lupa from '@/components/icons/Lupa';
 import Button from "@/components/Button";
 import Input from "@/components/Inputs/Input/Input";
 import Navbar from "@/components/Navbar";
 import Barra from '@/components/icons/Barra';
 import Tabela from '@/components/Tables/Clientes';
 import Pagination from '@/components/Pagination';
-import ModalCadastrarAdministrador from '@/components/Modals/Clientes/CadastrarCliente';
+import ModalCadastrarClientes from '@/components/Modals/Clientes/CadastrarCliente';
 import FilterModal from '@/components/Modals/Clientes/Filter';
+import { getClient } from '@/services/clientService';
 
-export default function Administradores() {
+export default function Clientes() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false); // Estado para o modal de filtro
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const data = await getClient();
+                console.log('Resposta de /getClient:', data);
+            } catch (error) {
+                console.error('Erro ao chamar /getClient:', error);
+            }
+        })();
+    }, []);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -98,19 +110,19 @@ export default function Administradores() {
                     </HeaderBottom>
                 </Header>
                 <Content>
-                    <Tabela/>
+                    <Tabela />
                 </Content>
                 <Footer>
-                    <Pagination itemsPerPage={13}/>
+                    <Pagination itemsPerPage={13} />
                 </Footer>
             </ContentContainer>
 
             {isModalOpen && (
-                <ModalCadastrarAdministrador onClose={handleCloseModal} />
+                <ModalCadastrarClientes onClose={handleCloseModal} />
             )}
 
             {isFilterModalOpen && (
-                <FilterModal onClose={handleCloseFilterModal} /> // Renderiza o modal de filtro
+                <FilterModal onClose={handleCloseFilterModal} />
             )}
         </>
     )
