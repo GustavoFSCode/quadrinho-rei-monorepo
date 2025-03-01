@@ -1,4 +1,4 @@
-// ModalEditarCliente.tsx
+// components/Modals/Clientes/EditarCliente.tsx
 import {
   ModalOverlay,
   ModalContent,
@@ -7,10 +7,11 @@ import {
 } from './styled';
 import Closed from "@/components/icons/Closed";
 import EditClientForm from "@/components/Forms/EditClientForm/EditClientForm";
+import { Client } from '@/services/clientService';
 
 interface ModalEditarClienteProps {
   onClose: () => void;
-  data: any; // Recebe o objeto de usuário fake
+  data: Client;
 }
 
 const ModalEditarCliente: React.FC<ModalEditarClienteProps> = ({ onClose, data }) => {
@@ -22,7 +23,7 @@ const ModalEditarCliente: React.FC<ModalEditarClienteProps> = ({ onClose, data }
           <Closed onClick={onClose} />
         </ModalHeader>
         <ModalBody>
-          {/* Passamos os dados do cliente para o form */}
+          {/* Passa os dados do cliente para o form */}
           <EditClientForm onClose={onClose} data={data} />
         </ModalBody>
       </ModalContent>

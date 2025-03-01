@@ -27,11 +27,16 @@ interface TabelaProps {
   clients: Client[];
   onClientDeleted: () => void;
   onUserToggled: () => void;
+  onClientEdited: () => void; // callback para atualizar a lista após edição
 }
 
-function Tabela({ clients, onClientDeleted, onUserToggled }: TabelaProps) {
+function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: TabelaProps) {
   const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
   const [selectedUserDocumentId, setSelectedUserDocumentId] = useState<string | null>(null);
+
+  // Estados para o modal de edição
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const openDescartationModal = (userDocumentId: string) => {
     setSelectedUserDocumentId(userDocumentId);
@@ -41,6 +46,18 @@ function Tabela({ clients, onClientDeleted, onUserToggled }: TabelaProps) {
   const closeDescartationModal = (shouldCloseAll: boolean) => {
     setDescartationModalOpen(false);
     setSelectedUserDocumentId(null);
+  };
+
+  // Abre o modal de edição com os dados do cliente selecionado
+  const openEditModal = (client: Client) => {
+    setSelectedClient(client);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedClient(null);
+    onClientEdited(); // Atualiza a lista (caso a edição altere os dados)
   };
 
   // Função para alternar bloqueio/desbloqueio do usuário
@@ -73,9 +90,9 @@ function Tabela({ clients, onClientDeleted, onUserToggled }: TabelaProps) {
                 <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
                 <ActionCell>
                   <Trash onClick={() => openDescartationModal(client.user.documentId)} />
-                  <Pencil onClick={() => {}} />
+                  <Pencil onClick={() => openEditModal(client)} />
                   <ToggleButton
-                    isActive={!client.user.blocked} // Se o usuário não estiver bloqueado, toggle ativo
+                    isActive={!client.user.blocked} // Se não estiver bloqueado, toggle ativo
                     onToggle={() => handleToggleBlocked(client.user.documentId)}
                   />
                 </ActionCell>
@@ -91,6 +108,10 @@ function Tabela({ clients, onClientDeleted, onUserToggled }: TabelaProps) {
           userDocumentId={selectedUserDocumentId}
           onDeleted={onClientDeleted}
         />
+      )}
+
+      {isEditModalOpen && selectedClient && (
+        <ModalEditarCliente onClose={closeEditModal} data={selectedClient} />
       )}
     </>
   );

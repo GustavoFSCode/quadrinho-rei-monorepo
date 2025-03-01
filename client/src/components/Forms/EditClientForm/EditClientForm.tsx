@@ -13,10 +13,11 @@ import { maskCPFOrCNPJ, maskPhone, onlyDigits } from '@/utils/masks';
 import ModalChangePassword from '@/components/Modals/ModalChangePassword/ModalChangePassword';
 import ModalEndereco from '@/components/Modals/Clientes/EditarCliente/ModalEndereco';
 import ModalCartao from '@/components/Modals/Clientes/EditarCliente/ModalCartao';
+import { Client } from '@/services/clientService';
 
 interface EditClientFormProps {
   onClose: () => void;
-  data: any; // Recebe o fakeUser
+  data: Client;
 }
 
 const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
@@ -26,7 +27,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   const [isModalCartaoOpen, setIsModalCartaoOpen] = useState(false);
   const [isModalEnderecoOpen, setIsModalEnderecoOpen] = useState(false);
 
-  // Ajustamos defaultValues para preencher o form
+
   const {
     register,
     handleSubmit,
@@ -35,18 +36,17 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   } = useForm<IEditClientForm>({
     resolver: yupResolver(EditClientSchema),
     defaultValues: {
-      name: data?.name || '',
-      birthDate: data?.birthDate || '',
-      gender: data?.gender || '',
-      cpf: data?.cpf || '',
-      phone: data?.phone || '',
-      typePhone: data?.typePhone || '',
-      email: data?.email || '',
-      ranking: data?.ranking || 0
+      name: data.name || '',
+      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+      gender: data.gender || '',
+      cpf: data.cpf || '',
+      phone: data.phone || '',
+      typePhone: data.typePhone || '',
+      email: data.user.email || '',
+      ranking: data.ranking || 0
     }
   });
 
-  // Opções para os selects
   const genderOptions = [
     { value: 'Masculino', label: 'Masculino' },
     { value: 'Feminino', label: 'Feminino' }
@@ -60,8 +60,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
     try {
       setIsSubmitting(true);
       console.log("Dados do formulário de EDIÇÃO DE CLIENTE:", formData);
-      // Aqui faria a requisição PUT/POST do client
-
+      // Aqui você faria a requisição PUT para atualizar os dados do cliente
       setShowSucessModal(true);
     } catch (error) {
       console.error("Erro no onSubmit:", error);
@@ -72,7 +71,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   };
 
   function onSuccessModalPassword(form: { password: string; confirm_password: string; }): void {
-    // Exemplo de callback
     console.log("Nova senha:", form.password);
   }
 
@@ -100,11 +98,9 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
           />
         )}
 
-        {/* Form principal para editar dados do CLIENTE */}
         <FormContainer onSubmit={handleSubmit(onSubmit)}>
           <Flex $direction="column" $gap="1.15rem">
             <h3>Dados do Cliente</h3>
-
             <Input
               id="name"
               autoComplete="name"
@@ -113,17 +109,25 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               {...register('name')}
               error={errors?.name?.message}
             />
-
-            <Input
-              id="birthDate"
-              type="date"
-              label="Data de Nascimento"
-              placeholder="2000-01-01"
-              {...register('birthDate')}
-              error={errors?.birthDate?.message}
+            <Controller
+              control={control}
+              name="birthDate"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  id="birthDate"
+                  type="date"
+                  label="Data de Nascimento"
+                  placeholder="2000-01-01"
+                  // Se value for Date, formata para "YYYY-MM-DD"; se não, usa value diretamente
+                  value={value ? (value instanceof Date ? value.toISOString().split('T')[0] : value) : ''}
+                  onChange={(e) => {
+                    // Converte a string do input para Date e chama onChange
+                    onChange(new Date(e.target.value));
+                  }}
+                  error={errors?.birthDate?.message}
+                />
+              )}
             />
-
-            {/* Campo Select para Gênero */}
             <Controller
               control={control}
               name="gender"
@@ -139,7 +143,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               )}
             />
             {errors?.gender && <ErrorMessage>{errors.gender.message}</ErrorMessage>}
-
             <Input
               id="cpf"
               label="CPF"
@@ -149,7 +152,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               {...register('cpf')}
               error={errors?.cpf?.message}
             />
-
             <Input
               id="phone"
               autoComplete="tel-national"
@@ -161,8 +163,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               {...register('phone')}
               error={errors?.phone?.message}
             />
-
-            {/* Campo Select para Tipo de Telefone */}
             <Controller
               control={control}
               name="typePhone"
@@ -178,7 +178,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               )}
             />
             {errors?.typePhone && <ErrorMessage>{errors.typePhone.message}</ErrorMessage>}
-
             <Input
               id="email"
               autoComplete="email"
@@ -188,7 +187,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               {...register('email')}
               error={errors?.email?.message}
             />
-
             <Input
               id="ranking"
               type="number"
@@ -207,18 +205,15 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
           </Flex>
         </FormContainer>
 
-        {/* Botões para abrir modais secundários (Endereço, Cartão, etc.) */}
         <Flex $direction='column' $gap='1.25rem'>
           <Flex $direction='row' $justify='center' $gap='2rem' $align='center'>
             <ModalButton type='button' onClick={() => setIsModalEnderecoOpen(true)}>
               Gerenciar endereços
             </ModalButton>
-
             <ModalButton type='button' onClick={() => setIsModalCartaoOpen(true)}>
               Gerenciar cartões
             </ModalButton>
           </Flex>
-
           <Flex $direction='row' $gap='1rem' $justify='center' $align='center'>
             <ModalButton type='button' onClick={() => setIsModalPasswordOpen(true)}>
               Alterar senha
@@ -227,7 +222,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
         </Flex>
       </Container>
 
-      {/* Modais Secundários */}
       {isModalPasswordOpen && (
         <ModalChangePassword
           title='Alterar Senha'
@@ -237,17 +231,11 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
       )}
 
       {isModalEnderecoOpen && (
-        <ModalEndereco
-          onClose={handleCloseEnderecoModal}
-          data={data} // Passamos o usuário inteiro ou só data.addresses
-        />
+        <ModalEndereco onClose={handleCloseEnderecoModal} data={data.addresses} />
       )}
 
       {isModalCartaoOpen && (
-        <ModalCartao
-          onClose={handleCloseCartaoModal}
-          data={data} // Aqui passaria data.cards, por exemplo
-        />
+        <ModalCartao onClose={handleCloseCartaoModal} data={data.cards} />
       )}
     </>
   );

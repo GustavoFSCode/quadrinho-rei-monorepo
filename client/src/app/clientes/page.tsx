@@ -117,6 +117,7 @@ export default function Clientes() {
             clients={clients}
             onClientDeleted={fetchClients}
             onUserToggled={fetchClients}
+            onClientEdited={fetchClients}
           />
         </Content>
         <Footer>
