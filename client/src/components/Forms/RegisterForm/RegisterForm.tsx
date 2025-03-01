@@ -14,12 +14,14 @@ import { useRouter } from 'next/navigation';
 import CustomSelect from '@/components/Select';
 import { maskCPFOrCNPJ, maskPhone } from '@/utils/masks';
 import { getCardFlag } from '@/utils/masks';
+import { createClient } from '@/services/clientService';
 
 interface RegisterFormProps {
   onClose: () => void;
+  onClientCreated: () => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onClose, onClientCreated }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSucessModal, setShowSucessModal] = useState(false);
   const router = useRouter();
@@ -40,25 +42,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
   } = useForm<IRegisterForm>({
     resolver: yupResolver(RegisterSchema),
     defaultValues: {
-      // Já inicia com 2 endereços (um de Cobrança e outro de Entrega)
       Address: [
-        {
-          TypeAddress: 'Cobrança',
-        },
-        {
-          TypeAddress: 'Entrega',
-        }
+        { TypeAddress: 'Cobrança' },
+        { TypeAddress: 'Entrega' }
       ],
-      // Inicia com 1 cartão
       Cards: [
-        {
-          isFavorite: true // ou false, dependendo se quer começar favorito
-        }
+        { isFavorite: true }
       ]
     }
   });
 
-  // Opções para os selects
   const genderOptions = [
     { value: 'Masculino', label: 'Masculino' },
     { value: 'Feminino', label: 'Feminino' }
@@ -72,14 +65,43 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
     try {
       setIsSubmitting(true);
 
-      // Ajusta as bandeiras de cada cartão antes de enviar (boa prática)
       data.Cards = (data.Cards || []).map(card => ({
         ...card,
         flagCard: getCardFlag(card.numberCard || '')
       }));
 
-      console.log("Dados do formulário:", data);
+      // Converte a data para string "YYYY-MM-DD"
+      const formattedBirthDate =
+        data.birthDate instanceof Date
+          ? data.birthDate.toISOString().split('T')[0]
+          : data.birthDate;
 
+      // Formata os endereços para garantir que observation seja uma string
+      const formattedAddresses = (data.Address ?? []).map(address => ({
+        ...address,
+        observation: address.observation || ""
+      }));
+
+      const payload = {
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        birthDate: formattedBirthDate,
+        gender: data.gender,
+        cpf: data.cpf,
+        phone: data.phone,
+        typePhone: data.typePhone,
+        ranking: data.ranking,
+        Address: formattedAddresses,
+        Card: data.Cards ?? []
+      };
+
+      await createClient(payload);
+
+      // Chama o callback para atualizar a lista de clientes
+      onClientCreated();
+
+      // Exibe o modal de sucesso e fecha após confirmação
       setShowSucessModal(true);
     } catch (error) {
       console.error("Erro no onSubmit:", error);
@@ -107,7 +129,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
       <FormContainer onSubmit={handleSubmit(onSubmit, onError)}>
         <Flex $direction="column" $gap="1.15rem">
           <h3>Dados do Cliente</h3>
-
           <Input
             id="name"
             autoComplete="name"
@@ -116,7 +137,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('name')}
             error={errors?.name?.message}
           />
-
           <Input
             id="birthDate"
             type="date"
@@ -125,8 +145,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('birthDate')}
             error={errors?.birthDate?.message}
           />
-
-          {/* Campo Select para Gênero */}
           <Controller
             control={control}
             name="gender"
@@ -142,7 +160,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             )}
           />
           {errors?.gender && <ErrorMessage>{errors.gender.message}</ErrorMessage>}
-
           <Input
             id="cpf"
             label="CPF"
@@ -152,7 +169,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('cpf')}
             error={errors?.cpf?.message}
           />
-
           <Input
             id="phone"
             autoComplete="tel-national"
@@ -164,8 +180,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('phone')}
             error={errors?.phone?.message}
           />
-
-          {/* Campo Select para Tipo de Telefone */}
           <Controller
             control={control}
             name="typePhone"
@@ -181,7 +195,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             )}
           />
           {errors?.typePhone && <ErrorMessage>{errors.typePhone.message}</ErrorMessage>}
-
           <Input
             id="email"
             autoComplete="email"
@@ -191,7 +204,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('email')}
             error={errors?.email?.message}
           />
-
           <Input
             id="password"
             label="Senha"
@@ -200,7 +212,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('password')}
             error={errors?.password?.message}
           />
-
           <Input
             id="confirm_password"
             label="Confirmar Senha"
@@ -209,7 +220,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
             {...register('confirm_password')}
             error={errors?.confirm_password?.message}
           />
-
           <Input
             id="ranking"
             type="number"
@@ -220,10 +230,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose }) => {
           />
         </Flex>
 
-        {/* Form de Endereços (com toggle de favorito por tipo) */}
         <AddressForm control={control} register={register} errors={errors} setValue={setValue} />
-
-        {/* Form de Cartões (já com lógica de favorito) */}
         <CardForm control={control} register={register} errors={errors} setValue={setValue} />
 
         <Flex $direction="row" $gap="1.25rem" $justify="space-between">

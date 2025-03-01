@@ -8,12 +8,12 @@ import {
 } from './styled';
 import Closed from "@/components/icons/Closed";
 
-
 interface ModalCadastrarClienteProps {
   onClose: () => void;
+  onClientCreated: () => void;
 }
 
-const ModalCadastrarCliente: React.FC<ModalCadastrarClienteProps> = ({ onClose }) => {
+const ModalCadastrarCliente: React.FC<ModalCadastrarClienteProps> = ({ onClose, onClientCreated }) => {
   return (
     <ModalOverlay>
       <ModalContent>
@@ -22,7 +22,7 @@ const ModalCadastrarCliente: React.FC<ModalCadastrarClienteProps> = ({ onClose }
           <Closed onClick={onClose} />
         </ModalHeader>
         <ModalBody>
-          <RegisterForm onClose={onClose} />
+          <RegisterForm onClose={onClose} onClientCreated={onClientCreated} />
         </ModalBody>
       </ModalContent>
     </ModalOverlay>

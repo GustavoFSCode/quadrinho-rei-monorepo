@@ -94,7 +94,7 @@ export const getCardFlag = (cardNumber: string) => {
   } else if (num >= 4 && num <= 7) {
     return 'Visa';
   } else if (num >= 8 && num <= 9) {
-    return 'MasterCard';
+    return 'Mastercard';
   }
   return '';
 };

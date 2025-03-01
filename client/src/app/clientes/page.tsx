@@ -23,7 +23,8 @@ import Tabela from '@/components/Tables/Clientes';
 import Pagination from '@/components/Pagination';
 import ModalCadastrarClientes from '@/components/Modals/Clientes/CadastrarCliente';
 import FilterModal from '@/components/Modals/Clientes/Filter';
-import { getClient, Client } from '@/services/clientService';
+import { getClient } from '@/services/clientService';
+import { Client } from '@/services/clientService';
 
 export default function Clientes() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,16 +32,18 @@ export default function Clientes() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
+  const fetchClients = async () => {
+    try {
+      const data = await getClient();
+      console.log('Resposta de /getClient:', data);
+      setClients(data);
+    } catch (error) {
+      console.error('Erro ao chamar /getClient:', error);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getClient();
-        console.log('Resposta de /getClient:', data);
-        setClients(data);
-      } catch (error) {
-        console.error('Erro ao chamar /getClient:', error);
-      }
-    })();
+    fetchClients();
   }, []);
 
   const handleOpenModal = () => {
@@ -112,7 +115,6 @@ export default function Clientes() {
           </HeaderBottom>
         </Header>
         <Content>
-          {/* Passa o array de clientes reais para a tabela */}
           <Tabela clients={clients} />
         </Content>
         <Footer>
@@ -121,7 +123,10 @@ export default function Clientes() {
       </ContentContainer>
 
       {isModalOpen && (
-        <ModalCadastrarClientes onClose={handleCloseModal} />
+        <ModalCadastrarClientes
+          onClose={handleCloseModal}
+          onClientCreated={fetchClients}
+        />
       )}
 
       {isFilterModalOpen && (
