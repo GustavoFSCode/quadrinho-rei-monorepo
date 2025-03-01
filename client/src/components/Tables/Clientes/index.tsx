@@ -1,4 +1,5 @@
-import React from 'react';
+// components/Tables/Clientes.tsx
+import React, { useState } from 'react';
 import {
   TableContainer,
   Table,
@@ -11,6 +12,7 @@ import {
 import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import ToggleButton from '@/components/Button/ToggleTable';
+import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
 import { Client } from '@/services/clientService';
 
 // Função para formatar a data de "YYYY-MM-DD" para "DD/MM/YYYY"
@@ -22,37 +24,60 @@ function formatDate(dateString: string): string {
 
 interface TabelaProps {
   clients: Client[];
+  onClientDeleted: () => void;
 }
 
-function Tabela({ clients }: TabelaProps) {
+function Tabela({ clients, onClientDeleted }: TabelaProps) {
+  const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
+  const [selectedUserDocumentId, setSelectedUserDocumentId] = useState<string | null>(null);
+
+  const openDescartationModal = (userDocumentId: string) => {
+    setSelectedUserDocumentId(userDocumentId);
+    setDescartationModalOpen(true);
+  };
+
+  const closeDescartationModal = (shouldCloseAll: boolean) => {
+    setDescartationModalOpen(false);
+    setSelectedUserDocumentId(null);
+  };
+
   return (
-    <TableContainer>
-      <Table aria-label="tabela customizada">
-        <thead>
-          <tr>
-            <TableHeadCell>Nome</TableHeadCell>
-            <TableHeadCell>E-mail</TableHeadCell>
-            <TableHeadCell>Data de nascimento</TableHeadCell>
-            <TableHeadAction>Ações</TableHeadAction>
-          </tr>
-        </thead>
-        <tbody>
-          {clients.map((client) => (
-            <TableRow key={client.id}>
-              <TableBodyCell>{client.name}</TableBodyCell>
-              <TableBodyCell>{client.user.email}</TableBodyCell>
-              <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
-              <ActionCell>
-                {/* Ações podem ser implementadas conforme a necessidade */}
-                <Trash onClick={() => {}} />
-                <Pencil onClick={() => {}} />
-                <ToggleButton />
-              </ActionCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </Table>
-    </TableContainer>
+    <>
+      <TableContainer>
+        <Table aria-label="tabela customizada">
+          <thead>
+            <tr>
+              <TableHeadCell>Nome</TableHeadCell>
+              <TableHeadCell>E-mail</TableHeadCell>
+              <TableHeadCell>Data de nascimento</TableHeadCell>
+              <TableHeadAction>Ações</TableHeadAction>
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map((client) => (
+              <TableRow key={client.id}>
+                <TableBodyCell>{client.name}</TableBodyCell>
+                <TableBodyCell>{client.user.email}</TableBodyCell>
+                <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
+                <ActionCell>
+                  <Trash onClick={() => openDescartationModal(client.user.documentId)} />
+                  <Pencil onClick={() => {}} />
+                  <ToggleButton />
+                </ActionCell>
+              </TableRow>
+            ))}
+          </tbody>
+        </Table>
+      </TableContainer>
+
+      {isDescartationModalOpen && selectedUserDocumentId && (
+        <ModalDescartation
+          onClose={closeDescartationModal}
+          userDocumentId={selectedUserDocumentId}
+          onDeleted={onClientDeleted}
+        />
+      )}
+    </>
   );
 }
 

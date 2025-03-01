@@ -35,10 +35,9 @@ export default function Clientes() {
   const fetchClients = async () => {
     try {
       const data = await getClient();
-      console.log('Resposta de /getClient:', data);
       setClients(data);
     } catch (error) {
-      console.error('Erro ao chamar /getClient:', error);
+      console.error('Erro ao buscar clientes:', error);
     }
   };
 
@@ -82,7 +81,6 @@ export default function Clientes() {
                 />
                 <Barra />
               </StyledInputBox>
-
               <ButtonBox>
                 <Button
                   text={
@@ -115,7 +113,7 @@ export default function Clientes() {
           </HeaderBottom>
         </Header>
         <Content>
-          <Tabela clients={clients} />
+          <Tabela clients={clients} onClientDeleted={fetchClients} />
         </Content>
         <Footer>
           <Pagination itemsPerPage={13} />
