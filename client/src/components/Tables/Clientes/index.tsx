@@ -13,9 +13,9 @@ import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import ToggleButton from '@/components/Button/ToggleTable';
 import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
-import { Client } from '@/services/clientService';
+import { Client, blockUser } from '@/services/clientService';
 
-// Função para formatar a data de "YYYY-MM-DD" para "DD/MM/YYYY"
+// Função para formatar a data "YYYY-MM-DD" para "DD/MM/YYYY"
 function formatDate(dateString: string): string {
   const parts = dateString.split('-');
   if (parts.length !== 3) return dateString;
@@ -25,9 +25,10 @@ function formatDate(dateString: string): string {
 interface TabelaProps {
   clients: Client[];
   onClientDeleted: () => void;
+  onUserToggled: () => void;
 }
 
-function Tabela({ clients, onClientDeleted }: TabelaProps) {
+function Tabela({ clients, onClientDeleted, onUserToggled }: TabelaProps) {
   const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
   const [selectedUserDocumentId, setSelectedUserDocumentId] = useState<string | null>(null);
 
@@ -39,6 +40,16 @@ function Tabela({ clients, onClientDeleted }: TabelaProps) {
   const closeDescartationModal = (shouldCloseAll: boolean) => {
     setDescartationModalOpen(false);
     setSelectedUserDocumentId(null);
+  };
+
+  // Função para alternar bloqueio/desbloqueio do usuário
+  const handleToggleBlocked = async (userDocumentId: string) => {
+    try {
+      await blockUser(userDocumentId);
+      onUserToggled(); // Atualiza a lista de clientes
+    } catch (error) {
+      console.error("Erro ao bloquear/desbloquear usuário:", error);
+    }
   };
 
   return (
@@ -62,7 +73,10 @@ function Tabela({ clients, onClientDeleted }: TabelaProps) {
                 <ActionCell>
                   <Trash onClick={() => openDescartationModal(client.user.documentId)} />
                   <Pencil onClick={() => {}} />
-                  <ToggleButton />
+                  <ToggleButton
+                    isActive={!client.user.blocked} // Se o usuário não estiver bloqueado, toggle ativo
+                    onToggle={() => handleToggleBlocked(client.user.documentId)}
+                  />
                 </ActionCell>
               </TableRow>
             ))}

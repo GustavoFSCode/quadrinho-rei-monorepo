@@ -124,3 +124,8 @@ export async function deleteUser(userDocumentId: string): Promise<any> {
   const { data } = await api.delete(`/deleteUser/${userDocumentId}`);
   return data;
 }
+
+export async function blockUser(userDocumentId: string): Promise<any> {
+  const { data } = await api.put(`/blockUser/${userDocumentId}`);
+  return data;
+}

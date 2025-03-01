@@ -113,7 +113,11 @@ export default function Clientes() {
           </HeaderBottom>
         </Header>
         <Content>
-          <Tabela clients={clients} onClientDeleted={fetchClients} />
+          <Tabela
+            clients={clients}
+            onClientDeleted={fetchClients}
+            onUserToggled={fetchClients}
+          />
         </Content>
         <Footer>
           <Pagination itemsPerPage={13} />

@@ -1,16 +1,15 @@
-import React, { useState } from "react";
+// components/Button/ToggleTable.tsx (ou ToggleButton.tsx)
+import React from "react";
 import { ToggleWrapper, ToggleSwitch, ToggleCircle } from "./styled";
 
-// Componente ToggleButton
-const ToggleButton: React.FC = () => {
-  const [isActive, setIsActive] = useState(true);
+interface ToggleButtonProps {
+  isActive: boolean;
+  onToggle: () => void;
+}
 
-  const handleToggle = () => {
-    setIsActive(!isActive);
-  };
-
+const ToggleButton: React.FC<ToggleButtonProps> = ({ isActive, onToggle }) => {
   return (
-    <ToggleWrapper onClick={handleToggle}>
+    <ToggleWrapper onClick={onToggle}>
       <ToggleSwitch isActive={isActive}>
         <ToggleCircle isActive={isActive} />
       </ToggleSwitch>
