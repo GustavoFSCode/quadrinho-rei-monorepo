@@ -13,6 +13,7 @@ import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import ToggleButton from '@/components/Button/ToggleTable';
 import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
+import ModalEditarCliente from '@/components/Modals/Clientes/EditarCliente';
 import { Client, blockUser } from '@/services/clientService';
 
 // Função para formatar a data "YYYY-MM-DD" para "DD/MM/YYYY"

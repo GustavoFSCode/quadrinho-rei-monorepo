@@ -109,10 +109,13 @@ export interface CreateClientPayload {
 }
 
 // Função GET para buscar os clientes
-export async function getClient(): Promise<Client[]> {
-  const { data } = await api.get('/getClient');
+export async function getClient(documentId?: string): Promise<Client[]> {
+  const { data } = await api.get('/getClient', {
+    params: { id: documentId }
+  });
   return data;
 }
+
 
 // Função POST para criar um novo cliente
 export async function createClient(payload: CreateClientPayload): Promise<Client> {
