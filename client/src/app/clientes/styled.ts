@@ -7,7 +7,7 @@ export const ContentContainer = styled.div<{ isExpanded: boolean }>`
   border-radius: 8px;
   padding-top: 32px;
   font-family: "Primary", sans-serif;
-  transition: margin-left 0.3s ease; 
+  transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
 `;
@@ -21,7 +21,7 @@ export const Header = styled.div`
 
   @media (max-width: 756px) {
     padding-right: 20px;
-    padding-left: 25px; 
+    padding-left: 25px;
     height: auto;
   }
 `;
@@ -31,11 +31,11 @@ export const HeaderTop = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   padding-left: 44px;
-  height: 4vh; 
+  height: 4vh;
   width: 100%;
 
   @media (max-width: 756px) {
-    padding-left: 20px; 
+    padding-left: 20px;
   }
 `;
 
@@ -54,12 +54,12 @@ export const HeaderBottom = styled.div`
 
   @media (max-width: 756px) {
     height: auto;
-    flex-direction: column; 
-    align-items: flex-start; 
-    padding-left: 20px; 
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 20px;
     padding-right: 20px;
     padding-bottom: 0;
-    border-bottom: none; 
+    border-bottom: none;
   }
 `;
 
@@ -69,9 +69,9 @@ export const SearchAndActionsBox = styled.div`
   gap: 10px;
 
   @media (max-width: 756px) {
-    flex-direction: column; 
-    align-items: flex-start; 
-    margin-bottom: 10px; 
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
   }
 `;
 
@@ -81,7 +81,7 @@ export const StyledInputBox = styled.div`
   gap: 10px;
 
   @media (max-width: 756px) {
-    width: 100%; 
+    width: 100%;
   }
 `;
 
@@ -90,18 +90,17 @@ export const ButtonBox = styled.div`
   gap: 10px;
 
   @media (max-width: 756px) {
-    flex-direction: column; 
-    width: 100%; 
-    gap: 5px; 
+    flex-direction: column;
+    width: 100%;
+    gap: 5px;
   }
 `;
 
 export const Content = styled.div`
-  height: 75vh; 
+  height: 75vh;
   margin-left: 44px;
   margin-right: 44px;
   padding-bottom: 0;
-  border: 1px solid #ccc;
   border-radius: 4px;
 
 `;
@@ -113,5 +112,5 @@ export const Footer = styled.div`
   align-items: center;
   text-align: right;
   margin-left: 44px;
-  padding-bottom: 2px; 
+  padding-bottom: 2px;
 `;
