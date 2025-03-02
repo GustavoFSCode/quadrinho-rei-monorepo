@@ -20,6 +20,10 @@ import * as yup from 'yup';
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import ModalDanger from '@/components/Modals/ModalDanger/ModalDanger';
 
+// Importa o toast do react-toastify
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // Importa os métodos de edição, remoção e criação de cartão
 import { editCard, deleteCard, createCard } from '@/services/clientService';
 
@@ -112,12 +116,11 @@ const CardForm: React.FC<CardFormProps> = ({
       if (onCardsRefresh) onCardsRefresh();
     } catch (error) {
       console.error('Erro ao salvar novo cartão:', error);
+      let toastMessage = 'Erro ao cadastrar novo cartão.';
       if (error instanceof yup.ValidationError) {
-        setDangerMessage(error.errors.join(', '));
-      } else {
-        setDangerMessage('Erro ao cadastrar novo cartão.');
+        toastMessage = error.errors.join(', ');
       }
-      setShowDangerModal(true);
+      toast.error(toastMessage);
     }
   };
 
@@ -150,6 +153,9 @@ const CardForm: React.FC<CardFormProps> = ({
 
   return (
     <Flex $direction="column">
+      {/* ToastContainer para exibição dos toasts */}
+      <ToastContainer />
+
       {showSuccessModal && (
         <ModalSuccess
           maxwidth="20rem"
