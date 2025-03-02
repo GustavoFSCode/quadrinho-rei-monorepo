@@ -16,9 +16,10 @@ interface ModalEditarCartaoProps {
   onClose: () => void;
   data: any[]; // data é a lista de cartões (clientData.cards)
   onCardsRefresh: () => Promise<void>;
+  clientDocumentId: string;
 }
 
-const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data, onCardsRefresh }) => {
+const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data, onCardsRefresh, clientDocumentId }) => {
   const {
     control,
     register,
@@ -51,6 +52,7 @@ const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data, onCardsR
             setValue={setValue}
             isFromModal
             onCardsRefresh={onCardsRefresh}
+            clientDocumentId={clientDocumentId}
           />
         </ModalBody>
       </ModalContent>

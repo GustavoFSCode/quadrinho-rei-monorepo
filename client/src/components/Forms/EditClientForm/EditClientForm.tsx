@@ -274,6 +274,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
           onClose={handleCloseCartaoModal}
           data={clientData.cards || []}
           onCardsRefresh={refreshCards}
+          clientDocumentId={clientData.documentId}
         />
       )}
     </>

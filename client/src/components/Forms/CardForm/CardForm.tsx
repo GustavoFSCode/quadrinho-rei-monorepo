@@ -14,28 +14,23 @@ import { SubmitButton } from './styled';
 import { Flex } from '@/styles/global';
 import { LabelStyled } from '../stylesForm';
 import ToggleButton from '@/components/Button/ToggleButton';
+import * as yup from 'yup';
 
 // IMPORTS DOS MODAIS
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import ModalDanger from '@/components/Modals/ModalDanger/ModalDanger';
 
-// Importa os métodos de edição e remoção de cartão
-import { editCard, deleteCard } from '@/services/clientService';
+// Importa os métodos de edição, remoção e criação de cartão
+import { editCard, deleteCard, createCard } from '@/services/clientService';
 
 interface CardFormProps {
   control: Control<IRegisterForm>;
   register: UseFormRegister<IRegisterForm>;
   errors: FieldErrors<IRegisterForm>;
   setValue: UseFormSetValue<IRegisterForm>;
-  /**
-   * Se isFromModal = true, significa que estamos no modal de edição,
-   * onde a integração com o backend deve ocorrer.
-   */
   isFromModal?: boolean;
-  /**
-   * Callback para atualizar os dados dos cartões (ex: refazer o GET) após uma operação
-   */
   onCardsRefresh?: () => void;
+  clientDocumentId?: string;
 }
 
 const CardForm: React.FC<CardFormProps> = ({
@@ -45,6 +40,7 @@ const CardForm: React.FC<CardFormProps> = ({
   setValue,
   isFromModal = false,
   onCardsRefresh,
+  clientDocumentId,
 }) => {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -95,30 +91,33 @@ const CardForm: React.FC<CardFormProps> = ({
     }
   }, [cards, setValue]);
 
-  const handleSaveExistingCard = async (index: number) => {
-    const card = cards[index];
-    const docId = (card as any).documentId;
-    try {
-      if (docId) {
-        await editCard(docId, card.isFavorite);
-      }
-      setSuccessMessage('Alteração no cartão salva com sucesso!');
-      setShowSuccessModal(true);
-      if (onCardsRefresh) onCardsRefresh();
-    } catch (error) {
-      console.error('Erro ao salvar cartão existente:', error);
-    }
-  };
-
   const handleSaveNewCard = async (index: number) => {
     const card = cards[index];
     try {
-      // Se não houver endpoint de criação separado, apenas exibe sucesso.
+      // Validação dos dados do cartão usando yup
+      const cardSchema = yup.object({
+        holderName: yup.string().required('Nome do titular é obrigatório'),
+        numberCard: yup.string().required('Número do cartão é obrigatório'),
+        flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
+        safeNumber: yup.string().required('Código de segurança é obrigatório'),
+        isFavorite: yup.boolean().required(),
+      });
+      await cardSchema.validate(card, { abortEarly: false });
+
+      // Chama o endpoint para criar o novo cartão
+      await createCard(clientDocumentId || '', { card });
+
       setSuccessMessage('Novo cartão cadastrado com sucesso!');
       setShowSuccessModal(true);
       if (onCardsRefresh) onCardsRefresh();
     } catch (error) {
       console.error('Erro ao salvar novo cartão:', error);
+      if (error instanceof yup.ValidationError) {
+        setDangerMessage(error.errors.join(', '));
+      } else {
+        setDangerMessage('Erro ao cadastrar novo cartão.');
+      }
+      setShowDangerModal(true);
     }
   };
 

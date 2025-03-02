@@ -71,7 +71,7 @@ export interface Client {
   user: User;
 }
 
-// Interfaces para o payload de criação do cliente
+// Interfaces para os payloads
 export interface CreateAddressPayload {
   nameAddress: string;
   TypeAddress: string;
@@ -108,7 +108,6 @@ export interface CreateClientPayload {
   Card: CreateCardPayload[];
 }
 
-// Função GET para buscar os clientes
 export async function getClient(documentId?: string): Promise<Client[]> {
   const { data } = await api.get('/getClient', {
     params: { id: documentId }
@@ -116,10 +115,16 @@ export async function getClient(documentId?: string): Promise<Client[]> {
   return data;
 }
 
-
-// Função POST para criar um novo cliente
 export async function createClient(payload: CreateClientPayload): Promise<Client> {
   const { data } = await api.post('/createClient', payload);
+  return data;
+}
+
+export async function createCard(
+  clientDocumentId: string,
+  payload: { card: CreateCardPayload }
+): Promise<Card> {
+  const { data } = await api.post(`/createCard/${clientDocumentId}`, payload);
   return data;
 }
 
