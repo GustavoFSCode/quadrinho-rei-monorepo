@@ -19,7 +19,11 @@ import { ErrorMessage, SubmitButton } from './styled';
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import ModalDanger from '@/components/Modals/ModalDanger/ModalDanger';
 
-import { editAddress, deleteAddress } from '@/services/clientService';
+// IMPORTAÇÃO DO TOAST
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import { editAddress, deleteAddress, createAddress } from '@/services/clientService';
 import * as yup from 'yup';
 
 // Schema para validação dos campos de endereço (baseado no RegisterSchema)
@@ -43,6 +47,8 @@ interface AddressFormProps {
   errors: FieldErrors<IRegisterForm>;
   setValue: UseFormSetValue<IRegisterForm>;
   isFromModal?: boolean;
+  onAddressRefresh?: () => void;
+  clientDocumentId?: string;
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({
@@ -50,14 +56,16 @@ const AddressForm: React.FC<AddressFormProps> = ({
   register,
   errors,
   setValue,
-  isFromModal = false
+  isFromModal = false,
+  onAddressRefresh,
+  clientDocumentId
 }) => {
-  // Estados para controlar as modais de sucesso e perigo
+  // Estados para controlar os modais de sucesso e para confirmação de remoção
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Estados usados apenas para confirmação de remoção
   const [showDangerModal, setShowDangerModal] = useState(false);
-  const [dangerMessage, setDangerMessage] = useState('');
   const [addressIndexToRemove, setAddressIndexToRemove] = useState<number | null>(null);
 
   // RHF
@@ -106,9 +114,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const handleSaveChange = async (index: number) => {
     const addr = addresses[index];
     try {
-      // Valida os campos usando o schema do yup
       await addressSchema.validate(addr, { abortEarly: false });
-      // Se for endereço existente, utiliza o método PUT
       if (addr.documentId) {
         await editAddress(addr.documentId, {
           address: {
@@ -130,27 +136,57 @@ const AddressForm: React.FC<AddressFormProps> = ({
       }
     } catch (error) {
       console.error('Erro ao atualizar endereço:', error);
+      let message = 'Erro ao atualizar endereço.';
       if (error instanceof yup.ValidationError) {
-        setDangerMessage(error.errors.join(', '));
-      } else {
-        setDangerMessage('Erro ao atualizar endereço.');
+        message = error.errors.join(', ');
       }
-      setShowDangerModal(true);
+      toast.error(message);
     }
   };
 
-  // Salva novo endereço (POST) – permanece inalterado
-  const handleSaveNew = (index: number) => {
+  // Salva novo endereço (POST) após validação com yup
+  const handleSaveNew = async (index: number) => {
     const addr = addresses[index];
-    console.log('POST de novo endereço => ', addr);
-    setSuccessMessage('Novo endereço cadastrado com sucesso!');
-    setShowSuccessModal(true);
+    try {
+      await addressSchema.validate(addr, { abortEarly: false });
+      if (!clientDocumentId) {
+        toast.error('Client document ID não informado.');
+        return;
+      }
+      await createAddress(clientDocumentId, {
+        address: {
+          nameAddress: addr.nameAddress,
+          TypeAddress: addr.TypeAddress,
+          typeLogradouro: addr.typeLogradouro,
+          nameLogradouro: addr.nameLogradouro,
+          number: addr.number,
+          neighborhood: addr.neighborhood,
+          cep: addr.cep,
+          city: addr.city,
+          state: addr.state,
+          country: addr.country,
+          observation: addr.observation || ''
+        }
+      });
+      setSuccessMessage('Novo endereço cadastrado com sucesso!');
+      setShowSuccessModal(true);
+      if (onAddressRefresh) {
+        onAddressRefresh();
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar novo endereço:', error);
+      let message = 'Erro ao cadastrar novo endereço.';
+      if (error instanceof yup.ValidationError) {
+        message = error.errors.join(', ');
+      }
+      toast.error(message);
+    }
   };
 
-  // Handler de clique para remover endereço (abre modal de confirmação)
+  // Handler para remoção de endereço (abre modal de confirmação)
   const handleClickRemove = (index: number) => {
     setAddressIndexToRemove(index);
-    setDangerMessage('Deseja realmente remover este endereço?');
+    // Para confirmação de remoção, mantém o ModalDanger
     setShowDangerModal(true);
   };
 
@@ -163,6 +199,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           await deleteAddress(addr.documentId);
         } catch (error) {
           console.error('Erro ao deletar endereço:', error);
+          toast.error('Erro ao deletar endereço.');
         }
       }
       remove(addressIndexToRemove);
@@ -173,16 +210,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
   // Lógica para não remover endereços que quebrariam a regra (ex: deve ter 1 Cobrança e 1 Entrega)
   const canRemoveAddress = (index: number) => {
-    if (fields.length <= 2) {
-      return false;
-    }
+    if (fields.length <= 2) return false;
     const addressType = addresses[index]?.TypeAddress;
     if (!addressType) return true;
     const sameTypeAddresses = addresses.filter(addr => addr.TypeAddress === addressType);
-    if (sameTypeAddresses.length <= 1) {
-      return false;
-    }
-    return true;
+    return sameTypeAddresses.length > 1;
   };
 
   // =====================
@@ -190,6 +222,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   // =====================
   return (
     <Flex $direction="column">
+      <ToastContainer />
       {/* Modal de Sucesso */}
       {showSuccessModal && (
         <ModalSuccess
@@ -204,12 +237,12 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       )}
 
-      {/* Modal de Perigo/Confirmação */}
+      {/* Modal de Confirmação para remoção */}
       {showDangerModal && (
         <ModalDanger
           maxwidth="20rem"
           maxheight="20rem"
-          text={dangerMessage}
+          text="Deseja realmente remover este endereço?"
           outlineButton={{
             text: 'Não',
             action: () => setShowDangerModal(false)
@@ -225,7 +258,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
       {fields.map((field, index) => {
         const currentAddr = addresses[index];
         const isExistingAddress = currentAddr?.addressId != null || currentAddr?.id != null;
-
         return (
           <Flex
             $direction="column"

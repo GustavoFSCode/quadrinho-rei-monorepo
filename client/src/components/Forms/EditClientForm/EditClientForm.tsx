@@ -115,6 +115,14 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
     }
   };
 
+  const refreshAddress = async () => {
+    const updatedClients = await getClient(clientData.documentId);
+    // Verifica se recebeu ao menos um cliente e atualiza o estado com o primeiro item
+    if (updatedClients && updatedClients.length > 0) {
+      setClientData(updatedClients[0]);
+    }
+  }
+
   return (
     <>
       <Container>
@@ -266,6 +274,8 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
         <ModalEndereco
           onClose={handleCloseEnderecoModal}
           data={clientData.addresses || []}
+          onAddressRefresh={refreshAddress}
+          clientDocumentId={clientData.documentId}
         />
       )}
 
