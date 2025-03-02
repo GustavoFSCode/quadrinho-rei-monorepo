@@ -161,3 +161,13 @@ export async function editClient(
   const { data } = await api.put(`/editClient/${clientDocumentId}`, payload);
   return data;
 }
+
+export async function editCard(cardDocumentId: string, isFavorite: boolean): Promise<Card> {
+  const { data } = await api.put(`/editCard/${cardDocumentId}`, { isFavorite });
+  return data;
+}
+
+export async function deleteCard(cardDocumentId: string): Promise<any> {
+  const { data } = await api.delete(`/deleteCard/${cardDocumentId}`);
+  return data;
+}

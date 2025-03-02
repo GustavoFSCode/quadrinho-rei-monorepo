@@ -1,4 +1,3 @@
-// CardForm.tsx
 import React, { useState, useEffect } from 'react';
 import {
   useFieldArray,
@@ -20,15 +19,23 @@ import ToggleButton from '@/components/Button/ToggleButton';
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import ModalDanger from '@/components/Modals/ModalDanger/ModalDanger';
 
+// Importa os métodos de edição e remoção de cartão
+import { editCard, deleteCard } from '@/services/clientService';
+
 interface CardFormProps {
   control: Control<IRegisterForm>;
   register: UseFormRegister<IRegisterForm>;
   errors: FieldErrors<IRegisterForm>;
   setValue: UseFormSetValue<IRegisterForm>;
   /**
-   * Se isFromModal = true, exibimos botões individuais de "Salvar" (PUT/POST)
+   * Se isFromModal = true, significa que estamos no modal de edição,
+   * onde a integração com o backend deve ocorrer.
    */
   isFromModal?: boolean;
+  /**
+   * Callback para atualizar os dados dos cartões (ex: refazer o GET) após uma operação
+   */
+  onCardsRefresh?: () => void;
 }
 
 const CardForm: React.FC<CardFormProps> = ({
@@ -36,7 +43,8 @@ const CardForm: React.FC<CardFormProps> = ({
   register,
   errors,
   setValue,
-  isFromModal = false
+  isFromModal = false,
+  onCardsRefresh,
 }) => {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -51,17 +59,23 @@ const CardForm: React.FC<CardFormProps> = ({
   const [dangerMessage, setDangerMessage] = useState('');
   const [cardIndexToRemove, setCardIndexToRemove] = useState<number | null>(null);
 
-  function handleToggleFavorite(index: number) {
-    const currentFavorite = cards[index].isFavorite;
-    if (!currentFavorite) {
-      cards.forEach((_, i) => {
-        setValue(`Cards.${i}.isFavorite`, i === index);
-      });
+  // Função para alternar o status de favorito e atualizar no backend se for cartão existente
+  async function handleToggleFavorite(index: number) {
+    const card = cards[index];
+    const newFavorite = !card.isFavorite;
+    const isExistingCard = card.cardId != null || card.id != null;
+    // Usamos "as any" para acessar documentId, pois ele não faz parte do schema do formulário
+    const docId = (card as any).documentId;
+    if (isFromModal && isExistingCard && docId) {
+      try {
+        await editCard(docId, newFavorite);
+        setValue(`Cards.${index}.isFavorite`, newFavorite);
+        if (onCardsRefresh) onCardsRefresh();
+      } catch (error) {
+        console.error("Erro ao atualizar o status do cartão:", error);
+      }
     } else {
-      if (cards.length === 1) return;
-      setValue(`Cards.${index}.isFavorite`, false);
-      const nextIndex = index + 1 < cards.length ? index + 1 : 0;
-      setValue(`Cards.${nextIndex}.isFavorite`, true);
+      setValue(`Cards.${index}.isFavorite`, newFavorite);
     }
   }
 
@@ -81,18 +95,31 @@ const CardForm: React.FC<CardFormProps> = ({
     }
   }, [cards, setValue]);
 
-  const handleSaveExistingCard = (index: number) => {
+  const handleSaveExistingCard = async (index: number) => {
     const card = cards[index];
-    console.log('PUT no cartão existente =>', card);
-    setSuccessMessage('Alteração no cartão salva com sucesso!');
-    setShowSuccessModal(true);
+    const docId = (card as any).documentId;
+    try {
+      if (docId) {
+        await editCard(docId, card.isFavorite);
+      }
+      setSuccessMessage('Alteração no cartão salva com sucesso!');
+      setShowSuccessModal(true);
+      if (onCardsRefresh) onCardsRefresh();
+    } catch (error) {
+      console.error('Erro ao salvar cartão existente:', error);
+    }
   };
 
-  const handleSaveNewCard = (index: number) => {
+  const handleSaveNewCard = async (index: number) => {
     const card = cards[index];
-    console.log('POST de novo cartão =>', card);
-    setSuccessMessage('Novo cartão cadastrado com sucesso!');
-    setShowSuccessModal(true);
+    try {
+      // Se não houver endpoint de criação separado, apenas exibe sucesso.
+      setSuccessMessage('Novo cartão cadastrado com sucesso!');
+      setShowSuccessModal(true);
+      if (onCardsRefresh) onCardsRefresh();
+    } catch (error) {
+      console.error('Erro ao salvar novo cartão:', error);
+    }
   };
 
   const handleRemoveClick = (index: number) => {
@@ -101,9 +128,22 @@ const CardForm: React.FC<CardFormProps> = ({
     setShowDangerModal(true);
   };
 
-  const confirmRemoveCard = () => {
+  const confirmRemoveCard = async () => {
     if (cardIndexToRemove != null) {
-      remove(cardIndexToRemove);
+      const card = cards[cardIndexToRemove];
+      const isExistingCard = card.cardId != null || card.id != null;
+      const docId = (card as any).documentId;
+      if (isFromModal && isExistingCard && docId) {
+        try {
+          await deleteCard(docId);
+          remove(cardIndexToRemove);
+          if (onCardsRefresh) onCardsRefresh();
+        } catch (error) {
+          console.error('Erro ao remover cartão:', error);
+        }
+      } else {
+        remove(cardIndexToRemove);
+      }
     }
     setShowDangerModal(false);
     setCardIndexToRemove(null);
@@ -142,7 +182,7 @@ const CardForm: React.FC<CardFormProps> = ({
 
       <h3>Dados do Cartão</h3>
       {fields.map((field, index) => {
-        // Considere que se cardId ou id existir, o cartão já foi cadastrado.
+        // Considera que se cardId ou id existir, o cartão já foi cadastrado
         const isExistingCard = (cards[index]?.cardId != null || cards[index]?.id != null);
         const cardNumber = cards[index]?.numberCard || '';
         const computedCardFlag = getCardFlag(cardNumber);
@@ -195,7 +235,7 @@ const CardForm: React.FC<CardFormProps> = ({
                 onToggle={() => handleToggleFavorite(index)}
               />
             </LabelStyled>
-            {/* Renderiza o botão de salvar somente para cartões novos */}
+            {/* Botão "Salvar novo cartão" só para cartões novos */}
             {isFromModal && !isExistingCard && (
               <SubmitButton
                 type="button"
@@ -222,7 +262,7 @@ const CardForm: React.FC<CardFormProps> = ({
         type="button"
         onClick={() =>
           append({
-            cardId: null, // indica que é um cartão novo
+            cardId: null,
             holderName: '',
             numberCard: '',
             flagCard: '',

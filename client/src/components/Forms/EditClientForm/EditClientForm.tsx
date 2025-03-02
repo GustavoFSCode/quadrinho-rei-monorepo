@@ -1,4 +1,3 @@
-// components/Forms/EditClientForm/EditClientForm.tsx
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { useState } from 'react';
@@ -13,7 +12,7 @@ import { maskCPFOrCNPJ, maskPhone, onlyDigits } from '@/utils/masks';
 import ModalChangePassword from '@/components/Modals/ModalChangePassword/ModalChangePassword';
 import ModalEndereco from '@/components/Modals/Clientes/EditarCliente/ModalEndereco';
 import ModalCartao from '@/components/Modals/Clientes/EditarCliente/ModalCartao';
-import { Client, editClient } from '@/services/clientService';
+import { Client, editClient, getClient } from '@/services/clientService';
 
 interface EditClientFormProps {
   onClose: () => void;
@@ -21,6 +20,8 @@ interface EditClientFormProps {
 }
 
 const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
+  // Armazena os dados do cliente em estado para possibilitar atualizações
+  const [clientData, setClientData] = useState<Client>(data);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSucessModal, setShowSucessModal] = useState(false);
   const [isModalPasswordOpen, setIsModalPasswordOpen] = useState(false);
@@ -35,14 +36,14 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   } = useForm<IEditClientForm>({
     resolver: yupResolver(EditClientSchema),
     defaultValues: {
-      name: data.name || '',
-      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
-      gender: data.gender || '',
-      cpf: data.cpf || '',
-      phone: data.phone || '',
-      typePhone: data.typePhone || '',
-      email: data.user.email || '',
-      ranking: data.ranking || 0
+      name: clientData.name || '',
+      birthDate: clientData.birthDate ? new Date(clientData.birthDate) : undefined,
+      gender: clientData.gender || '',
+      cpf: clientData.cpf || '',
+      phone: clientData.phone || '',
+      typePhone: clientData.typePhone || '',
+      email: clientData.user.email || '',
+      ranking: clientData.ranking || 0
     }
   });
 
@@ -65,7 +66,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
           ? formData.birthDate.toISOString().split('T')[0]
           : formData.birthDate;
 
-      // Monta o payload utilizando o email para preencher username e email
       const payload = {
         clientEdit: {
           client: {
@@ -84,8 +84,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
         }
       };
 
-      await editClient(data.documentId, payload);
-
+      await editClient(clientData.documentId, payload);
       setShowSucessModal(true);
     } catch (error) {
       console.error("Erro no onSubmit:", error);
@@ -105,6 +104,15 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
 
   const handleCloseCartaoModal = () => {
     setIsModalCartaoOpen(false);
+  };
+
+  // Função para atualizar os dados do cliente (e consequentemente os cartões) chamando o getClient
+  const refreshCards = async () => {
+    const updatedClients = await getClient(clientData.documentId);
+    // Verifica se recebeu ao menos um cliente e atualiza o estado com o primeiro item
+    if (updatedClients && updatedClients.length > 0) {
+      setClientData(updatedClients[0]);
+    }
   };
 
   return (
@@ -248,7 +256,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
       {isModalPasswordOpen && (
         <ModalChangePassword
           title='Alterar Senha'
-          userDocumentId={data.user.documentId}
+          userDocumentId={clientData.user.documentId}
           setShowModal={setIsModalPasswordOpen}
           onSuccess={onSuccessModalPassword}
         />
@@ -257,14 +265,15 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
       {isModalEnderecoOpen && (
         <ModalEndereco
           onClose={handleCloseEnderecoModal}
-          data={data.addresses || []}
+          data={clientData.addresses || []}
         />
       )}
 
       {isModalCartaoOpen && (
         <ModalCartao
           onClose={handleCloseCartaoModal}
-          data={data.cards || []}
+          data={clientData.cards || []}
+          onCardsRefresh={refreshCards}
         />
       )}
     </>

@@ -1,5 +1,4 @@
-// components/Modals/Clientes/EditarCliente/ModalCartao.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { IRegisterForm } from '@/validations/RegisterSchema';
 
@@ -15,20 +14,27 @@ import CardForm from '@/components/Forms/CardForm/CardForm';
 
 interface ModalEditarCartaoProps {
   onClose: () => void;
-  data: any[]; // Aqui data é a lista de cartões (data.cards do cliente)
+  data: any[]; // data é a lista de cartões (clientData.cards)
+  onCardsRefresh: () => Promise<void>;
 }
 
-const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) => {
+const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data, onCardsRefresh }) => {
   const {
     control,
     register,
     formState: { errors },
-    setValue
+    setValue,
+    reset
   } = useForm<IRegisterForm>({
     defaultValues: {
-      Cards: data || [] // Preenche o campo "Cards" com os cartões recebidos
+      Cards: data || []
     }
   });
+
+  // Atualiza o formulário sempre que a prop "data" mudar
+  useEffect(() => {
+    reset({ Cards: data || [] });
+  }, [data, reset]);
 
   return (
     <ModalOverlay>
@@ -44,6 +50,7 @@ const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) => {
             errors={errors}
             setValue={setValue}
             isFromModal
+            onCardsRefresh={onCardsRefresh}
           />
         </ModalBody>
       </ModalContent>
