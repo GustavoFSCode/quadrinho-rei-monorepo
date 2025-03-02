@@ -227,6 +227,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
       {isModalPasswordOpen && (
         <ModalChangePassword
           title='Alterar Senha'
+          userDocumentId={data.user.documentId}
           setShowModal={setIsModalPasswordOpen}
           onSuccess={onSuccessModalPassword}
         />

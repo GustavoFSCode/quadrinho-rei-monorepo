@@ -1,3 +1,4 @@
+// components/Modals/ModalChangePassword/ModalChangePassword.tsx
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import { Flex } from '@/styles/global';
 import ButtonOutlinePrimary from '@/components/Buttons/ButtonOutlinePrimary';
@@ -11,14 +12,16 @@ import { Box, BoxOverflow, Container } from '../styles';
 import { Form, Title } from './styles';
 import ModalSuccess from '../ModalSuccess/ModalSuccess';
 import ModalDanger from '../ModalDanger/ModalDanger';
+import { changePassword } from '@/services/clientService';
 
 interface Props {
   title: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   onSuccess: (form: IChangeForm) => void;
+  userDocumentId: string;
 }
 
-const ModalChangePassword = ({ title, setShowModal, onSuccess }: Props) => {
+const ModalChangePassword: React.FC<Props> = ({ title, setShowModal, onSuccess, userDocumentId }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const {
@@ -32,7 +35,10 @@ const ModalChangePassword = ({ title, setShowModal, onSuccess }: Props) => {
 
   async function onSubmit(form: IChangeForm) {
     try {
+      // Chama a função para alterar a senha passando o documentId e a nova senha
+      await changePassword(userDocumentId, form.password);
       setShowSuccessModal(true);
+      onSuccess(form);
     } catch (error) {
       handleError(error);
     }
