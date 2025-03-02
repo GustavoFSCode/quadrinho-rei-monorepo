@@ -31,7 +31,8 @@ export const RegisterSchema = yup.object({
       yup.object({
 
         addressId: yup.number().notRequired(),
-
+        id: yup.number().notRequired(),
+        documentId: yup.string().notRequired(), // Adicionado para refletir o objeto do back-end
         nameAddress: yup.string().required('Nome do endereço é obrigatório'),
         TypeAddress: yup.string().required('Tipo de endereço é obrigatório'),
         typeLogradouro: yup.string().required('Tipo de logradouro é obrigatório'),

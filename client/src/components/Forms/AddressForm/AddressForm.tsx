@@ -19,6 +19,24 @@ import { ErrorMessage, SubmitButton } from './styled';
 import ModalSuccess from '@/components/Modals/ModalSuccess/ModalSuccess';
 import ModalDanger from '@/components/Modals/ModalDanger/ModalDanger';
 
+import { editAddress, deleteAddress } from '@/services/clientService';
+import * as yup from 'yup';
+
+// Schema para validação dos campos de endereço (baseado no RegisterSchema)
+const addressSchema = yup.object().shape({
+  nameAddress: yup.string().required('Nome do Endereço é obrigatório'),
+  TypeAddress: yup.string().required('Tipo de Endereço é obrigatório'),
+  typeLogradouro: yup.string().required('Tipo de Logradouro é obrigatório'),
+  nameLogradouro: yup.string().required('Nome do Logradouro é obrigatório'),
+  number: yup.string().required('Número é obrigatório'),
+  neighborhood: yup.string().required('Bairro é obrigatório'),
+  cep: yup.string().required('CEP é obrigatório'),
+  city: yup.string().required('Cidade é obrigatória'),
+  state: yup.string().required('Estado é obrigatório'),
+  country: yup.string().required('País é obrigatório'),
+  observation: yup.string() // campo opcional
+});
+
 interface AddressFormProps {
   control: Control<IRegisterForm>;
   register: UseFormRegister<IRegisterForm>;
@@ -63,8 +81,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
   ];
 
   // =======================
-  // Ações simuladas de CRUD
+  // Ações de CRUD integradas com a API
   // =======================
+
+  // Adiciona um novo endereço na lista
   const handleAddAddress = () => {
     append({
       addressId: null,
@@ -82,35 +102,69 @@ const AddressForm: React.FC<AddressFormProps> = ({
     });
   };
 
-  // Simula salvamento de alteração (PUT)
-  const handleSaveChange = (index: number) => {
+  // Salva alterações (PUT) no endereço existente após validação com yup
+  const handleSaveChange = async (index: number) => {
     const addr = addresses[index];
-    console.log('PUT no endereço existente => ', addr);
-    // Depois de "salvar", exibe modal de sucesso
-    setSuccessMessage('Endereço atualizado com sucesso!');
-    setShowSuccessModal(true);
+    try {
+      // Valida os campos usando o schema do yup
+      await addressSchema.validate(addr, { abortEarly: false });
+      // Se for endereço existente, utiliza o método PUT
+      if (addr.documentId) {
+        await editAddress(addr.documentId, {
+          address: {
+            nameAddress: addr.nameAddress,
+            TypeAddress: addr.TypeAddress,
+            typeLogradouro: addr.typeLogradouro,
+            nameLogradouro: addr.nameLogradouro,
+            number: addr.number,
+            neighborhood: addr.neighborhood,
+            cep: addr.cep,
+            city: addr.city,
+            state: addr.state,
+            country: addr.country,
+            observation: addr.observation || ''
+          }
+        });
+        setSuccessMessage('Endereço atualizado com sucesso!');
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar endereço:', error);
+      if (error instanceof yup.ValidationError) {
+        setDangerMessage(error.errors.join(', '));
+      } else {
+        setDangerMessage('Erro ao atualizar endereço.');
+      }
+      setShowDangerModal(true);
+    }
   };
 
-  // Simula salvamento de novo endereço (POST)
+  // Salva novo endereço (POST) – permanece inalterado
   const handleSaveNew = (index: number) => {
     const addr = addresses[index];
     console.log('POST de novo endereço => ', addr);
-    // Depois de "salvar", exibe modal de sucesso
     setSuccessMessage('Novo endereço cadastrado com sucesso!');
     setShowSuccessModal(true);
   };
 
-  // Handler de clique para remover endereço
-  // - Primeiro abre o ModalDanger para confirmar a remoção
+  // Handler de clique para remover endereço (abre modal de confirmação)
   const handleClickRemove = (index: number) => {
     setAddressIndexToRemove(index);
     setDangerMessage('Deseja realmente remover este endereço?');
     setShowDangerModal(true);
   };
 
-  // Se confirmar a remoção no ModalDanger
-  const confirmRemoveAddress = () => {
+  // Confirma a remoção; se isFromModal for verdadeiro e o endereço for existente, chama o DELETE da API
+  const confirmRemoveAddress = async () => {
     if (addressIndexToRemove != null) {
+      const addr = addresses[addressIndexToRemove];
+      if (isFromModal && (addr.addressId || addr.id) && addr.documentId) {
+        try {
+          await deleteAddress(addr.documentId);
+        } catch (error) {
+          console.error('Erro ao deletar endereço:', error);
+        }
+      }
       remove(addressIndexToRemove);
     }
     setShowDangerModal(false);
@@ -170,7 +224,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
       <h3>Endereços</h3>
       {fields.map((field, index) => {
         const currentAddr = addresses[index];
-        const isExistingAddress = currentAddr?.addressId != null;
+        const isExistingAddress = currentAddr?.addressId != null || currentAddr?.id != null;
 
         return (
           <Flex
@@ -317,7 +371,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
             {canRemoveAddress(index) && (
               <SubmitButton
                 type="button"
-                onClick={() => handleClickRemove(index)} // chama o modal Danger
+                onClick={() => handleClickRemove(index)}
                 style={{ marginTop: '1rem', backgroundColor: '#d9534f' }}
               >
                 Remover Endereço

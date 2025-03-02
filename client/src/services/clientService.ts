@@ -176,3 +176,24 @@ export async function deleteCard(cardDocumentId: string): Promise<any> {
   const { data } = await api.delete(`/deleteCard/${cardDocumentId}`);
   return data;
 }
+
+export async function deleteAddress(addressDocumentId: string): Promise<any> {
+  const { data } = await api.delete(`/deleteAddress/${addressDocumentId}`);
+  return data;
+}
+
+export async function editAddress(
+  addressDocumentId: string,
+  payload: { address: CreateAddressPayload }
+): Promise<Address> {
+  const { data } = await api.put(`/editAddress/${addressDocumentId}`, payload);
+  return data;
+}
+
+export async function createAddress(
+  clientDocumentId: string,
+  payload: { address: CreateAddressPayload }
+): Promise<Address> {
+  const { data } = await api.post(`/createAddress/${clientDocumentId}`, payload);
+  return data;
+}

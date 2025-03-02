@@ -17,6 +17,7 @@ import {
 
 // Importe o serviço de login
 import { login } from '@/services/authService';
+import { toast } from 'react-toastify';
 
 const LoginForm = () => {
   const router = useRouter();
@@ -53,7 +54,7 @@ const LoginForm = () => {
         username: user.username,
         email: user.email,
       });
-
+      toast.success('Login realizado com sucesso!');
       // Redireciona para a rota de clientes
       router.push('/clientes');
     } catch (error) {
