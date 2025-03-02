@@ -137,3 +137,27 @@ export async function changePassword(userDocumentId: string, newPassword: string
   const { data } = await api.put(`/changePassword/${userDocumentId}`, { password: newPassword });
   return data;
 }
+
+export async function editClient(
+  clientDocumentId: string,
+  payload: {
+    clientEdit: {
+      client: {
+        name: string;
+        birthDate: string;
+        gender: string;
+        cpf: string;
+        phone: string;
+        typePhone: string;
+        ranking: number;
+      };
+      user: {
+        username: string;
+        email: string;
+      };
+    };
+  }
+): Promise<Client> {
+  const { data } = await api.put(`/editClient/${clientDocumentId}`, payload);
+  return data;
+}

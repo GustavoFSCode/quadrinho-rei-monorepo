@@ -151,15 +151,22 @@ class clientService {
             }
             const client = await strapi.documents('api::client.client').findOne({
                 documentId: clientDocumentId,
+                populate: ['user']
             })
 
             if(!client){
                 throw new ApplicationError("Cliente nao encontrado");
             }
 
+            await strapi.documents('plugin::users-permissions.user').update({
+                documentId: client.user.documentId,
+                data: clientEdit.user
+            })
+
             return await strapi.documents('api::client.client').update({
                 documentId: clientDocumentId,
                 data: clientEdit.client,
+                populate: ['user']
             });
         }catch(error){
             if (error instanceof ApplicationError) {

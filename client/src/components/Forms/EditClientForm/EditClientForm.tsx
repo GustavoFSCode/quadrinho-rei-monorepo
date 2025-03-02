@@ -13,7 +13,7 @@ import { maskCPFOrCNPJ, maskPhone, onlyDigits } from '@/utils/masks';
 import ModalChangePassword from '@/components/Modals/ModalChangePassword/ModalChangePassword';
 import ModalEndereco from '@/components/Modals/Clientes/EditarCliente/ModalEndereco';
 import ModalCartao from '@/components/Modals/Clientes/EditarCliente/ModalCartao';
-import { Client } from '@/services/clientService';
+import { Client, editClient } from '@/services/clientService';
 
 interface EditClientFormProps {
   onClose: () => void;
@@ -26,7 +26,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   const [isModalPasswordOpen, setIsModalPasswordOpen] = useState(false);
   const [isModalCartaoOpen, setIsModalCartaoOpen] = useState(false);
   const [isModalEnderecoOpen, setIsModalEnderecoOpen] = useState(false);
-
 
   const {
     register,
@@ -60,7 +59,33 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
     try {
       setIsSubmitting(true);
       console.log("Dados do formulário de EDIÇÃO DE CLIENTE:", formData);
-      // Aqui você faria a requisição PUT para atualizar os dados do cliente
+      // Converte a data para o formato "YYYY-MM-DD"
+      const formattedBirthDate =
+        formData.birthDate instanceof Date
+          ? formData.birthDate.toISOString().split('T')[0]
+          : formData.birthDate;
+
+      // Monta o payload utilizando o email para preencher username e email
+      const payload = {
+        clientEdit: {
+          client: {
+            name: formData.name,
+            birthDate: formattedBirthDate,
+            gender: formData.gender,
+            cpf: formData.cpf,
+            phone: formData.phone,
+            typePhone: formData.typePhone,
+            ranking: formData.ranking
+          },
+          user: {
+            username: formData.email,
+            email: formData.email
+          }
+        }
+      };
+
+      await editClient(data.documentId, payload);
+
       setShowSucessModal(true);
     } catch (error) {
       console.error("Erro no onSubmit:", error);
@@ -118,10 +143,8 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
                   type="date"
                   label="Data de Nascimento"
                   placeholder="2000-01-01"
-                  // Se value for Date, formata para "YYYY-MM-DD"; se não, usa value diretamente
                   value={value ? (value instanceof Date ? value.toISOString().split('T')[0] : value) : ''}
                   onChange={(e) => {
-                    // Converte a string do input para Date e chama onChange
                     onChange(new Date(e.target.value));
                   }}
                   error={errors?.birthDate?.message}
@@ -207,11 +230,9 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
 
         <Flex $direction='column' $gap='1.25rem'>
           <Flex $direction='row' $justify='center' $gap='2rem' $align='center'>
-            {/* Ao abrir o modal de endereços, passamos data.addresses */}
             <ModalButton type='button' onClick={() => setIsModalEnderecoOpen(true)}>
               Gerenciar endereços
             </ModalButton>
-            {/* Ao abrir o modal de cartões, passamos data.cards */}
             <ModalButton type='button' onClick={() => setIsModalCartaoOpen(true)}>
               Gerenciar cartões
             </ModalButton>
@@ -233,7 +254,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
         />
       )}
 
-      {/* Passa os dados convertidos para os modais secundários */}
       {isModalEnderecoOpen && (
         <ModalEndereco
           onClose={handleCloseEnderecoModal}
