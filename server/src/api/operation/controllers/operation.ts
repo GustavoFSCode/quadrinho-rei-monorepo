@@ -29,6 +29,10 @@ export default factories.createCoreController('api::operation.operation', ({ str
         const sales = new UserService();
         return sales.blockUser(ctx);
     },
+    async changePassword(ctx){
+        const sales = new UserService();
+        return sales.changePassword(ctx);
+    },
     async createCard(ctx){
         const sales = new cardService();
         return sales.createCard(ctx);

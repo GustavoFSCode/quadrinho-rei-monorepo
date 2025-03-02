@@ -73,5 +73,27 @@ class UserService {
             throw new ApplicationError("Ocorreu um erro, tente novamente");
         }
     }
+
+    async changePassword(ctx){
+        try{
+            const {userDocumentId} = ctx.request.params;
+            const {password} = ctx.request.body;
+            if(!userDocumentId){
+                throw new ApplicationError("ID nao localizado.");
+            }
+            return await strapi.documents('plugin::users-permissions.user').update({
+                documentId: userDocumentId,
+                data: {
+                    password
+                }
+            })
+        }catch(error){
+            if (error instanceof ApplicationError) {
+                throw new ApplicationError(error.message);
+            }
+            console.error(error);
+            throw new ApplicationError("Ocorreu um erro, tente novamente");
+        }
+    }
 } export { UserService }
 

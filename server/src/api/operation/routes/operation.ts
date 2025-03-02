@@ -3,6 +3,7 @@
  */
 
 import { factories } from '@strapi/strapi';
+import { measureMemory } from 'vm';
 
 export default factories.createCoreRouter('api::operation.operation');
 
@@ -63,5 +64,10 @@ module.exports = {
             path: "/deleteAddress/:addressDocumentId",
             handler: "operation.deleteAddress",
         },
+        {
+            method: "PUT",
+            path: "/changePassword/:userDocumentId",
+            handler: "operation.changePassword",
+        }
     ]
 };
