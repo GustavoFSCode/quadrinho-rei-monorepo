@@ -1,4 +1,4 @@
-// ModalEditarEndereco.tsx
+// components/Modals/Clientes/EditarCliente/ModalEndereco.tsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { IRegisterForm } from '@/validations/RegisterSchema';
@@ -15,19 +15,18 @@ import AddressForm from '@/components/Forms/AddressForm/AddressForm';
 
 interface ModalEditarEnderecoProps {
   onClose: () => void;
-  data: any; // Recebe o user, onde data.addresses = lista de endereços
+  data: any[]; // Aqui data é a lista de endereços (data.addresses do cliente)
 }
 
-const ModalEditarEndereco: React.FC<ModalEditarEnderecoProps> = ({ onClose, data }) => {
+const ModalEndereco: React.FC<ModalEditarEnderecoProps> = ({ onClose, data }) => {
   const {
     control,
     register,
     formState: { errors },
     setValue
   } = useForm<IRegisterForm>({
-    // Preenchemos o Address com data.addresses
     defaultValues: {
-      Address: data?.addresses || []
+      Address: data || [] // Preenche o campo "Address" com os endereços recebidos
     }
   });
 
@@ -52,4 +51,4 @@ const ModalEditarEndereco: React.FC<ModalEditarEnderecoProps> = ({ onClose, data
   );
 };
 
-export default ModalEditarEndereco;
+export default ModalEndereco;

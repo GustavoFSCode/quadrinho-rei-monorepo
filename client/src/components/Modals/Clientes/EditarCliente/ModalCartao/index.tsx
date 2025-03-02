@@ -1,5 +1,4 @@
-// ModalEditarCartao.tsx
-
+// components/Modals/Clientes/EditarCliente/ModalCartao.tsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { IRegisterForm } from '@/validations/RegisterSchema';
@@ -16,10 +15,10 @@ import CardForm from '@/components/Forms/CardForm/CardForm';
 
 interface ModalEditarCartaoProps {
   onClose: () => void;
-  data: any; // Recebe o usuário completo ou apenas o array de cartões
+  data: any[]; // Aqui data é a lista de cartões (data.cards do cliente)
 }
 
-const ModalEditarCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) => {
+const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) => {
   const {
     control,
     register,
@@ -27,8 +26,7 @@ const ModalEditarCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) 
     setValue
   } = useForm<IRegisterForm>({
     defaultValues: {
-      // Se 'data.cards' vier do seu fakeUser
-      Cards: data?.cards || []
+      Cards: data || [] // Preenche o campo "Cards" com os cartões recebidos
     }
   });
 
@@ -53,4 +51,4 @@ const ModalEditarCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data }) 
   );
 };
 
-export default ModalEditarCartao;
+export default ModalCartao;

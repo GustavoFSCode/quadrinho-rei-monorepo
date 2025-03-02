@@ -207,9 +207,11 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
 
         <Flex $direction='column' $gap='1.25rem'>
           <Flex $direction='row' $justify='center' $gap='2rem' $align='center'>
+            {/* Ao abrir o modal de endereços, passamos data.addresses */}
             <ModalButton type='button' onClick={() => setIsModalEnderecoOpen(true)}>
               Gerenciar endereços
             </ModalButton>
+            {/* Ao abrir o modal de cartões, passamos data.cards */}
             <ModalButton type='button' onClick={() => setIsModalCartaoOpen(true)}>
               Gerenciar cartões
             </ModalButton>
@@ -230,12 +232,19 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
         />
       )}
 
+      {/* Passa os dados convertidos para os modais secundários */}
       {isModalEnderecoOpen && (
-        <ModalEndereco onClose={handleCloseEnderecoModal} data={data.addresses} />
+        <ModalEndereco
+          onClose={handleCloseEnderecoModal}
+          data={data.addresses || []}
+        />
       )}
 
       {isModalCartaoOpen && (
-        <ModalCartao onClose={handleCloseCartaoModal} data={data.cards} />
+        <ModalCartao
+          onClose={handleCloseCartaoModal}
+          data={data.cards || []}
+        />
       )}
     </>
   );
