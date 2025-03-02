@@ -59,6 +59,7 @@ export const RegisterSchema = yup.object({
   Cards: yup.array().of(
     yup.object({
       cardId: yup.number().notRequired(),
+      id: yup.number().notRequired(),
       holderName: yup.string().required('Nome do titular é obrigatório'),
       numberCard: yup.string().required('Número do cartão é obrigatório'),
       flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
