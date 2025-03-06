@@ -3,7 +3,11 @@ const { ApplicationError } = require('@strapi/utils').errors;
 
 class clientService {
 
-    async getClient(id?: any) {
+    async getClient(id: any, ctx : any) : Promise<any> {
+
+        const { page, pageSize, filter } = ctx.request.query
+
+        let response = []
 
         const user = await strapi.documents('api::client.client').findMany(
             {
@@ -20,7 +24,67 @@ class clientService {
         if (!user) {
             return []
         }
-        return user
+
+        const filteringClient : string[] = ["name", "birthDate", "gender", "cpf", "phone", "typePhone"]
+
+        const filteringAddress : string[] = ["nameAddress", "TypeAddress", "typeLogradouro", "nameLogradouro", "number", "neighborhood",
+            "cep", "city", "state", "country"
+        ]
+
+        const filteringCards : string[] = ["holderName", "numberCard", "flagCard", "safeNumber"]
+
+        const filteringUser : string[] = ["username", "email"]
+
+        if(filter) {
+            for(const u of user) {
+                for(const f of filteringClient) {
+                    if(u[f].toLowerCase().includes(filter.toLowerCase())) {
+                        if(!response.includes(u)) response.push(u)
+                    }
+                }
+
+                for(const a of u.addresses) {
+                    for(const f of filteringAddress) {
+                        if(a[f].toLowerCase().includes(filter.toLowerCase())) {
+                            if(!response.includes(u)) response.push(u)
+                        }
+                    }
+                }
+
+                for(const c of u.cards) {
+                    for(const f of filteringCards) {
+                        if(c[f].toLowerCase().includes(filter.toLowerCase())) {
+                            if(!response.includes(u)) response.push(u)
+                        }
+                    }
+                }
+
+                for(const f of filteringUser) {
+                    if(u.user[f].toLowerCase().includes(filter.toLowerCase())) {
+                        if(!response.includes(u)) response.push(u)
+                    }
+                }
+            }
+
+            return response
+        }
+
+
+
+        
+
+        if(!page && !pageSize) return user
+
+        const startIndex = (Number(page) - 1) * Number(pageSize);
+        const endIndex = startIndex + Number(pageSize);
+        const paginated = user.slice(startIndex, endIndex);
+
+        return {
+            data: paginated,
+            totalCount: user.length,
+            page: page,
+            pageSize: pageSize
+        };
     }
 
     async createClient(data){

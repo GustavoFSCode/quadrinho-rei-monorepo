@@ -11,7 +11,7 @@ import { AddressService } from '../services/addressService';
 export default factories.createCoreController('api::operation.operation', ({ strapi }) => ({
     async getClient(ctx){
         const sales = new clientService();
-        return sales.getClient(ctx.request.query.id);
+        return sales.getClient(ctx.request.query.id, ctx);
     },
     async createClient(ctx){
         const sales = new clientService();
