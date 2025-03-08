@@ -71,6 +71,14 @@ export interface Client {
   user: User;
 }
 
+// Interface para o retorno paginado do getClient
+export interface PaginatedClients {
+  data: Client[];
+  totalCount: number;
+  page: string;
+  pageSize: string;
+}
+
 // Interfaces para os payloads
 export interface CreateAddressPayload {
   nameAddress: string;
@@ -108,10 +116,19 @@ export interface CreateClientPayload {
   Card: CreateCardPayload[];
 }
 
-export async function getClient(documentId?: string): Promise<Client[]> {
-  const { data } = await api.get('/getClient', {
-    params: { id: documentId }
-  });
+export async function getClient(
+  documentId?: string,
+  page?: number,
+  pageSize?: number,
+  filter?: string
+): Promise<PaginatedClients> {
+  const params: any = {};
+  if (documentId) params.id = documentId;
+  if (page) params.page = page;
+  if (pageSize) params.pageSize = pageSize;
+  if (filter) params.filter = filter;
+
+  const { data } = await api.get('/getClient', { params });
   return data;
 }
 

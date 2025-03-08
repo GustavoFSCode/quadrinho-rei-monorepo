@@ -1,4 +1,3 @@
-// components/Tables/Clientes.tsx
 import React, { useState } from 'react';
 import {
   TableContainer,
@@ -27,14 +26,12 @@ interface TabelaProps {
   clients: Client[];
   onClientDeleted: () => void;
   onUserToggled: () => void;
-  onClientEdited: () => void; // callback para atualizar a lista após edição
+  onClientEdited: () => void;
 }
 
 function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: TabelaProps) {
   const [isDescartationModalOpen, setDescartationModalOpen] = useState(false);
   const [selectedUserDocumentId, setSelectedUserDocumentId] = useState<string | null>(null);
-
-  // Estados para o modal de edição
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -43,12 +40,11 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
     setDescartationModalOpen(true);
   };
 
-  const closeDescartationModal = (shouldCloseAll: boolean) => {
+  const closeDescartationModal = () => {
     setDescartationModalOpen(false);
     setSelectedUserDocumentId(null);
   };
 
-  // Abre o modal de edição com os dados do cliente selecionado
   const openEditModal = (client: Client) => {
     setSelectedClient(client);
     setIsEditModalOpen(true);
@@ -57,14 +53,13 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedClient(null);
-    onClientEdited(); // Atualiza a lista (caso a edição altere os dados)
+    onClientEdited();
   };
 
-  // Função para alternar bloqueio/desbloqueio do usuário
   const handleToggleBlocked = async (userDocumentId: string) => {
     try {
       await blockUser(userDocumentId);
-      onUserToggled(); // Atualiza a lista de clientes
+      onUserToggled();
     } catch (error) {
       console.error("Erro ao bloquear/desbloquear usuário:", error);
     }
@@ -83,21 +78,29 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
             </tr>
           </thead>
           <tbody>
-            {clients.map((client) => (
-              <TableRow key={client.id}>
-                <TableBodyCell>{client.name}</TableBodyCell>
-                <TableBodyCell>{client.user.email}</TableBodyCell>
-                <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
-                <ActionCell>
-                  <Trash onClick={() => openDescartationModal(client.user.documentId)} />
-                  <Pencil onClick={() => openEditModal(client)} />
-                  <ToggleButton
-                    isActive={!client.user.blocked} // Se não estiver bloqueado, toggle ativo
-                    onToggle={() => handleToggleBlocked(client.user.documentId)}
-                  />
-                </ActionCell>
-              </TableRow>
-            ))}
+            {clients && clients.length > 0 ? (
+              clients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableBodyCell>{client.name}</TableBodyCell>
+                  <TableBodyCell>{client.user.email}</TableBodyCell>
+                  <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
+                  <ActionCell>
+                    <Trash onClick={() => openDescartationModal(client.user.documentId)} />
+                    <Pencil onClick={() => openEditModal(client)} />
+                    <ToggleButton
+                      isActive={!client.user.blocked}
+                      onToggle={() => handleToggleBlocked(client.user.documentId)}
+                    />
+                  </ActionCell>
+                </TableRow>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center', padding: '1rem' }}>
+                  Nenhum cliente encontrado
+                </td>
+              </tr>
+            )}
           </tbody>
         </Table>
       </TableContainer>

@@ -28,10 +28,11 @@ interface StyledInputProps {
   $paddingright?: string;
   $paddingleft?: string;
   $hover?: boolean;
+  $width?: string;
 }
 
 export const StyledInput = styled(MaskedInput)<StyledInputProps>`
-  width: 100%;
+  width: ${({ $width }) => ($width ? $width : '100%')};
   padding: 0.7813rem 1.25rem;
   border: 1px solid ${({ theme }) => theme.colors.neutral2};
   background-color: ${({ theme }) => theme.colors.neutral1};

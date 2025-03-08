@@ -18,6 +18,7 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
   label_description?: string;
   error?: string;
   maxwidth?: string;
+  width?: string;
   editModal?: boolean;
   search?: boolean;
   editModalAction?: () => void;
@@ -35,6 +36,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
       id,
       type,
       readOnly,
+      width,
       disabled,
       maxwidth,
       editModal,
@@ -74,6 +76,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             onChange={handleChange}
             readOnly={readOnly}
             disabled={disabled}
+            $width={width}
             ref={ref}
             $hover={hover}
             type={statedType}
