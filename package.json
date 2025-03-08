@@ -1,14 +1,14 @@
 {
-    "name": "quadrinho-rei-monorepo",
-    "private": true,
-    "version": "1.0.0",
-    "scripts": {
-      "start:backend": "cd server && yarn d",
-      "start:frontend": "cd client && yarn dev",
-      "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\""
-    },
-    "devDependencies": {
-      "concurrently": "^7.6.0"
-    }
+  "name": "quadrinho-rei-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start:backend": "cd server && yarn d",
+    "start:frontend": "cd client && yarn dev",
+    "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "cypress": "^14.1.0"
   }
-  
+}
