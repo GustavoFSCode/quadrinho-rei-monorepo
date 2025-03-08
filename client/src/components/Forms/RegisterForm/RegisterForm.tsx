@@ -234,7 +234,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose, onClientCreated })
         <CardForm control={control} register={register} errors={errors} setValue={setValue} />
 
         <Flex $direction="row" $gap="1.25rem" $justify="space-between">
-          <SubmitButton type="submit" disabled={isSubmitting}>
+          <SubmitButton name='buttonCad' type="submit" disabled={isSubmitting}>
             Cadastrar
           </SubmitButton>
         </Flex>

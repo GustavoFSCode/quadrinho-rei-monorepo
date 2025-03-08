@@ -42,7 +42,7 @@ const ModalCartao: React.FC<ModalEditarCartaoProps> = ({ onClose, data, onCardsR
       <ModalContent>
         <ModalHeader>
           Editar Cartões
-          <Closed onClick={onClose} />
+          <Closed onClick={onClose} name="closeCards"/>
         </ModalHeader>
         <ModalBody>
           <CardForm

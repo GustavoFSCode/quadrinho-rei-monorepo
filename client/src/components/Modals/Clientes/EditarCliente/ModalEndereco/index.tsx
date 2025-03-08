@@ -42,7 +42,7 @@ const ModalEndereco: React.FC<ModalEditarEnderecoProps> = ({ onClose, data, onAd
       <ModalContent>
         <ModalHeader>
           Editar Endereços
-          <Closed onClick={onClose} />
+          <Closed onClick={onClose} name="closeAddress" />
         </ModalHeader>
         <ModalBody>
           <AddressForm

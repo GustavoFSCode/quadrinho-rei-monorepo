@@ -108,7 +108,7 @@ const ModalChangePassword: React.FC<Props> = ({ title, setShowModal, onSuccess, 
                   Cancelar
                 </ButtonOutlinePrimary>
                 <ButtonPrimary type="submit" maxwidth="6.25rem">
-                  Alterar
+                  Alterar!
                 </ButtonPrimary>
               </Flex>
             </Flex>
