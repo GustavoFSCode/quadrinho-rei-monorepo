@@ -109,19 +109,17 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
   // Função para atualizar os dados do cliente (e consequentemente os cartões) chamando o getClient
   const refreshCards = async () => {
     const updatedClients = await getClient(clientData.documentId);
-    // Verifica se recebeu ao menos um cliente e atualiza o estado com o primeiro item
-    if (updatedClients && updatedClients.length > 0) {
-      setClientData(updatedClients[0]);
+    if (updatedClients.data && updatedClients.data.length > 0) {
+      setClientData(updatedClients.data[0]);
     }
   };
 
   const refreshAddress = async () => {
     const updatedClients = await getClient(clientData.documentId);
-    // Verifica se recebeu ao menos um cliente e atualiza o estado com o primeiro item
-    if (updatedClients && updatedClients.length > 0) {
-      setClientData(updatedClients[0]);
+    if (updatedClients.data && updatedClients.data.length > 0) {
+      setClientData(updatedClients.data[0]);
     }
-  }
+  };
 
   return (
     <>
