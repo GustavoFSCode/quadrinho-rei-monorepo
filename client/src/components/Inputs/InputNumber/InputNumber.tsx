@@ -9,22 +9,34 @@ import {
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
   setValue: (value: number) => void;
   value: number;
+  max?: number;
 }
 
 const InputNumber = forwardRef<HTMLInputElement, Props>(
-  ({ value, setValue, ...rest }, ref) => {
+  ({ value, setValue, max = 99, ...rest }, ref) => {
     function handleDecrement() {
-      console.log(value);
       if (value > 1) {
         setValue(value - 1);
       }
     }
 
     function handleIncrement() {
-      console.log(value);
-      if (value < 99) {
+      if (value < max) {
         setValue(value + 1);
       }
+    }
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+      let newValue = Number(e.target.value);
+      // Caso o valor digitado seja maior que o max, define para max.
+      if (newValue > max) {
+        newValue = max;
+      }
+      // Garante que o valor mínimo seja 1.
+      if (newValue < 1) {
+        newValue = 1;
+      }
+      setValue(newValue);
     }
 
     return (
@@ -34,7 +46,8 @@ const InputNumber = forwardRef<HTMLInputElement, Props>(
           type="number"
           value={value}
           min={1}
-          max={99}
+          max={max}
+          onChange={handleChange}
           {...rest}
           ref={ref}
         />

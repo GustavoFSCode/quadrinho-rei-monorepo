@@ -14,7 +14,7 @@ export const PaginationWrapper = styled.div`
   .pagination li {
     margin: 0 5px;
     cursor: pointer;
-    
+
     &.page-item:not(.active) a { /* Hover não será aplicado no item ativo */
       padding: 8px;
       border-radius: 50%;
@@ -35,7 +35,7 @@ export const PaginationWrapper = styled.div`
   }
 
   .pagination li.active a {
-    background-color: red;
+    background-color: #F1DE3B;
     border-radius: 50%;
     width: 25px;
     color: white;
@@ -58,7 +58,7 @@ export const PaginationWrapper = styled.div`
   @media (max-width: 628px) {
     flex-wrap: wrap;
     .pagination {
-      margin-top: 5px; 
+      margin-top: 5px;
     }
   }
 `;
@@ -105,7 +105,7 @@ export const PageArrow = styled.button`
   background: transparent;
   color: #666768;
   cursor: pointer;
-  padding: 4px; 
+  padding: 4px;
   min-width: 24px;
   min-height: 24px;
   display: flex;

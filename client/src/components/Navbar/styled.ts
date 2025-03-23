@@ -21,7 +21,7 @@ export const SidebarContainer = styled.div<SidebarProps>`
   top: 0;
   left: 0;
   transition: width 0.3s ease;
-  cursor: pointer;
+  cursor: default;
   z-index: 1000; /* Garante que a navbar fique acima do conteúdo */
 
   &::-webkit-scrollbar {

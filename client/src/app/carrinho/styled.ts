@@ -114,3 +114,10 @@ export const Footer = styled.div`
   margin-left: 44px;
   padding-bottom: 2px;
 `;
+
+export const ValueText = styled.p`
+  font-size: 24px;
+  padding-right: 40px;
+  font-weight: 500;
+  color: #2D2D2D;
+`;
