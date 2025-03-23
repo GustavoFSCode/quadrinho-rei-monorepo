@@ -56,7 +56,7 @@ const LoginForm = () => {
       });
       toast.success('Login realizado com sucesso!');
       // Redireciona para a rota de clientes
-      router.push('/clientes');
+      router.push('/home');
     } catch (error) {
       handleError(error); // ou exibir mensagem de erro
     } finally {

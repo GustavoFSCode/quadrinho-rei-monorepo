@@ -25,7 +25,7 @@ import { getClient } from '@/services/clientService';
 import { Client } from '@/services/clientService';
 import PaginationLink from '@/components/PaginationLink';
 
-export default function Clientes() {
+export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function Clientes() {
       <ContentContainer isExpanded={isExpanded}>
         <Header>
           <HeaderTop>
-            <HeaderTitle>Clientes</HeaderTitle>
+            <HeaderTitle>Home</HeaderTitle>
           </HeaderTop>
           <HeaderBottom>
             <SearchAndActionsBox>
@@ -95,27 +95,11 @@ export default function Clientes() {
                 <Input
                   id="search"
                   label=""
-                  placeholder="Busque um cliente por qualquer informação..."
+                  placeholder="Busque um quadrinho por qualquer informação..."
                   width="351px"
                   onChange={(e) => setFilter(e.target.value)}
                 />
-                <Barra />
               </StyledInputBox>
-              <ButtonBox>
-                <Button
-                  text={
-                    <>
-                      <Plus />
-                      Cadastrar cliente
-                    </>
-                  }
-                  type="button"
-                  variant="purple"
-                  width="195px"
-                  height="39px"
-                  onClick={handleOpenModal}
-                />
-              </ButtonBox>
             </SearchAndActionsBox>
           </HeaderBottom>
         </Header>

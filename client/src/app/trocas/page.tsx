@@ -25,7 +25,7 @@ import { getClient } from '@/services/clientService';
 import { Client } from '@/services/clientService';
 import PaginationLink from '@/components/PaginationLink';
 
-export default function Clientes() {
+export default function Trocas() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function Clientes() {
       <ContentContainer isExpanded={isExpanded}>
         <Header>
           <HeaderTop>
-            <HeaderTitle>Clientes</HeaderTitle>
+            <HeaderTitle>Trocas</HeaderTitle>
           </HeaderTop>
           <HeaderBottom>
             <SearchAndActionsBox>
@@ -96,7 +96,7 @@ export default function Clientes() {
                   id="search"
                   label=""
                   placeholder="Busque um cliente por qualquer informação..."
-                  width="351px"
+                  width="321px"
                   onChange={(e) => setFilter(e.target.value)}
                 />
                 <Barra />

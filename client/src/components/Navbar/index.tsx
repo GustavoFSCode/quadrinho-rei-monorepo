@@ -6,6 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { SidebarContainer, TopIconContainer, IconPart, MiddleIconContainer, BottomIconContainer, TopIcon } from "./styled"
 import ModalLogout from '@/components/Modals/Logout';
 import { GiArtificialHive } from "react-icons/gi";
+import { FiShoppingCart } from "react-icons/fi";
+import { IoHomeOutline } from "react-icons/io5";
+import { RiFileList3Line } from "react-icons/ri";
+import { GoInbox } from "react-icons/go";
+import { BsGraphDown } from "react-icons/bs";
+import { CiDollar } from "react-icons/ci";
+import { PiNewspaperLight } from "react-icons/pi";
 
 import {
     Jogadores,
@@ -49,8 +56,15 @@ const Navbar: React.FC<NavbarProps> = ({ isExpanded, setIsExpanded }) => {
 
     // Definição dos ícones e suas rotas com roles permitidas
     const menuItems = [
-        { id: 'icon1', href: '/clientes', label: 'Clientes', Icon: Jogadores, BoldIcon: BoldJogadores, roles: [3, 6] },
-        { id: 'icon2', href: '/chat-ia', label: 'Chat IA', Icon: GiArtificialHive, BoldIcon: GiArtificialHive, roles: [3, 6, 4, 5, 7] }
+        { id: 'icon1', href: '/home', label: 'Home', Icon: IoHomeOutline, BoldIcon: IoHomeOutline, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon2', href: '/carrinho', label: 'Carrinho', Icon: FiShoppingCart, BoldIcon: FiShoppingCart, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon3', href: '/minhas-compras', label: 'Minhas compras', Icon: RiFileList3Line, BoldIcon: RiFileList3Line, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon4', href: '/clientes', label: 'Clientes', Icon: Jogadores, BoldIcon: BoldJogadores, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon5', href: '/estoque', label: 'Estoque', Icon: GoInbox, BoldIcon: GoInbox, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon6', href: '/vendas', label: 'Vendas', Icon: CiDollar, BoldIcon: CiDollar, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon7', href: '/trocas', label: 'Trocas', Icon: PiNewspaperLight, BoldIcon: PiNewspaperLight, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon7', href: '/dashboard', label: 'Dashboard', Icon: BsGraphDown, BoldIcon: BsGraphDown, roles: [3, 6, 4, 5, 7] },
+        { id: 'icon8', href: '/chat-ia', label: 'Chat IA', Icon: GiArtificialHive, BoldIcon: GiArtificialHive, roles: [3, 6, 4, 5, 7] }
     ];
 
     const isActive = (path: string) => {
