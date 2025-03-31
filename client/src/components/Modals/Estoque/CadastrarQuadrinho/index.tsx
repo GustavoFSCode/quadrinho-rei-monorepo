@@ -125,224 +125,226 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({ onClose, onComicSubmit 
         </ModalHeader>
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Input
-              id="title"
-              label="Título"
-              placeholder="Título do quadrinho"
-              {...register('title')}
-              error={errors.title?.message}
-            />
+            <Flex $gap="1rem" $direction="column">
+              <Input
+                id="title"
+                label="Título"
+                placeholder="Título do quadrinho"
+                {...register('title')}
+                error={errors.title?.message}
+              />
 
-            <Input
-              id="author"
-              label="Autor"
-              placeholder="Nome do autor"
-              {...register('author')}
-              error={errors.author?.message}
-            />
+              <Input
+                id="author"
+                label="Autor"
+                placeholder="Nome do autor"
+                {...register('author')}
+                error={errors.author?.message}
+              />
 
-            <Input
-              id="publisher"
-              label="Editora"
-              placeholder="Editora"
-              {...register('publisher')}
-              error={errors.publisher?.message}
-            />
+              <Input
+                id="publisher"
+                label="Editora"
+                placeholder="Editora"
+                {...register('publisher')}
+                error={errors.publisher?.message}
+              />
 
-            <Input
-              id="year"
-              label="Ano"
-              type="number"
-              placeholder="Ano de publicação"
-              {...register('year')}
-              error={errors.year?.message}
-            />
+              <Input
+                id="year"
+                label="Ano"
+                type="number"
+                placeholder="Ano de publicação"
+                {...register('year')}
+                error={errors.year?.message}
+              />
 
-            <Input
-              id="issue"
-              label="Issue"
-              placeholder="Número da issue"
-              {...register('issue')}
-              error={errors.issue?.message}
-            />
+              <Input
+                id="issue"
+                label="Issue"
+                placeholder="Número da issue"
+                {...register('issue')}
+                error={errors.issue?.message}
+              />
 
-            <Input
-              id="edition"
-              label="Edição"
-              placeholder="Edição (opcional)"
-              {...register('edition')}
-              error={errors.edition?.message}
-            />
+              <Input
+                id="edition"
+                label="Edição"
+                placeholder="Edição (opcional)"
+                {...register('edition')}
+                error={errors.edition?.message}
+              />
 
-            <Input
-              id="pages"
-              label="Número de Páginas"
-              type="number"
-              placeholder="Quantidade de páginas"
-              {...register('pages')}
-              error={errors.pages?.message}
-            />
+              <Input
+                id="pages"
+                label="Número de Páginas"
+                type="number"
+                placeholder="Quantidade de páginas"
+                {...register('pages')}
+                error={errors.pages?.message}
+              />
 
-            <Input
-              id="synopsis"
-              label="Sinopse"
-              placeholder="Sinopse do quadrinho"
-              {...register('synopsis')}
-              error={errors.synopsis?.message}
-            />
+              <Input
+                id="synopsis"
+                label="Sinopse"
+                placeholder="Sinopse do quadrinho"
+                {...register('synopsis')}
+                error={errors.synopsis?.message}
+              />
 
-            {/* Grupo de checkboxes para Categoria usando os novos componentes styled */}
-            <Controller
-              control={control}
-              name="category"
-              render={({ field }) => {
-                const handleCheckboxChange = (optionValue: string, checked: boolean) => {
-                  if (checked) {
-                    field.onChange([...field.value, optionValue]);
-                  } else {
-                    field.onChange(field.value.filter((v: string) => v !== optionValue));
-                  }
-                };
-
-                return (
-                  <div>
-                    <CheckboxGroupLabel>Categoria</CheckboxGroupLabel>
-                    <CheckboxGroupContainer>
-                      {categoryOptions.map((option) => (
-                        <CheckboxItem key={option.value}>
-                          <Checkbox
-                            id={`category-${option.value}`}
-                            label={option.label}
-                            checked={field.value.includes(option.value)}
-                            onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
-                          />
-                        </CheckboxItem>
-                      ))}
-                    </CheckboxGroupContainer>
-                    {errors.category && <ErrorMessage>{errors.category.message}</ErrorMessage>}
-                  </div>
-                );
-              }}
-            />
-
-            <Input
-              id="isbn"
-              label="ISBN"
-              placeholder="Número ISBN"
-              {...register('isbn')}
-              error={errors.isbn?.message}
-            />
-
-            {/* Campo de Grupo de Precificação via CustomSelect */}
-            <Controller
-              control={control}
-              name="pricingGroup"
-              render={({ field }) => (
-                <>
-                  <CustomSelect
-                    id="pricingGroup"
-                    name="pricingGroup"
-                    label="Grupo de Precificação"
-                    options={pricingGroupOptions}
-                    value={field.value}
-                    onChange={(option) =>
-                      field.onChange(option ? option.value : '')
+              {/* Grupo de checkboxes para Categoria usando os novos componentes styled */}
+              <Controller
+                control={control}
+                name="category"
+                render={({ field }) => {
+                  const handleCheckboxChange = (optionValue: string, checked: boolean) => {
+                    if (checked) {
+                      field.onChange([...field.value, optionValue]);
+                    } else {
+                      field.onChange(field.value.filter((v: string) => v !== optionValue));
                     }
-                  />
-                  {errors.pricingGroup && <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>}
-                </>
-              )}
-            />
+                  };
 
-            <Input
-              id="barcode"
-              label="Código de Barras"
-              placeholder="Código de Barras"
-              {...register('barcode')}
-              error={errors.barcode?.message}
-            />
-
-            <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
-              <Input
-                id="dimensions.height"
-                label="Altura (cm)"
-                type="number"
-                placeholder="Altura"
-                {...register('dimensions.height')}
-                error={errors.dimensions?.height?.message}
+                  return (
+                    <div>
+                      <CheckboxGroupLabel>Categoria</CheckboxGroupLabel>
+                      <CheckboxGroupContainer>
+                        {categoryOptions.map((option) => (
+                          <CheckboxItem key={option.value}>
+                            <Checkbox
+                              id={`category-${option.value}`}
+                              label={option.label}
+                              checked={field.value.includes(option.value)}
+                              onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
+                            />
+                          </CheckboxItem>
+                        ))}
+                      </CheckboxGroupContainer>
+                      {errors.category && <ErrorMessage>{errors.category.message}</ErrorMessage>}
+                    </div>
+                  );
+                }}
               />
+
               <Input
-                id="dimensions.width"
-                label="Largura (cm)"
-                type="number"
-                placeholder="Largura"
-                {...register('dimensions.width')}
-                error={errors.dimensions?.width?.message}
+                id="isbn"
+                label="ISBN"
+                placeholder="Número ISBN"
+                {...register('isbn')}
+                error={errors.isbn?.message}
               />
-            </Flex>
 
-            <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+              {/* Campo de Grupo de Precificação via CustomSelect */}
+              <Controller
+                control={control}
+                name="pricingGroup"
+                render={({ field }) => (
+                  <>
+                    <CustomSelect
+                      id="pricingGroup"
+                      name="pricingGroup"
+                      label="Grupo de Precificação"
+                      options={pricingGroupOptions}
+                      value={field.value}
+                      onChange={(option) =>
+                        field.onChange(option ? option.value : '')
+                      }
+                    />
+                    {errors.pricingGroup && <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>}
+                  </>
+                )}
+              />
+
               <Input
-                id="dimensions.weight"
-                label="Peso (kg)"
-                type="number"
-                placeholder="Peso"
-                {...register('dimensions.weight')}
-                error={errors.dimensions?.weight?.message}
+                id="barcode"
+                label="Código de Barras"
+                placeholder="Código de Barras"
+                {...register('barcode')}
+                error={errors.barcode?.message}
               />
-              <Input
-                id="dimensions.depth"
-                label="Profundidade (cm)"
-                type="number"
-                placeholder="Profundidade"
-                {...register('dimensions.depth')}
-                error={errors.dimensions?.depth?.message}
-              />
-            </Flex>
 
-            <Input
-              id="price"
-              label="Preço (R$)"
-              type="text"
-              maskFunction={currencyMask}
-              placeholder="Preço"
-              {...register('price')}
-              error={errors.price?.message}
-            />
-
-            <Input
-              id="stock"
-              label="Estoque"
-              type="number"
-              placeholder="Quantidade em estoque"
-              {...register('stock')}
-              error={errors.stock?.message}
-            />
-
-            <Flex $direction="column" $margin="1rem 0">
-              <Flex $direction="row" $align="center" $gap="0.5rem">
-                <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
-                <ToggleButton
-                  onToggle={() => setValue('active', !active)}
-                  isActive={active}
+              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+                <Input
+                  id="dimensions.height"
+                  label="Altura (cm)"
+                  type="number"
+                  placeholder="Altura"
+                  {...register('dimensions.height')}
+                  error={errors.dimensions?.height?.message}
+                />
+                <Input
+                  id="dimensions.width"
+                  label="Largura (cm)"
+                  type="number"
+                  placeholder="Largura"
+                  {...register('dimensions.width')}
+                  error={errors.dimensions?.width?.message}
                 />
               </Flex>
-              {!active && (
-                <Flex $direction="column" $margin="1rem 0">
-                  <Input
-                    id="inactivationReason"
-                    label="Motivo de inativação"
-                    placeholder="Informe o motivo de inativação"
-                    {...register('inactivationReason')}
-                    error={errors.inactivationReason?.message}
+
+              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+                <Input
+                  id="dimensions.weight"
+                  label="Peso (kg)"
+                  type="number"
+                  placeholder="Peso"
+                  {...register('dimensions.weight')}
+                  error={errors.dimensions?.weight?.message}
+                />
+                <Input
+                  id="dimensions.depth"
+                  label="Profundidade (cm)"
+                  type="number"
+                  placeholder="Profundidade"
+                  {...register('dimensions.depth')}
+                  error={errors.dimensions?.depth?.message}
+                />
+              </Flex>
+
+              <Input
+                id="price"
+                label="Preço (R$)"
+                type="text"
+                maskFunction={currencyMask}
+                placeholder="Preço"
+                {...register('price')}
+                error={errors.price?.message}
+              />
+
+              <Input
+                id="stock"
+                label="Estoque"
+                type="number"
+                placeholder="Quantidade em estoque"
+                {...register('stock')}
+                error={errors.stock?.message}
+              />
+
+              <Flex $direction="column">
+                <Flex $direction="row" $align="center" $gap="0.5rem">
+                  <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
+                  <ToggleButton
+                    onToggle={() => setValue('active', !active)}
+                    isActive={active}
                   />
                 </Flex>
-              )}
-            </Flex>
+                {!active && (
+                  <Flex $direction="column">
+                    <Input
+                      id="inactivationReason"
+                      label="Motivo de inativação"
+                      placeholder="Informe o motivo de inativação"
+                      {...register('inactivationReason')}
+                      error={errors.inactivationReason?.message}
+                    />
+                  </Flex>
+                )}
+              </Flex>
 
-            <SubmitButton type="submit" style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>
-              Salvar Quadrinho
-            </SubmitButton>
+              <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
+                Salvar Quadrinho
+              </SubmitButton>
+            </Flex>
           </form>
         </ModalBody>
       </ModalContent>
