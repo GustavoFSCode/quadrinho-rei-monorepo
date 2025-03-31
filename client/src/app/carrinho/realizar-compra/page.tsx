@@ -18,16 +18,14 @@ import Navbar from '@/components/Navbar';
 import Tabela from '@/components/Tables/Carrinho';
 import Pagination from '@/components/Pagination';
 import { toast, ToastContainer } from "react-toastify";
-import { useRouter } from 'next/navigation';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Carrinho: React.FC = () => {
+const RealizarCompra: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [totalValue, setTotalValue] = useState<number>(0);
-  const router = useRouter();
 
   const handleEmptyCart = (): void => {
-    toast.success("Carrinho esvaziado com sucesso!");
+    toast.success("Compra realizada com sucesso!");
   };
 
   return (
@@ -36,7 +34,7 @@ const Carrinho: React.FC = () => {
       <ContentContainer isExpanded={isExpanded}>
         <Header>
           <HeaderTop>
-            <HeaderTitle>Carrinho</HeaderTitle>
+            <HeaderTitle>Realizar compra</HeaderTitle>
           </HeaderTop>
           <HeaderBottom>
             <SearchAndActionsBox>
@@ -62,7 +60,7 @@ const Carrinho: React.FC = () => {
                   variant="purple"
                   width="195px"
                   height="39px"
-                  onClick={() => router.push("/carrinho/realizar-compra")}
+                  onClick={handleEmptyCart}
                 />
               </ButtonBox>
             </SearchAndActionsBox>
@@ -80,4 +78,4 @@ const Carrinho: React.FC = () => {
   );
 };
 
-export default Carrinho;
+export default RealizarCompra;

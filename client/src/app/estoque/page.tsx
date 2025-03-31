@@ -8,22 +8,21 @@ import {
   HeaderBottom,
   HeaderTitle,
   SearchAndActionsBox,
-  StyledInputBox,
   ButtonBox,
   Content,
   Footer
 } from './styled';
 import Plus from '@/components/icons/Plus';
 import Button from "@/components/Button";
-import Input from '@/components/Inputs/Input/Input';
 import Navbar from '@/components/Navbar';
-import Barra from '@/components/icons/Barra';
 import Tabela from '@/components/Tables/Clientes';
-import ModalCadastrarClientes from '@/components/Modals/Clientes/CadastrarCliente';
 import FilterModal from '@/components/Modals/Clientes/Filter';
 import { getClient } from '@/services/clientService';
 import { Client } from '@/services/clientService';
 import PaginationLink from '@/components/PaginationLink';
+import ComicFormModal, { IComicForm } from '@/components/Modals/Estoque/CadastrarQuadrinho';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Estoque() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,22 +41,16 @@ export default function Estoque() {
       setDebouncedFilter(filter);
       setCurrentPage(1); // Reseta a página ao aplicar um novo filtro
     }, 300);
-
     return () => clearTimeout(handler);
   }, [filter]);
 
   const fetchClients = async () => {
     try {
       const response = await getClient(undefined, currentPage, itemsPerPage, debouncedFilter);
-
-      // Verifica se a resposta já é um array ou se está encapsulada no objeto (com propriedade "data")
       const clientsArray = Array.isArray(response)
         ? response
         : response.data ?? [];
-
       setClients(clientsArray);
-
-      // Se houver totalCount na resposta, usa-o; caso contrário, usa o tamanho do array
       const total = response.totalCount !== undefined
         ? response.totalCount
         : clientsArray.length;
@@ -80,6 +73,15 @@ export default function Estoque() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
   const handleCloseFilterModal = () => setIsFilterModalOpen(false);
+
+  // Função para tratar a submissão do quadrinho
+  const handleComicSubmit = (data: IComicForm) => {
+    console.log('Dados do quadrinho:', data);
+    // Aqui você pode realizar ações, como enviar os dados para uma API
+    // Após o sucesso, fecha o modal e exibe o toast
+    setIsModalOpen(false);
+    toast.success("Quadrinho cadastrado com sucesso!");
+  };
 
   return (
     <>
@@ -128,10 +130,16 @@ export default function Estoque() {
       </ContentContainer>
 
       {isModalOpen && (
-        <ModalCadastrarClientes onClose={handleCloseModal} onClientCreated={fetchClients} />
+        <ComicFormModal
+          onClose={handleCloseModal}
+          onComicSubmit={handleComicSubmit}
+        />
       )}
 
       {isFilterModalOpen && <FilterModal onClose={handleCloseFilterModal} />}
+
+      {/* ToastContainer para exibir os toasts */}
+      <ToastContainer />
     </>
   );
 }

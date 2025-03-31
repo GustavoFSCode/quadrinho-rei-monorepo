@@ -7,14 +7,14 @@ interface CheckboxLabelProps {
 }
 
 export const CheckboxLabel = styled.label<CheckboxLabelProps>`
-  font-size: 0.875rem;
+  font-size: 16px;
   font-weight: 400;
   color: ${({ theme }) => theme.colors.neutral4};
   display: flex;
   align-items: center;
   flex-direction: ${({ $inverted }) =>
     $inverted === true ? 'row-reverse' : 'row'};
-  gap: 0.75rem;
+  gap: 5px;
 
   &::before {
     content: '';
@@ -32,8 +32,8 @@ export const StyledInput = styled.input`
   &:checked ~ label {
     &::before {
       padding: 0.3125rem;
-      background-color: ${({ theme }) => theme.colors.primary10};
-      background-image: url('/img/check.svg');
+      background-color: ${({ theme }) => theme.colors.secondary5};
+      background-image: url('/assets/images/check.svg');
       background-repeat: no-repeat;
       background-position: center;
       background-size: 0.875rem 1.25rem;
