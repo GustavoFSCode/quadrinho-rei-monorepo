@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const ContentContainer = styled.div<{ isExpanded: boolean }>`
   background-color: #FFFFFF;
-  height: 100vh;
+  height: auto;
   margin-left: ${(props) => (props.isExpanded ? "200px" : "80px")};
   border-radius: 8px;
   padding-top: 32px;
@@ -97,11 +97,11 @@ export const ButtonBox = styled.div`
 `;
 
 export const Content = styled.div`
-  height: 75vh;
   margin-left: 44px;
   margin-right: 44px;
   padding-bottom: 0;
   border-radius: 4px;
+  margin-bottom: 3rem;
 
 `;
 
@@ -120,4 +120,27 @@ export const ValueText = styled.p`
   padding-right: 40px;
   font-weight: 500;
   color: #2D2D2D;
+`;
+
+export const SectionTitle = styled.div`
+  display: flex;
+  flex-direction: row;
+  font-size: 24px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 1rem;
+  gap: 20px;
+  align-items: center;
+`;
+
+export const SubSectionTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 400;
+  color: #333;
+  margin-bottom: 0.5rem;
+`;
+
+export const StyledParagraph = styled.p`
+  font-size: 20px;
+  color: #333;
 `;

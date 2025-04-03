@@ -1,32 +1,45 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import {
   ContentContainer,
   Header,
   HeaderTop,
-  HeaderBottom,
   HeaderTitle,
-  SearchAndActionsBox,
-  ButtonBox,
   Content,
-  Footer,
-  ValueText
+  SectionTitle,
+  SubSectionTitle,
+  StyledParagraph,
 } from './styled';
-import Button from "@/components/Button";
 import Navbar from '@/components/Navbar';
-import Tabela from '@/components/Tables/Carrinho';
-import Pagination from '@/components/Pagination';
-import { toast, ToastContainer } from "react-toastify";
+import Tabela from '@/components/Tables/realizar-compra';
+import { Flex } from '@/styles/global';
+import Button from '@/components/Button';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Componentes placeholders (a serem implementados futuramente)
+import CupomForm from '@/components/Forms/CupomForm/CupomForm';
+import EnderecoEntregaList from '@/components/EnderecoEntregaList';
+import EnderecoCobrancaList from '@/components/EnderecoCobrancaList';
+import CartaoList from '@/components/CartaoList';
+import ModalEndereco from '@/components/Modals/RealizarCompra/ModalEndereco';
+import ModalCartao from '@/components/Modals/RealizarCompra/ModalCartao';
+import { documentId } from '@/config/documentId';
 
 const RealizarCompra: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [totalValue, setTotalValue] = useState<number>(0);
+  const [paymentTotal, setPaymentTotal] = useState<number>(0);
 
-  const handleEmptyCart = (): void => {
-    toast.success("Compra realizada com sucesso!");
+  const [showModalEndereco, setShowModalEndereco] = useState<boolean>(false);
+  const [showModalCartao, setShowModalCartao] = useState<boolean>(false);
+
+  const handleFinalizarCompra = (): void => {
+    toast.success('Compra finalizada com sucesso!');
   };
+
+  console.log('documentId:', documentId);
 
   return (
     <>
@@ -36,43 +49,88 @@ const RealizarCompra: React.FC = () => {
           <HeaderTop>
             <HeaderTitle>Realizar compra</HeaderTitle>
           </HeaderTop>
-          <HeaderBottom>
-            <SearchAndActionsBox>
-              <ValueText>
-                Valor total:{" "}
-                {totalValue.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </ValueText>
-              <ButtonBox>
-                <Button
-                  text={<>Esvaziar carrinho</>}
-                  type="button"
-                  variant="red"
-                  width="185px"
-                  height="39px"
-                  onClick={handleEmptyCart}
-                />
-                <Button
-                  text={<>Realizar compra</>}
-                  type="button"
-                  variant="purple"
-                  width="195px"
-                  height="39px"
-                  onClick={handleEmptyCart}
-                />
-              </ButtonBox>
-            </SearchAndActionsBox>
-          </HeaderBottom>
         </Header>
         <Content>
-          <Tabela onTotalChange={setTotalValue} />
+          <Flex $direction="column" $gap="1rem">
+            <Flex $direction="column" $gap="1rem">
+              <SectionTitle>Cupons</SectionTitle>
+              <CupomForm />
+            </Flex>
+            <Flex $direction="column" $gap="1rem">
+              <SectionTitle>
+                Endereço
+                <span>-</span>
+                <Button
+                  text="Adicionar endereço"
+                  type="button"
+                  width="170px"
+                  height="40px"
+                  variant="purple"
+                  onClick={() => setShowModalEndereco(true)}
+                />
+              </SectionTitle>
+              <Flex $direction="column" $gap="1rem">
+                <SubSectionTitle>Endereço de entrega</SubSectionTitle>
+                <EnderecoEntregaList />
+              </Flex>
+              <Flex $direction="column" $gap="1rem">
+                <SubSectionTitle>Endereço de cobrança</SubSectionTitle>
+                <EnderecoCobrancaList />
+              </Flex>
+            </Flex>
+            <Flex $direction="column" $gap="1rem">
+              <SectionTitle>
+                Cartão
+                <span>-</span>
+                <Button
+                  text="Adicionar cartão"
+                  width="150px"
+                  height="40px"
+                  type="button"
+                  variant="purple"
+                  onClick={() => setShowModalCartao(true)}
+                />
+              </SectionTitle>
+              <CartaoList
+                onTotalChange={setPaymentTotal}
+                totalOrder={totalValue}
+              />
+            </Flex>
+            <Flex $direction="row" $gap="2rem">
+              <Tabela onTotalChange={setTotalValue} />
+              <Flex $direction="column" $gap="20px" $justify="center">
+                <StyledParagraph>
+                  Valor total de pagamento:{' '}
+                  {paymentTotal.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </StyledParagraph>
+                <StyledParagraph>
+                  Valor total do pedido:{' '}
+                  {totalValue.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </StyledParagraph>
+                <Button
+                  text="Finalizar compra"
+                  type="button"
+                  variant="purple"
+                  onClick={handleFinalizarCompra}
+                  disabled={paymentTotal !== totalValue}
+                />
+              </Flex>
+            </Flex>
+          </Flex>
         </Content>
-        <Footer>
-          <Pagination itemsPerPage={12} />
-        </Footer>
       </ContentContainer>
+      {showModalEndereco && (
+        <ModalEndereco onClose={() => setShowModalEndereco(false)} />
+      )}
+      {showModalCartao && (
+        <ModalCartao onClose={() => setShowModalCartao(false)} />
+      )}
       <ToastContainer />
     </>
   );
