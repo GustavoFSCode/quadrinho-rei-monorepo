@@ -25,7 +25,7 @@ import EnderecoCobrancaList from '@/components/EnderecoCobrancaList';
 import CartaoList from '@/components/CartaoList';
 import ModalEndereco from '@/components/Modals/RealizarCompra/ModalEndereco';
 import ModalCartao from '@/components/Modals/RealizarCompra/ModalCartao';
-import { documentId } from '@/config/documentId';
+import { clientDocumentId } from '@/config/documentId';
 
 const RealizarCompra: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -38,8 +38,6 @@ const RealizarCompra: React.FC = () => {
   const handleFinalizarCompra = (): void => {
     toast.success('Compra finalizada com sucesso!');
   };
-
-  console.log('documentId:', documentId);
 
   return (
     <>
@@ -126,10 +124,22 @@ const RealizarCompra: React.FC = () => {
         </Content>
       </ContentContainer>
       {showModalEndereco && (
-        <ModalEndereco onClose={() => setShowModalEndereco(false)} />
+        <ModalEndereco
+          onClose={() => setShowModalEndereco(false)}
+          onAddressRefresh={async () => {
+            // Lógica para atualizar a lista de enderecos (caso necessário)
+          }}
+          clientDocumentId={clientDocumentId}
+        />
       )}
       {showModalCartao && (
-        <ModalCartao onClose={() => setShowModalCartao(false)} />
+        <ModalCartao
+          onClose={() => setShowModalCartao(false)}
+          onCardsRefresh={async () => {
+            // Lógica para atualizar a lista de cartões (caso necessário)
+          }}
+          clientDocumentId={clientDocumentId}
+        />
       )}
       <ToastContainer />
     </>

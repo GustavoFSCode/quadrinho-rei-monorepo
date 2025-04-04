@@ -3,11 +3,12 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from '@/components/Inputs/Input/Input';
-import { maskCreditCard, getCardFlag } from '@/utils/masks';
+import ToggleButton from '@/components/Button/ToggleButton';
 import { SubmitButton } from './styled';
 import { Flex } from '@/styles/global';
 import { toast } from 'react-toastify';
 import { createCard } from '@/services/clientService';
+import { maskCreditCard, getCardFlag } from '@/utils/masks';
 
 interface CardFormData {
   holderName: string;
@@ -26,7 +27,7 @@ const cardSchema = yup.object().shape({
   holderName: yup.string().required('Nome do titular é obrigatório'),
   numberCard: yup.string().required('Número do cartão é obrigatório'),
   safeNumber: yup.string().required('Código de segurança é obrigatório'),
-  flagCard: yup.string().required(), // se não for obrigatória, ou use .required() se necessário
+  flagCard: yup.string().required('Bandeira do cartão é obrigatória'),
   isFavorite: yup.boolean().default(false),
 });
 
@@ -61,8 +62,6 @@ const NewCardForm: React.FC<NewCardFormProps> = ({
 
   const onSubmit: SubmitHandler<CardFormData> = async data => {
     try {
-      data.flagCard = getCardFlag(data.numberCard);
-      data.isFavorite = false;
       await createCard(clientDocumentId, { card: data });
       toast.success('Novo cartão cadastrado com sucesso!');
       reset();
@@ -106,6 +105,13 @@ const NewCardForm: React.FC<NewCardFormProps> = ({
           {...register('safeNumber')}
           error={errors.safeNumber?.message}
         />
+        <Flex $direction="row" $align="center" $gap="0.5rem">
+          <label>Favorito</label>
+          <ToggleButton
+            isActive={watch('isFavorite')}
+            onToggle={() => setValue('isFavorite', !watch('isFavorite'))}
+          />
+        </Flex>
         <SubmitButton type="submit">Salvar novo cartão</SubmitButton>
       </Flex>
     </form>

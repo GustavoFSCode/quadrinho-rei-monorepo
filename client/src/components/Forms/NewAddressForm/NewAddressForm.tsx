@@ -1,10 +1,11 @@
 import React from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from '@/components/Inputs/Input/Input';
+import CustomSelect from '@/components/Select';
 import { maskCEP } from '@/utils/masks';
-import { SubmitButton } from './styled';
+import { SubmitButton, ErrorMessage } from './styled';
 import { Flex } from '@/styles/global';
 import { toast } from 'react-toastify';
 import { createAddress } from '@/services/clientService';
@@ -51,6 +52,7 @@ const NewAddressForm: React.FC<NewAddressFormProps> = ({
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<AddressFormData>({
     resolver: yupResolver(addressSchema),
     defaultValues: {
@@ -68,12 +70,26 @@ const NewAddressForm: React.FC<NewAddressFormProps> = ({
     },
   });
 
+  // Opções para os selects
+  const typeAddressOptions = [
+    { value: 'Cobrança', label: 'Cobrança' },
+    { value: 'Entrega', label: 'Entrega' },
+  ];
+
+  const logradouroOptions = [
+    { value: 'Rua', label: 'Rua' },
+    { value: 'Avenida', label: 'Avenida' },
+    { value: 'Distrito', label: 'Distrito' },
+    { value: 'Rodovias', label: 'Rodovias' },
+    { value: 'Condomínio', label: 'Condomínio' },
+  ];
+
   const onSubmit: SubmitHandler<AddressFormData> = async data => {
     try {
       await createAddress(clientDocumentId, {
         address: {
           ...data,
-          observation: data.observation || '', // Garante que seja uma string
+          observation: data.observation || '',
         },
       });
       toast.success('Novo endereço cadastrado com sucesso!');
@@ -95,20 +111,40 @@ const NewAddressForm: React.FC<NewAddressFormProps> = ({
           {...register('nameAddress')}
           error={errors.nameAddress?.message}
         />
-        <Input
-          id="TypeAddress"
-          label="Tipo de Endereço"
-          placeholder="Cobrança ou Entrega"
-          {...register('TypeAddress')}
-          error={errors.TypeAddress?.message}
+        <Controller
+          control={control}
+          name="TypeAddress"
+          render={({ field: { onChange, value } }) => (
+            <CustomSelect
+              id="TypeAddress"
+              name="TypeAddress"
+              label="Tipo de Endereço"
+              options={typeAddressOptions}
+              value={value}
+              onChange={option => onChange(option?.value)}
+            />
+          )}
         />
-        <Input
-          id="typeLogradouro"
-          label="Tipo de Logradouro"
-          placeholder="Rua, Avenida, etc."
-          {...register('typeLogradouro')}
-          error={errors.typeLogradouro?.message}
+        {errors.TypeAddress && (
+          <ErrorMessage>{errors.TypeAddress.message}</ErrorMessage>
+        )}
+        <Controller
+          control={control}
+          name="typeLogradouro"
+          render={({ field: { onChange, value } }) => (
+            <CustomSelect
+              id="typeLogradouro"
+              name="typeLogradouro"
+              label="Tipo de Logradouro"
+              options={logradouroOptions}
+              value={value}
+              onChange={option => onChange(option?.value)}
+            />
+          )}
         />
+        {errors.typeLogradouro && (
+          <ErrorMessage>{errors.typeLogradouro.message}</ErrorMessage>
+        )}
         <Input
           id="nameLogradouro"
           label="Nome do Logradouro"

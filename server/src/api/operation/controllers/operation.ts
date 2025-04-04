@@ -2,59 +2,66 @@
  * operation controller
  */
 
-import { factories } from '@strapi/strapi'
-import { clientService } from '../services/clientService';
-import { UserService } from '../services/userService';
-import { cardService } from '../services/cardService';
-import { AddressService } from '../services/addressService';
+import { factories } from "@strapi/strapi";
+import { clientService } from "../services/clientService";
+import { UserService } from "../services/userService";
+import { cardService } from "../services/cardService";
+import { AddressService } from "../services/addressService";
 
-export default factories.createCoreController('api::operation.operation', ({ strapi }) => ({
-    async getClient(ctx){
-        const sales = new clientService();
-        return sales.getClient(ctx.request.query.id, ctx);
+export default factories.createCoreController(
+  "api::operation.operation",
+  ({ strapi }) => ({
+    async getClient(ctx) {
+      const sales = new clientService();
+      return sales.getClient(ctx.request.query.id, ctx);
     },
-    async createClient(ctx){
-        const sales = new clientService();
-        return sales.createClient(ctx.request.body);
+    async createClient(ctx) {
+      const sales = new clientService();
+      return sales.createClient(ctx.request.body);
     },
-    async editClient(ctx){
-        const sales = new clientService();
-        return sales.editClient(ctx);
+    async editClient(ctx) {
+      const sales = new clientService();
+      return sales.editClient(ctx);
     },
-    async deleteUser(ctx){
-        const sales = new UserService();
-        return sales.deleteUser(ctx);
+    async deleteUser(ctx) {
+      const sales = new UserService();
+      return sales.deleteUser(ctx);
     },
-    async blockUser(ctx){
-        const sales = new UserService();
-        return sales.blockUser(ctx);
+    async blockUser(ctx) {
+      const sales = new UserService();
+      return sales.blockUser(ctx);
     },
-    async changePassword(ctx){
-        const sales = new UserService();
-        return sales.changePassword(ctx);
+    async changePassword(ctx) {
+      const sales = new UserService();
+      return sales.changePassword(ctx);
     },
-    async createCard(ctx){
-        const sales = new cardService();
-        return sales.createCard(ctx);
+    async createCard(ctx) {
+      const sales = new cardService();
+      return sales.createCard(ctx);
     },
-    async deleteCard(ctx){
-        const sales = new cardService();
-        return sales.deleteCard(ctx);
+    async deleteCard(ctx) {
+      const sales = new cardService();
+      return sales.deleteCard(ctx);
     },
-    async editCard(ctx){
-        const sales = new cardService();
-        return sales.editCard(ctx);
+    async editCard(ctx) {
+      const sales = new cardService();
+      return sales.editCard(ctx);
     },
-    async createAddress(ctx){
-        const sales = new AddressService();
-        return sales.createAddress(ctx);
+    async createAddress(ctx) {
+      const sales = new AddressService();
+      return sales.createAddress(ctx);
     },
-    async editAddress(ctx){
-        const sales = new AddressService();
-        return sales.editAddress(ctx);
+    async editAddress(ctx) {
+      const sales = new AddressService();
+      return sales.editAddress(ctx);
     },
-    async deleteAddress(ctx){
-        const sales = new AddressService();
-        return sales.deleteAddress(ctx);
+    async deleteAddress(ctx) {
+      const sales = new AddressService();
+      return sales.deleteAddress(ctx);
     },
- }));
+    async getUser(ctx) {
+      const userService = new UserService();
+      return userService.getUser(ctx);
+    },
+  })
+);
