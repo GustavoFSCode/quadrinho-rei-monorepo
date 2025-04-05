@@ -12,7 +12,7 @@ import {
   StyledParagraph,
 } from './styled';
 import Navbar from '@/components/Navbar';
-import Tabela from '@/components/Tables/realizar-compra';
+import Tabela from '@/components/Tables/Realizar-Compra';
 import { Flex } from '@/styles/global';
 import Button from '@/components/Button';
 import { toast, ToastContainer } from 'react-toastify';

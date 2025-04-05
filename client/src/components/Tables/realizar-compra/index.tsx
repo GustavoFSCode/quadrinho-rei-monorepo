@@ -48,7 +48,7 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
 
   return (
     <Flex $direction="column">
-      <h2>Pedido - #1</h2>
+      <h2>Pedido</h2>
       <TableContainer>
         <Table aria-label="Tabela de Produtos">
           <TableHead>

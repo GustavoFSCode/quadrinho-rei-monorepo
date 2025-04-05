@@ -18,15 +18,14 @@ import Button from '@/components/Button';
 import Input from '@/components/Inputs/Input/Input';
 import Navbar from '@/components/Navbar';
 import Barra from '@/components/icons/Barra';
-import Tabela from '@/components/Tables/Minhas-Compras';
+import Tabela from '@/components/Tables/Minhas-Trocas';
 import ModalCadastrarClientes from '@/components/Modals/Clientes/CadastrarCliente';
 import FilterModal from '@/components/Modals/Clientes/Filter';
 import { getClient } from '@/services/clientService';
 import { Client } from '@/services/clientService';
-import { useRouter } from 'next/navigation';
 import PaginationLink from '@/components/PaginationLink';
 
-export default function MinhasCompras() {
+export default function MinhasTrocas() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -36,7 +35,6 @@ export default function MinhasCompras() {
   const [totalItems, setTotalItems] = useState(0);
   const [filter, setFilter] = useState('');
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
-  const router = useRouter();
 
   // Debounce para evitar chamar a API a cada tecla
   useEffect(() => {
@@ -95,22 +93,10 @@ export default function MinhasCompras() {
       <ContentContainer isExpanded={isExpanded}>
         <Header>
           <HeaderTop>
-            <HeaderTitle>Minhas compras</HeaderTitle>
+            <HeaderTitle>Minhas trocas</HeaderTitle>
           </HeaderTop>
           <HeaderBottom>
-            <SearchAndActionsBox>
-              <StyledInputBox></StyledInputBox>
-              <ButtonBox>
-                <Button
-                  text={<>Minhas trocas</>}
-                  type="button"
-                  variant="purple"
-                  width="185px"
-                  height="39px"
-                  onClick={() => router.push('/minhas-compras/minhas-trocas')}
-                />
-              </ButtonBox>
-            </SearchAndActionsBox>
+            <SearchAndActionsBox></SearchAndActionsBox>
           </HeaderBottom>
         </Header>
         <Content>
