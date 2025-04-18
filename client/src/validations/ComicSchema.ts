@@ -64,9 +64,13 @@ export const ComicSchema = yup.object({
     .number()
     .typeError('Estoque deve ser um número')
     .required('Estoque é obrigatório')
-    .min(0, 'Estoque deve ser positivo'),
+    .min(1, 'Estoque deve ser positivo'),
   active: yup.boolean().required(),
-  inactivationReason: yup.string().when(['active'], ([active], schema) =>
-    active === false ? schema.required('Motivo de inativação é obrigatório') : schema.notRequired()
-  )
+  inactivationReason: yup
+    .string()
+    .when(['active'], ([active], schema) =>
+      active === false
+        ? schema.required('Motivo de inativação é obrigatório')
+        : schema.notRequired(),
+    ),
 });

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -10,17 +10,19 @@ import {
   SearchAndActionsBox,
   ButtonBox,
   Content,
-  Footer
+  Footer,
 } from './styled';
 import Plus from '@/components/icons/Plus';
-import Button from "@/components/Button";
+import Button from '@/components/Button';
 import Navbar from '@/components/Navbar';
-import Tabela from '@/components/Tables/Clientes';
+import Tabela from '@/components/Tables/Estoque';
 import FilterModal from '@/components/Modals/Clientes/Filter';
 import { getClient } from '@/services/clientService';
 import { Client } from '@/services/clientService';
-import PaginationLink from '@/components/PaginationLink';
-import ComicFormModal, { IComicForm } from '@/components/Modals/Estoque/CadastrarQuadrinho';
+import PaginationLink from '@/components/Pagination';
+import ComicFormModal, {
+  IComicForm,
+} from '@/components/Modals/Estoque/CadastrarQuadrinho';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -46,14 +48,20 @@ export default function Estoque() {
 
   const fetchClients = async () => {
     try {
-      const response = await getClient(undefined, currentPage, itemsPerPage, debouncedFilter);
+      const response = await getClient(
+        undefined,
+        currentPage,
+        itemsPerPage,
+        debouncedFilter,
+      );
       const clientsArray = Array.isArray(response)
         ? response
         : response.data ?? [];
       setClients(clientsArray);
-      const total = response.totalCount !== undefined
-        ? response.totalCount
-        : clientsArray.length;
+      const total =
+        response.totalCount !== undefined
+          ? response.totalCount
+          : clientsArray.length;
       setTotalItems(total);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
@@ -80,7 +88,7 @@ export default function Estoque() {
     // Aqui você pode realizar ações, como enviar os dados para uma API
     // Após o sucesso, fecha o modal e exibe o toast
     setIsModalOpen(false);
-    toast.success("Quadrinho cadastrado com sucesso!");
+    toast.success('Quadrinho cadastrado com sucesso!');
   };
 
   return (
@@ -112,20 +120,10 @@ export default function Estoque() {
           </HeaderBottom>
         </Header>
         <Content>
-          <Tabela
-            clients={clients}
-            onClientDeleted={fetchClients}
-            onUserToggled={fetchClients}
-            onClientEdited={fetchClients}
-          />
+          <Tabela />
         </Content>
         <Footer>
-          <PaginationLink
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            totalItems={totalItems}
-            onPageChange={handlePageChange}
-          />
+          <PaginationLink itemsPerPage={itemsPerPage} />
         </Footer>
       </ContentContainer>
 

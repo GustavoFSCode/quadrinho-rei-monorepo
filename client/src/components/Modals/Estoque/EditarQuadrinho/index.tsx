@@ -122,7 +122,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     <ModalOverlay>
       <ModalContent>
         <ModalHeader>
-          Cadastrar quadrinho
+          Editar quadrinho
           <Closed onClick={onClose} name="closeComicForm" />
         </ModalHeader>
         <ModalBody>
@@ -358,7 +358,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
               </Flex>
 
               <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
-                Salvar Quadrinho
+                Editar Quadrinho
               </SubmitButton>
             </Flex>
           </form>
