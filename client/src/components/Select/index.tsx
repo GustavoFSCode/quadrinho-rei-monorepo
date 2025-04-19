@@ -1,7 +1,7 @@
 // CustomSelect.tsx
-import React from "react";
-import Select, { StylesConfig } from "react-select";
-import { SelectWrapper, Label } from "./styled";
+import React from 'react';
+import Select, { StylesConfig } from 'react-select';
+import { SelectWrapper, Label } from './styled';
 
 interface OptionType {
   value: string;
@@ -27,7 +27,7 @@ const CustomSelect: React.FC<SelectProps> = ({
   options,
   width,
   height,
-  value = "", // Valor padrão como string vazia
+  value = '', // Valor padrão como string vazia
   onChange,
   isDisabled = false,
 }) => {
@@ -46,11 +46,11 @@ const CustomSelect: React.FC<SelectProps> = ({
       overflow: 'hidden',
       alignItems: 'center',
       transition: 'border-color 0.2s ease',
-      "&:hover": {
+      '&:hover': {
         borderColor: '#a2a2a2',
       },
     }),
-    singleValue: (provided) => ({
+    singleValue: provided => ({
       ...provided,
       color: '#747373',
       fontSize: '16px',
@@ -64,12 +64,12 @@ const CustomSelect: React.FC<SelectProps> = ({
         backgroundColor: '#f0f0f0',
       },
     }),
-    placeholder: (provided) => ({
+    placeholder: provided => ({
       ...provided,
       color: '#8c8c8c',
       fontSize: '16px',
     }),
-    menu: (provided) => ({
+    menu: provided => ({
       ...provided,
       fontSize: '16px',
       '&::-webkit-scrollbar': {
@@ -88,7 +88,7 @@ const CustomSelect: React.FC<SelectProps> = ({
         borderRadius: '10px',
       },
     }),
-    dropdownIndicator: (provided) => ({
+    dropdownIndicator: provided => ({
       ...provided,
       color: '#747373',
       '&:hover': {
@@ -105,7 +105,7 @@ const CustomSelect: React.FC<SelectProps> = ({
         name={name}
         options={options}
         value={options.find(option => option.value === value) || null}
-        onChange={(option) => {
+        onChange={option => {
           if (onChange) {
             onChange(option);
           }
