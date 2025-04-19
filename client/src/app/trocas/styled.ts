@@ -14,7 +14,6 @@ export const ContentContainer = styled.div<{ isExpanded: boolean }>`
 
 export const Header = styled.div`
   width: 100%;
-  height: 91px;
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
