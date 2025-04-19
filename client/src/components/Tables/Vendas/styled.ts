@@ -66,26 +66,10 @@ export const OrderHeader = styled.div`
   align-items: center;
   margin-bottom: 10px;
   gap: 3rem;
-
-  span {
-    font-size: 20px;
-    color: #333;
-  }
-
-  div {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    color: #555;
-
-    span + span {
-      margin-left: 10px;
-    }
-  }
 `;
 
 export const OrderText = styled.span`
-  font-size: 16px;
+  font-size: 20px;
   color: #333;
 `;
 
@@ -100,7 +84,7 @@ export const TableBodyCell = styled.td<{
   ${({ productTitle }) =>
     productTitle &&
     `
-    max-width: 250px;
+    max-width: 0px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

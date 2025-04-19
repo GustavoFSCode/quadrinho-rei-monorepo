@@ -1,4 +1,3 @@
-// CustomSelect.tsx
 import React from 'react';
 import Select, { StylesConfig } from 'react-select';
 import { SelectWrapper, Label } from './styled';
@@ -27,7 +26,7 @@ const CustomSelect: React.FC<SelectProps> = ({
   options,
   width,
   height,
-  value = '', // Valor padrão como string vazia
+  value = '',
   onChange,
   isDisabled = false,
 }) => {
@@ -46,9 +45,7 @@ const CustomSelect: React.FC<SelectProps> = ({
       overflow: 'hidden',
       alignItems: 'center',
       transition: 'border-color 0.2s ease',
-      '&:hover': {
-        borderColor: '#a2a2a2',
-      },
+      '&:hover': { borderColor: '#a2a2a2' },
     }),
     singleValue: provided => ({
       ...provided,
@@ -60,9 +57,7 @@ const CustomSelect: React.FC<SelectProps> = ({
       fontSize: '16px',
       color: state.isSelected ? '#8c8c8c' : '#333',
       backgroundColor: state.isSelected ? '#f0f0f0' : '#fff',
-      '&:hover': {
-        backgroundColor: '#f0f0f0',
-      },
+      '&:hover': { backgroundColor: '#f0f0f0' },
     }),
     placeholder: provided => ({
       ...provided,
@@ -80,9 +75,7 @@ const CustomSelect: React.FC<SelectProps> = ({
         backgroundColor: '#bfbfbf',
         borderRadius: '10px',
       },
-      '&::-webkit-scrollbar-thumb:hover': {
-        backgroundColor: '#a8a8a8',
-      },
+      '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#a8a8a8' },
       '&::-webkit-scrollbar-track': {
         background: 'transparent',
         borderRadius: '10px',
@@ -91,10 +84,10 @@ const CustomSelect: React.FC<SelectProps> = ({
     dropdownIndicator: provided => ({
       ...provided,
       color: '#747373',
-      '&:hover': {
-        color: '#747373',
-      },
+      '&:hover': { color: '#747373' },
     }),
+    // garante que o menu flutue sobre qualquer overflow
+    menuPortal: base => ({ ...base, zIndex: 9999 }),
   };
 
   return (
@@ -105,14 +98,12 @@ const CustomSelect: React.FC<SelectProps> = ({
         name={name}
         options={options}
         value={options.find(option => option.value === value) || null}
-        onChange={option => {
-          if (onChange) {
-            onChange(option);
-          }
-        }}
+        onChange={option => onChange && onChange(option)}
         placeholder="Selecione"
         styles={customStyles}
         isDisabled={isDisabled}
+        menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+        menuPosition="fixed"
       />
     </SelectWrapper>
   );
