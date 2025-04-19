@@ -8,11 +8,8 @@ import {
   TableHeadCell,
   TableBody,
   TableBodyCell,
-  Checkbox,
 } from './styled';
 import { Flex } from '@/styles/global';
-import Button from '@/components/Button';
-import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
 
 interface Product {
   id: number;
@@ -33,7 +30,7 @@ const Tabela: React.FC = () => {
       date: '21/03/2025',
       status: 'Troca realizada',
       qtd_refund: 3,
-      cupom: 'CUPOM134987',
+      cupom: 'CUPOM1349',
     },
     {
       id: 2,
@@ -42,7 +39,7 @@ const Tabela: React.FC = () => {
       date: '21/03/2025',
       status: 'Troca realizada',
       qtd_refund: 1,
-      cupom: 'CUPOM134987',
+      cupom: 'CUPOM1350',
     },
     {
       id: 3,
@@ -50,8 +47,8 @@ const Tabela: React.FC = () => {
       qtd: 4,
       date: '21/03/2025',
       status: 'Troca realizada',
-      qtd_refund: 0,
-      cupom: 'CUPOM134987',
+      qtd_refund: 1,
+      cupom: 'CUPOM1351',
     },
     {
       id: 11,

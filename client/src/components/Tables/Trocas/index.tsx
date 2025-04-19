@@ -1,4 +1,3 @@
-// src/components/Tables/Trocas/index.tsx
 'use client';
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
@@ -7,7 +6,6 @@ import {
   Table,
   TableRow,
   TableHeadCell,
-  TableHeadAction,
   TableBody,
   TableBodyCell,
 } from './styled';
@@ -80,7 +78,7 @@ const initialTrades: Trade[] = [
 const Tabela: React.FC = () => {
   const [trades, setTrades] = useState<Trade[]>(initialTrades);
 
-  const handleStatusChange = (id: number, newStatus: string) => {
+  const handleStatusChange = (id: number, newStatus: string): void => {
     setTrades(prev =>
       prev.map(t => (t.id === id ? { ...t, status: newStatus } : t)),
     );
@@ -108,46 +106,46 @@ const Tabela: React.FC = () => {
         <Table>
           <thead>
             <TableRow>
-              <TableHeadCell>Nome do cliente</TableHeadCell>
-              <TableHeadCell>Produto em troca</TableHeadCell>
-              <TableHeadCell center>Quantidade</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadAction>Cupom</TableHeadAction>
-              <TableHeadAction>Valor</TableHeadAction>
+              <TableHeadCell align="left" paddingLeft="15px">
+                Nome do cliente
+              </TableHeadCell>
+              <TableHeadCell align="left" paddingLeft="15px">
+                Produto em troca
+              </TableHeadCell>
+              <TableHeadCell align="center">Quantidade</TableHeadCell>
+              <TableHeadCell align="center">Status</TableHeadCell>
+              <TableHeadCell align="center">Cupom</TableHeadCell>
+              <TableHeadCell align="center">Valor</TableHeadCell>
             </TableRow>
           </thead>
           <TableBody>
-            {trades.map(trade => (
-              <TableRow key={trade.id}>
-                <TableBodyCell>{trade.customerName}</TableBodyCell>
-                <TableBodyCell>{trade.product}</TableBodyCell>
-                <TableBodyCell center>{trade.quantity}</TableBodyCell>
-                <TableBodyCell>
+            {trades.map(t => (
+              <TableRow key={t.id}>
+                <TableBodyCell align="left">{t.customerName}</TableBodyCell>
+                <TableBodyCell align="left">{t.product}</TableBodyCell>
+                <TableBodyCell align="center">{t.quantity}</TableBodyCell>
+                <TableBodyCell align="left">
                   <CustomSelect
-                    name={`status-${trade.id}`}
+                    name={`status-${t.id}`}
                     options={statusOptions}
-                    value={trade.status}
-                    onChange={opt =>
-                      opt && handleStatusChange(trade.id, opt.value)
-                    }
+                    value={t.status}
+                    onChange={opt => opt && handleStatusChange(t.id, opt.value)}
                     width="220px"
                   />
                 </TableBodyCell>
-                <TableBodyCell right>
-                  {trade.coupon ? (
-                    trade.coupon
-                  ) : (
+                <TableBodyCell align="center">
+                  {t.coupon ?? (
                     <Button
-                      text={<>Gerar cupom</>}
+                      text="Gerar cupom"
                       type="button"
                       variant="purple"
                       width="140px"
                       height="30px"
-                      onClick={() => handleGenerateCoupon(trade.id)}
+                      onClick={() => handleGenerateCoupon(t.id)}
                     />
                   )}
                 </TableBodyCell>
-                <TableBodyCell right>{trade.value || ''}</TableBodyCell>
+                <TableBodyCell align="center">{t.value || ''}</TableBodyCell>
               </TableRow>
             ))}
           </TableBody>
