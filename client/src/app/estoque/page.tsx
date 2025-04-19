@@ -32,7 +32,7 @@ export default function Estoque() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(12);
   const [totalItems, setTotalItems] = useState(0);
   const [filter, setFilter] = useState('');
   const [debouncedFilter, setDebouncedFilter] = useState(filter);

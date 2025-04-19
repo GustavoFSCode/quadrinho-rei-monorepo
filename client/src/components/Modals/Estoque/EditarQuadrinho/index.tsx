@@ -1,3 +1,4 @@
+// src/components/Modals/Estoque/EditarQuadrinho.tsx
 import React from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -10,11 +11,9 @@ import { currencyMask } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
 
 import { ModalOverlay, ModalContent, ModalHeader, ModalBody } from './styled';
-
 import Closed from '@/components/icons/Closed';
 import { SubmitButton } from '@/components/Forms/CardForm/styled';
 import { ErrorMessage } from '@/components/Forms/AddressForm/styled';
-// Importe os novos componentes styled para o grupo de checkboxes:
 import {
   CheckboxGroupLabel,
   CheckboxGroupContainer,
@@ -30,7 +29,7 @@ export interface IComicForm {
   edition?: string;
   pages: number;
   synopsis: string;
-  category: string[]; // Agora é um array de strings
+  category: string[];
   isbn: string;
   pricingGroup: string;
   barcode: string;
@@ -49,11 +48,13 @@ export interface IComicForm {
 interface ComicFormModalProps {
   onClose: () => void;
   onComicSubmit: (data: IComicForm) => void;
+  initialData: IComicForm;
 }
 
 const ComicFormModal: React.FC<ComicFormModalProps> = ({
   onClose,
   onComicSubmit,
+  initialData,
 }) => {
   const {
     register,
@@ -64,33 +65,9 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     formState: { errors },
   } = useForm<IComicForm>({
     resolver: yupResolver(ComicSchema),
-    defaultValues: {
-      title: '',
-      author: '',
-      publisher: '',
-      year: new Date().getFullYear(),
-      issue: '',
-      edition: '',
-      pages: 0,
-      synopsis: '',
-      category: [],
-      isbn: '',
-      pricingGroup: '',
-      barcode: '',
-      dimensions: {
-        height: 1,
-        width: 1,
-        weight: 1,
-        depth: 1,
-      },
-      price: 0,
-      stock: 1,
-      active: true,
-      inactivationReason: '',
-    },
+    defaultValues: initialData,
   });
 
-  // Opções pré-definidas para o grupo de categorias
   const categoryOptions = [
     { value: 'superhero', label: 'Super-Herói' },
     { value: 'manga', label: 'Mangá' },
@@ -100,10 +77,9 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     { value: 'sci-fi', label: 'Sci-Fi' },
     { value: 'drama', label: 'Drama' },
     { value: 'zombie', label: 'Zumbi' },
-    { value: 'Aventura', label: 'aventura' },
+    { value: 'aventura', label: 'Aventura' },
   ];
 
-  // Opções pré-definidas para o grupo de precificação
   const pricingGroupOptions = [
     { value: 'standard', label: 'Standard' },
     { value: 'premium', label: 'Premium' },
@@ -113,9 +89,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
   const active = watch('active');
 
   const onSubmit: SubmitHandler<IComicForm> = data => {
-    console.log('Dados do quadrinho:', data);
     onComicSubmit(data);
-    onClose();
   };
 
   return (
@@ -127,104 +101,84 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
         </ModalHeader>
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex $gap="1rem" $direction="column">
+            <Flex $direction="column" $gap="1rem">
               <Input
                 id="title"
                 label="Título"
-                placeholder="Título do quadrinho"
                 {...register('title')}
                 error={errors.title?.message}
               />
-
               <Input
                 id="author"
                 label="Autor"
-                placeholder="Nome do autor"
                 {...register('author')}
                 error={errors.author?.message}
               />
-
               <Input
                 id="publisher"
                 label="Editora"
-                placeholder="Editora"
                 {...register('publisher')}
                 error={errors.publisher?.message}
               />
-
               <Input
                 id="year"
                 label="Ano"
                 type="number"
-                placeholder="Ano de publicação"
+                step="any"
                 {...register('year')}
                 error={errors.year?.message}
               />
-
               <Input
                 id="issue"
                 label="Issue"
-                placeholder="Número da issue"
                 {...register('issue')}
                 error={errors.issue?.message}
               />
-
               <Input
                 id="edition"
                 label="Edição"
-                placeholder="Edição (opcional)"
                 {...register('edition')}
                 error={errors.edition?.message}
               />
-
               <Input
                 id="pages"
-                label="Número de Páginas"
+                label="Páginas"
                 type="number"
-                placeholder="Quantidade de páginas"
+                step="any"
                 {...register('pages')}
                 error={errors.pages?.message}
               />
-
               <Input
                 id="synopsis"
                 label="Sinopse"
-                placeholder="Sinopse do quadrinho"
                 {...register('synopsis')}
                 error={errors.synopsis?.message}
               />
 
-              {/* Grupo de checkboxes para Categoria usando os novos componentes styled */}
               <Controller
                 control={control}
                 name="category"
                 render={({ field }) => {
                   const handleCheckboxChange = (
-                    optionValue: string,
+                    val: string,
                     checked: boolean,
                   ) => {
-                    if (checked) {
-                      field.onChange([...field.value, optionValue]);
-                    } else {
-                      field.onChange(
-                        field.value.filter((v: string) => v !== optionValue),
-                      );
-                    }
+                    if (checked) field.onChange([...field.value, val]);
+                    else field.onChange(field.value.filter(v => v !== val));
                   };
-
                   return (
                     <div>
                       <CheckboxGroupLabel>Categoria</CheckboxGroupLabel>
                       <CheckboxGroupContainer>
-                        {categoryOptions.map(option => (
-                          <CheckboxItem key={option.value}>
+                        {categoryOptions.map(opt => (
+                          <CheckboxItem key={opt.value}>
                             <Checkbox
-                              id={`category-${option.value}`}
-                              label={option.label}
-                              checked={field.value.includes(option.value)}
+                              id={`category-${opt.value}`}
+                              label={opt.label}
+                              checked={field.value.includes(opt.value)}
                               onChange={e =>
                                 handleCheckboxChange(
-                                  option.value,
+                                  opt.value,
                                   e.target.checked,
                                 )
                               }
@@ -243,12 +197,10 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
               <Input
                 id="isbn"
                 label="ISBN"
-                placeholder="Número ISBN"
                 {...register('isbn')}
                 error={errors.isbn?.message}
               />
 
-              {/* Campo de Grupo de Precificação via CustomSelect */}
               <Controller
                 control={control}
                 name="pricingGroup"
@@ -260,9 +212,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                       label="Grupo de Precificação"
                       options={pricingGroupOptions}
                       value={field.value}
-                      onChange={option =>
-                        field.onChange(option ? option.value : '')
-                      }
+                      onChange={opt => field.onChange(opt ? opt.value : '')}
                     />
                     {errors.pricingGroup && (
                       <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>
@@ -274,17 +224,16 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
               <Input
                 id="barcode"
                 label="Código de Barras"
-                placeholder="Código de Barras"
                 {...register('barcode')}
                 error={errors.barcode?.message}
               />
 
-              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+              <Flex $direction="row" $gap="1rem">
                 <Input
                   id="dimensions.height"
                   label="Altura (cm)"
                   type="number"
-                  placeholder="Altura"
+                  step="any"
                   {...register('dimensions.height')}
                   error={errors.dimensions?.height?.message}
                 />
@@ -292,18 +241,18 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   id="dimensions.width"
                   label="Largura (cm)"
                   type="number"
-                  placeholder="Largura"
+                  step="any"
                   {...register('dimensions.width')}
                   error={errors.dimensions?.width?.message}
                 />
               </Flex>
 
-              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+              <Flex $direction="row" $gap="1rem">
                 <Input
                   id="dimensions.weight"
                   label="Peso (kg)"
                   type="number"
-                  placeholder="Peso"
+                  step="any"
                   {...register('dimensions.weight')}
                   error={errors.dimensions?.weight?.message}
                 />
@@ -311,7 +260,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   id="dimensions.depth"
                   label="Profundidade (cm)"
                   type="number"
-                  placeholder="Profundidade"
+                  step="any"
                   {...register('dimensions.depth')}
                   error={errors.dimensions?.depth?.message}
                 />
@@ -320,18 +269,15 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
               <Input
                 id="price"
                 label="Preço (R$)"
-                type="text"
                 maskFunction={currencyMask}
-                placeholder="Preço"
                 {...register('price')}
                 error={errors.price?.message}
               />
-
               <Input
                 id="stock"
                 label="Estoque"
                 type="number"
-                placeholder="Quantidade em estoque"
+                step="any"
                 {...register('stock')}
                 error={errors.stock?.message}
               />
@@ -345,15 +291,12 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   />
                 </Flex>
                 {!active && (
-                  <Flex $direction="column">
-                    <Input
-                      id="inactivationReason"
-                      label="Motivo de inativação"
-                      placeholder="Informe o motivo de inativação"
-                      {...register('inactivationReason')}
-                      error={errors.inactivationReason?.message}
-                    />
-                  </Flex>
+                  <Input
+                    id="inactivationReason"
+                    label="Motivo de inativação"
+                    {...register('inactivationReason')}
+                    error={errors.inactivationReason?.message}
+                  />
                 )}
               </Flex>
 

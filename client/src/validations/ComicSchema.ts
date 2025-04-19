@@ -32,22 +32,22 @@ export const ComicSchema = yup.object({
       .number()
       .typeError('Altura deve ser um número')
       .required('Altura é obrigatória')
-      .min(1, 'Valor inválido'),
+      .min(0.01, 'Valor inválido'),
     width: yup
       .number()
       .typeError('Largura deve ser um número')
       .required('Largura é obrigatória')
-      .min(1, 'Valor inválido'),
+      .min(0.01, 'Valor inválido'),
     weight: yup
       .number()
       .typeError('Peso deve ser um número')
       .required('Peso é obrigatório')
-      .min(1, 'Valor inválido'),
+      .min(0.01, 'Valor inválido'),
     depth: yup
       .number()
       .typeError('Profundidade deve ser um número')
       .required('Profundidade é obrigatória')
-      .min(1, 'Valor inválido'),
+      .min(0.01, 'Valor inválido'),
   }),
   price: yup
     .number()
