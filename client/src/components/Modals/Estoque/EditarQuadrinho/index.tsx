@@ -1,4 +1,3 @@
-// src/components/Modals/Estoque/EditarQuadrinho.tsx
 import React from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -9,7 +8,6 @@ import ToggleButton from '@/components/Button/ToggleTable';
 import CustomSelect from '@/components/Select';
 import { currencyMask } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
-
 import { ModalOverlay, ModalContent, ModalHeader, ModalBody } from './styled';
 import Closed from '@/components/icons/Closed';
 import { SubmitButton } from '@/components/Forms/CardForm/styled';
@@ -49,12 +47,14 @@ interface ComicFormModalProps {
   onClose: () => void;
   onComicSubmit: (data: IComicForm) => void;
   initialData: IComicForm;
+  readonly?: boolean;
 }
 
 const ComicFormModal: React.FC<ComicFormModalProps> = ({
   onClose,
   onComicSubmit,
   initialData,
+  readonly = false,
 }) => {
   const {
     register,
@@ -87,16 +87,19 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
   ];
 
   const active = watch('active');
+  const isRead = readonly;
 
   const onSubmit: SubmitHandler<IComicForm> = data => {
-    onComicSubmit(data);
+    if (!isRead) {
+      onComicSubmit(data);
+    }
   };
 
   return (
     <ModalOverlay>
       <ModalContent>
         <ModalHeader>
-          Editar quadrinho
+          {isRead ? 'Visualizar quadrinho' : 'Editar quadrinho'}
           <Closed onClick={onClose} name="closeComicForm" />
         </ModalHeader>
         <ModalBody>
@@ -107,18 +110,21 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 label="Título"
                 {...register('title')}
                 error={errors.title?.message}
+                disabled={isRead}
               />
               <Input
                 id="author"
                 label="Autor"
                 {...register('author')}
                 error={errors.author?.message}
+                disabled={isRead}
               />
               <Input
                 id="publisher"
                 label="Editora"
                 {...register('publisher')}
                 error={errors.publisher?.message}
+                disabled={isRead}
               />
               <Input
                 id="year"
@@ -127,18 +133,21 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 step="any"
                 {...register('year')}
                 error={errors.year?.message}
+                disabled={isRead}
               />
               <Input
                 id="issue"
                 label="Issue"
                 {...register('issue')}
                 error={errors.issue?.message}
+                disabled={isRead}
               />
               <Input
                 id="edition"
                 label="Edição"
                 {...register('edition')}
                 error={errors.edition?.message}
+                disabled={isRead}
               />
               <Input
                 id="pages"
@@ -147,12 +156,14 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 step="any"
                 {...register('pages')}
                 error={errors.pages?.message}
+                disabled={isRead}
               />
               <Input
                 id="synopsis"
                 label="Sinopse"
                 {...register('synopsis')}
                 error={errors.synopsis?.message}
+                disabled={isRead}
               />
 
               <Controller
@@ -182,6 +193,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                                   e.target.checked,
                                 )
                               }
+                              disabled={isRead}
                             />
                           </CheckboxItem>
                         ))}
@@ -199,6 +211,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 label="ISBN"
                 {...register('isbn')}
                 error={errors.isbn?.message}
+                disabled={isRead}
               />
 
               <Controller
@@ -213,6 +226,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                       options={pricingGroupOptions}
                       value={field.value}
                       onChange={opt => field.onChange(opt ? opt.value : '')}
+                      isDisabled={isRead}
                     />
                     {errors.pricingGroup && (
                       <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>
@@ -226,6 +240,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 label="Código de Barras"
                 {...register('barcode')}
                 error={errors.barcode?.message}
+                disabled={isRead}
               />
 
               <Flex $direction="row" $gap="1rem">
@@ -236,6 +251,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   step="any"
                   {...register('dimensions.height')}
                   error={errors.dimensions?.height?.message}
+                  disabled={isRead}
                 />
                 <Input
                   id="dimensions.width"
@@ -244,6 +260,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   step="any"
                   {...register('dimensions.width')}
                   error={errors.dimensions?.width?.message}
+                  disabled={isRead}
                 />
               </Flex>
 
@@ -255,6 +272,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   step="any"
                   {...register('dimensions.weight')}
                   error={errors.dimensions?.weight?.message}
+                  disabled={isRead}
                 />
                 <Input
                   id="dimensions.depth"
@@ -263,6 +281,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   step="any"
                   {...register('dimensions.depth')}
                   error={errors.dimensions?.depth?.message}
+                  disabled={isRead}
                 />
               </Flex>
 
@@ -272,6 +291,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 maskFunction={currencyMask}
                 {...register('price')}
                 error={errors.price?.message}
+                disabled={isRead}
               />
               <Input
                 id="stock"
@@ -280,14 +300,16 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 step="any"
                 {...register('stock')}
                 error={errors.stock?.message}
+                disabled={isRead}
               />
 
               <Flex $direction="column">
                 <Flex $direction="row" $align="center" $gap="0.5rem">
                   <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
                   <ToggleButton
-                    onToggle={() => setValue('active', !active)}
+                    onToggle={() => !isRead && setValue('active', !active)}
                     isActive={active}
+                    disabled={isRead}
                   />
                 </Flex>
                 {!active && (
@@ -296,13 +318,16 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                     label="Motivo de inativação"
                     {...register('inactivationReason')}
                     error={errors.inactivationReason?.message}
+                    disabled={isRead}
                   />
                 )}
               </Flex>
 
-              <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
-                Editar Quadrinho
-              </SubmitButton>
+              {!isRead && (
+                <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
+                  Editar Quadrinho
+                </SubmitButton>
+              )}
             </Flex>
           </form>
         </ModalBody>
