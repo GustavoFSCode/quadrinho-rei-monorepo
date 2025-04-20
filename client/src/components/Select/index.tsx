@@ -1,13 +1,14 @@
+// src/components/Select/index.tsx
 import React from 'react';
 import Select, { StylesConfig } from 'react-select';
 import { SelectWrapper, Label } from './styled';
 
-interface OptionType {
+export interface OptionType {
   value: string;
   label: string;
 }
 
-interface SelectProps {
+export interface SelectProps {
   id?: string;
   name: string;
   label?: string;
@@ -17,6 +18,8 @@ interface SelectProps {
   value?: string;
   onChange?: (option: OptionType | null) => void;
   isDisabled?: boolean;
+  placeholder?: string; // << adicionado
+  isClearable?: boolean; // << adicionado
 }
 
 const CustomSelect: React.FC<SelectProps> = ({
@@ -29,6 +32,8 @@ const CustomSelect: React.FC<SelectProps> = ({
   value = '',
   onChange,
   isDisabled = false,
+  placeholder = 'Selecione', // valor padrão
+  isClearable = false, // valor padrão
 }) => {
   const customStyles: StylesConfig<OptionType, false> = {
     control: (provided, state) => ({
@@ -86,7 +91,6 @@ const CustomSelect: React.FC<SelectProps> = ({
       color: '#747373',
       '&:hover': { color: '#747373' },
     }),
-    // garante que o menu flutue sobre qualquer overflow
     menuPortal: base => ({ ...base, zIndex: 9999 }),
   };
 
@@ -97,9 +101,10 @@ const CustomSelect: React.FC<SelectProps> = ({
         id={id || name}
         name={name}
         options={options}
-        value={options.find(option => option.value === value) || null}
-        onChange={option => onChange && onChange(option)}
-        placeholder="Selecione"
+        value={options.find(opt => opt.value === value) || null}
+        onChange={opt => onChange && onChange(opt)}
+        placeholder={placeholder} // agora aceito
+        isClearable={isClearable} // agora aceito
         styles={customStyles}
         isDisabled={isDisabled}
         menuPortalTarget={typeof window !== 'undefined' ? document.body : null}

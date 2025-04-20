@@ -1,12 +1,12 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const ContentContainer = styled.div<{ isExpanded: boolean }>`
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   height: 100vh;
-  margin-left: ${(props) => (props.isExpanded ? "200px" : "80px")};
+  margin-left: ${props => (props.isExpanded ? '200px' : '80px')};
   border-radius: 8px;
   padding-top: 32px;
-  font-family: "Primary", sans-serif;
+  font-family: 'Primary', sans-serif;
   transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,6 @@ export const ContentContainer = styled.div<{ isExpanded: boolean }>`
 
 export const Header = styled.div`
   width: 100%;
-  height: 91px;
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
@@ -97,17 +96,14 @@ export const ButtonBox = styled.div`
 `;
 
 export const Content = styled.div`
-  height: 75vh;
   margin-left: 44px;
   margin-right: 44px;
   padding-bottom: 0;
   border-radius: 4px;
-
 `;
 
 export const Footer = styled.div`
   display: flex;
-  height: 100%;
   justify-content: flex-end;
   align-items: center;
   text-align: right;
