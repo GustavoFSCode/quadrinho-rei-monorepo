@@ -5,7 +5,8 @@
   "scripts": {
     "start:backend": "cd server && yarn d",
     "start:frontend": "cd client && yarn dev",
-    "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\""
+    "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\"",
+    "update": "cd server && yarn && cd .. && cd client && yarn"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",
