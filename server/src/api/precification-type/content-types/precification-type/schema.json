@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "precification_types",
+  "info": {
+    "singularName": "precification-type",
+    "pluralName": "precification-types",
+    "displayName": "PrecificationType"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "products": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product.product",
+      "mappedBy": "precificationType"
+    }
+  }
+}

@@ -73,6 +73,12 @@
       "relation": "manyToOne",
       "target": "api::product-category.product-category",
       "inversedBy": "products"
+    },
+    "precificationType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::precification-type.precification-type",
+      "inversedBy": "products"
     }
   }
 }
