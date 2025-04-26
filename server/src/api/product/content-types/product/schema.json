@@ -1,0 +1,78 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "issue": {
+      "type": "string"
+    },
+    "edition": {
+      "type": "string"
+    },
+    "pageNumber": {
+      "type": "integer"
+    },
+    "synopsis": {
+      "type": "string"
+    },
+    "isbn": {
+      "type": "string"
+    },
+    "barCode": {
+      "type": "string"
+    },
+    "height": {
+      "type": "integer"
+    },
+    "length": {
+      "type": "integer"
+    },
+    "weight": {
+      "type": "integer"
+    },
+    "depth": {
+      "type": "integer"
+    },
+    "priceBuy": {
+      "type": "decimal"
+    },
+    "priceSell": {
+      "type": "decimal"
+    },
+    "stock": {
+      "type": "integer"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "inactiveReason": {
+      "type": "string"
+    },
+    "productCategory": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product-category.product-category",
+      "inversedBy": "products"
+    }
+  }
+}
