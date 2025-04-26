@@ -543,6 +543,33 @@ export interface ApiCardCard extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCartCart extends Struct.CollectionTypeSchema {
+  collectionName: 'carts';
+  info: {
+    displayName: 'Cart';
+    pluralName: 'carts';
+    singularName: 'cart';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    client: Schema.Attribute.Relation<'oneToOne', 'api::client.client'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::cart.cart'> &
+      Schema.Attribute.Private;
+    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    totalValue: Schema.Attribute.Decimal;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
@@ -590,6 +617,7 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     addresses: Schema.Attribute.Relation<'oneToMany', 'api::address.address'>;
     birthDate: Schema.Attribute.Date;
     cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'>;
+    cart: Schema.Attribute.Relation<'oneToOne', 'api::cart.cart'>;
     cpf: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -676,6 +704,36 @@ export interface ApiOperationOperation extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPrecificationTypePrecificationType
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'precification_types';
+  info: {
+    displayName: 'PrecificationType';
+    pluralName: 'precification-types';
+    singularName: 'precification-type';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::precification-type.precification-type'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductCategoryProductCategory
   extends Struct.CollectionTypeSchema {
   collectionName: 'product_categories';
@@ -721,6 +779,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     active: Schema.Attribute.Boolean;
     author: Schema.Attribute.String;
     barCode: Schema.Attribute.String;
+    carts: Schema.Attribute.Relation<'manyToMany', 'api::cart.cart'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -738,6 +797,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     pageNumber: Schema.Attribute.Integer;
+    precificationType: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::precification-type.precification-type'
+    >;
     priceBuy: Schema.Attribute.Decimal;
     priceSell: Schema.Attribute.Decimal;
     productCategory: Schema.Attribute.Relation<
@@ -1271,10 +1334,12 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::card.card': ApiCardCard;
+      'api::cart.cart': ApiCartCart;
       'api::category.category': ApiCategoryCategory;
       'api::client.client': ApiClientClient;
       'api::global.global': ApiGlobalGlobal;
       'api::operation.operation': ApiOperationOperation;
+      'api::precification-type.precification-type': ApiPrecificationTypePrecificationType;
       'api::product-category.product-category': ApiProductCategoryProductCategory;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;

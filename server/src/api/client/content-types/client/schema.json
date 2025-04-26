@@ -57,6 +57,12 @@
       "relation": "oneToMany",
       "target": "api::card.card",
       "mappedBy": "client"
+    },
+    "cart": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::cart.cart",
+      "mappedBy": "client"
     }
   }
 }

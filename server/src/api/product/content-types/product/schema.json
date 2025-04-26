@@ -79,6 +79,12 @@
       "relation": "manyToOne",
       "target": "api::precification-type.precification-type",
       "inversedBy": "products"
+    },
+    "carts": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::cart.cart",
+      "mappedBy": "products"
     }
   }
 }
