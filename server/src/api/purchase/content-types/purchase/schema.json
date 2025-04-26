@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "purchases",
+  "info": {
+    "singularName": "purchase",
+    "pluralName": "purchases",
+    "displayName": "Purchase"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "coupons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::coupon.coupon",
+      "mappedBy": "purchase"
+    },
+    "addresses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::address.address",
+      "mappedBy": "purchase"
+    },
+    "cards": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::card.card",
+      "mappedBy": "purchase"
+    },
+    "client": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::client.client",
+      "inversedBy": "purchase"
+    },
+    "cartOrders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::card-order.card-order",
+      "mappedBy": "purchase"
+    },
+    "totalValue": {
+      "type": "decimal"
+    }
+  }
+}
