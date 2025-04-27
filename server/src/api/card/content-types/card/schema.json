@@ -37,6 +37,12 @@
     "isFavorite": {
       "type": "boolean",
       "default": false
+    },
+    "purchase": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::purchase.purchase",
+      "inversedBy": "cards"
     }
   }
 }

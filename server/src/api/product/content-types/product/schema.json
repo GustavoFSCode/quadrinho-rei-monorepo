@@ -85,6 +85,12 @@
       "relation": "manyToMany",
       "target": "api::cart.cart",
       "mappedBy": "products"
+    },
+    "cartOrders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::card-order.card-order",
+      "mappedBy": "product"
     }
   }
 }

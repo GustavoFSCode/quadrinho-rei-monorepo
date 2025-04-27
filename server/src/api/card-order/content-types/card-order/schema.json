@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "card_orders",
+  "info": {
+    "singularName": "card-order",
+    "pluralName": "card-orders",
+    "displayName": "CartOrder",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product.product",
+      "inversedBy": "cartOrders"
+    },
+    "quantity": {
+      "type": "integer"
+    },
+    "totalValue": {
+      "type": "decimal"
+    },
+    "cart": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cart.cart",
+      "inversedBy": "cartOrders"
+    },
+    "purchase": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::purchase.purchase",
+      "inversedBy": "cartOrders"
+    }
+  }
+}

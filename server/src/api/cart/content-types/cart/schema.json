@@ -24,6 +24,12 @@
       "relation": "oneToOne",
       "target": "api::client.client",
       "inversedBy": "cart"
+    },
+    "cartOrders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::card-order.card-order",
+      "mappedBy": "cart"
     }
   }
 }

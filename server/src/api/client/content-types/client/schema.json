@@ -63,6 +63,18 @@
       "relation": "oneToOne",
       "target": "api::cart.cart",
       "mappedBy": "client"
+    },
+    "coupon": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::coupon.coupon",
+      "mappedBy": "client"
+    },
+    "purchase": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::purchase.purchase",
+      "mappedBy": "client"
     }
   }
 }

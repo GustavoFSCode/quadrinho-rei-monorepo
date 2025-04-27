@@ -60,6 +60,12 @@
       "relation": "manyToOne",
       "target": "api::client.client",
       "inversedBy": "addresses"
+    },
+    "purchase": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::purchase.purchase",
+      "inversedBy": "addresses"
     }
   }
 }
