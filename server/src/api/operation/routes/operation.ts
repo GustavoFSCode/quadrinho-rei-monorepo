@@ -74,5 +74,30 @@ module.exports = {
       path: "/getUser/:userDocumentId",
       handler: "operation.getUser",
     },
+    {
+      method: "POST",
+      path: "/createProduct",
+      handler: "operation.createProduct",
+    },
+    {
+      method: "GET",
+      path: "/getProductsMaster",
+      handler: "operation.getProductsMaster",
+    },
+    {
+      method: "GET",
+      path: "/getProductsUser",
+      handler: "operation.getProductsUser",
+    },
+    {
+      method: "PUT",
+      path: "/editProduct/:documentId",
+      handler: "operation.editProduct",
+    },
+    {
+      method: "DELETE",
+      path: "/removeProduct/:documentId",
+      handler: "operation.removeProduct",
+    },
   ],
 };

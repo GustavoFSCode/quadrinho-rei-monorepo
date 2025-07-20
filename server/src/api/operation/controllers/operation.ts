@@ -7,6 +7,7 @@ import { clientService } from "../services/clientService";
 import { UserService } from "../services/userService";
 import { cardService } from "../services/cardService";
 import { AddressService } from "../services/addressService";
+import { ProductService } from "../services/productService";
 
 export default factories.createCoreController(
   "api::operation.operation",
@@ -63,5 +64,26 @@ export default factories.createCoreController(
       const userService = new UserService();
       return userService.getUser(ctx);
     },
+    async createProduct(ctx) {
+      const productService = new ProductService();
+      return productService.createProduct(ctx);
+    },
+    async getProductsMaster(ctx) {
+      const productService = new ProductService();
+      return productService.getProductsMaster(ctx);
+    },
+    async getProductsUser(ctx) {
+      const productService = new ProductService();
+      return productService.getProductsUser(ctx);
+    },
+    async editProduct(ctx) {
+      const productService = new ProductService();
+      return productService.editProduct(ctx);
+    },
+    async removeProduct(ctx) {
+      const productService = new ProductService();
+      return productService.removeProduct(ctx);
+    }
+    
   })
 );

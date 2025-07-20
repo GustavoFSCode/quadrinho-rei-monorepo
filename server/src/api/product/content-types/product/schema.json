@@ -68,12 +68,6 @@
     "inactiveReason": {
       "type": "string"
     },
-    "productCategory": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::product-category.product-category",
-      "inversedBy": "products"
-    },
     "precificationType": {
       "type": "relation",
       "relation": "manyToOne",
@@ -91,6 +85,12 @@
       "relation": "oneToMany",
       "target": "api::card-order.card-order",
       "mappedBy": "product"
+    },
+    "productCategories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::product-category.product-category",
+      "inversedBy": "products"
     }
   }
 }
