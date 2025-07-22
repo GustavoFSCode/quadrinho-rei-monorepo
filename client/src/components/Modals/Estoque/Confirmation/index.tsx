@@ -1,4 +1,3 @@
-// components/Modals/Clientes/ExcluirProduto/ModalConfirmation.tsx
 import { useRouter } from 'next/navigation';
 import { ModalOverlay, ModalBox, ModalContent, ModalText } from './styled';
 import Button from '@/components/Button';

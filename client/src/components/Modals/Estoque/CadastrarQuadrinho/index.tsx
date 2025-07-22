@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ComicSchema } from '@/validations/ComicSchema';
@@ -9,17 +11,26 @@ import CustomSelect from '@/components/Select';
 import { currencyMask } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
 
-import { ModalOverlay, ModalContent, ModalHeader, ModalBody } from './styled';
-
-import Closed from '@/components/icons/Closed';
-import { SubmitButton } from '@/components/Forms/CardForm/styled';
-import { ErrorMessage } from '@/components/Forms/AddressForm/styled';
-// Importe os novos componentes styled para o grupo de checkboxes:
 import {
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   CheckboxGroupLabel,
   CheckboxGroupContainer,
   CheckboxItem,
 } from './styled';
+
+import Closed from '@/components/icons/Closed';
+import { SubmitButton } from '@/components/Forms/CardForm/styled';
+import { ErrorMessage } from '@/components/Forms/AddressForm/styled';
+
+import {
+  getProductCategories,
+  getPrecificationTypes,
+  ProductCategory,
+  PrecificationType,
+} from '@/services/productService';
 
 export interface IComicForm {
   title: string;
@@ -30,7 +41,7 @@ export interface IComicForm {
   edition?: string;
   pages: number;
   synopsis: string;
-  category: string[]; // Agora é um array de strings
+  category: string[];
   isbn: string;
   pricingGroup: string;
   barcode: string;
@@ -49,11 +60,15 @@ export interface IComicForm {
 interface ComicFormModalProps {
   onClose: () => void;
   onComicSubmit: (data: IComicForm) => void;
+  initialData: IComicForm;
+  readonly?: boolean;
 }
 
 const ComicFormModal: React.FC<ComicFormModalProps> = ({
   onClose,
   onComicSubmit,
+  initialData,
+  readonly = false,
 }) => {
   const {
     register,
@@ -64,56 +79,45 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     formState: { errors },
   } = useForm<IComicForm>({
     resolver: yupResolver(ComicSchema),
-    defaultValues: {
-      title: '',
-      author: '',
-      publisher: '',
-      year: new Date().getFullYear(),
-      issue: '',
-      edition: '',
-      pages: 0,
-      synopsis: '',
-      category: [],
-      isbn: '',
-      pricingGroup: '',
-      barcode: '',
-      dimensions: {
-        height: 1,
-        width: 1,
-        weight: 1,
-        depth: 1,
-      },
-      price: 0,
-      stock: 1,
-      active: true,
-      inactivationReason: '',
-    },
+    defaultValues: initialData,
   });
 
-  // Opções pré-definidas para o grupo de categorias
-  const categoryOptions = [
-    { value: 'superhero', label: 'Super-Herói' },
-    { value: 'manga', label: 'Mangá' },
-    { value: 'independent', label: 'Independente' },
-    { value: 'alternative', label: 'Alternativo' },
-    { value: 'humor', label: 'Humor' },
-    { value: 'sci-fi', label: 'Sci-Fi' },
-    { value: 'drama', label: 'Drama' },
-    { value: 'zombie', label: 'Zumbi' },
-    { value: 'Aventura', label: 'aventura' },
-  ];
-
-  // Opções pré-definidas para o grupo de precificação
-  const pricingGroupOptions = [
-    { value: 'standard', label: 'Standard' },
-    { value: 'premium', label: 'Premium' },
-    { value: 'economy', label: 'Economy' },
-  ];
-
   const active = watch('active');
+  const isRead = readonly;
+
+  // opções vindas da API
+  const [categoryOptions, setCategoryOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [pricingGroupOptions, setPricingGroupOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+
+  useEffect(() => {
+    async function loadOptions() {
+      try {
+        const catResp = await getProductCategories();
+        setCategoryOptions(
+          catResp.data.map((c: ProductCategory) => ({
+            value: c.documentId,
+            label: c.name,
+          }))
+        );
+        const precResp = await getPrecificationTypes();
+        setPricingGroupOptions(
+          precResp.data.map((p: PrecificationType) => ({
+            value: p.documentId,
+            label: p.name,
+          }))
+        );
+      } catch (err) {
+        console.error('Erro ao carregar opções:', err);
+      }
+    }
+    loadOptions();
+  }, []);
 
   const onSubmit: SubmitHandler<IComicForm> = data => {
-    console.log('Dados do quadrinho:', data);
     onComicSubmit(data);
     onClose();
   };
@@ -122,36 +126,41 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     <ModalOverlay>
       <ModalContent>
         <ModalHeader>
-          Cadastrar quadrinho
+          {isRead
+            ? 'Visualizar quadrinho'
+            : initialData.title
+            ? 'Editar quadrinho'
+            : 'Cadastrar quadrinho'}
           <Closed onClick={onClose} name="closeComicForm" />
         </ModalHeader>
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex $gap="1rem" $direction="column">
+            <Flex $direction="column" $gap="1rem">
+              {/* Campos de texto com placeholder */}
               <Input
                 id="title"
                 label="Título"
                 placeholder="Título do quadrinho"
                 {...register('title')}
                 error={errors.title?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="author"
                 label="Autor"
                 placeholder="Nome do autor"
                 {...register('author')}
                 error={errors.author?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="publisher"
                 label="Editora"
                 placeholder="Editora"
                 {...register('publisher')}
                 error={errors.publisher?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="year"
                 label="Ano"
@@ -159,24 +168,24 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 placeholder="Ano de publicação"
                 {...register('year')}
                 error={errors.year?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="issue"
                 label="Issue"
                 placeholder="Número da issue"
                 {...register('issue')}
                 error={errors.issue?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="edition"
                 label="Edição"
                 placeholder="Edição (opcional)"
                 {...register('edition')}
                 error={errors.edition?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="pages"
                 label="Número de Páginas"
@@ -184,50 +193,43 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 placeholder="Quantidade de páginas"
                 {...register('pages')}
                 error={errors.pages?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="synopsis"
                 label="Sinopse"
                 placeholder="Sinopse do quadrinho"
                 {...register('synopsis')}
                 error={errors.synopsis?.message}
+                disabled={isRead}
               />
 
-              {/* Grupo de checkboxes para Categoria usando os novos componentes styled */}
+              {/* Categoria com defaultValue + placeholder não aplicável */}
               <Controller
                 control={control}
                 name="category"
-                render={({ field }) => {
-                  const handleCheckboxChange = (
-                    optionValue: string,
-                    checked: boolean,
-                  ) => {
-                    if (checked) {
-                      field.onChange([...field.value, optionValue]);
-                    } else {
-                      field.onChange(
-                        field.value.filter((v: string) => v !== optionValue),
-                      );
-                    }
-                  };
-
+                defaultValue={initialData.category ?? []}
+                render={({ field: { value = [], onChange } }) => {
+                  const selected = Array.isArray(value) ? value : [];
                   return (
                     <div>
                       <CheckboxGroupLabel>Categoria</CheckboxGroupLabel>
                       <CheckboxGroupContainer>
-                        {categoryOptions.map(option => (
-                          <CheckboxItem key={option.value}>
+                        {categoryOptions.map(opt => (
+                          <CheckboxItem key={opt.value}>
                             <Checkbox
-                              id={`category-${option.value}`}
-                              label={option.label}
-                              checked={field.value.includes(option.value)}
-                              onChange={e =>
-                                handleCheckboxChange(
-                                  option.value,
-                                  e.target.checked,
-                                )
-                              }
+                              id={`category-${opt.value}`}
+                              label={opt.label}
+                              checked={selected.includes(opt.value)}
+                              disabled={isRead}
+                              onChange={e => {
+                                if (e.target.checked)
+                                  onChange([...selected, opt.value]);
+                                else
+                                  onChange(
+                                    selected.filter(v => v !== opt.value)
+                                  );
+                              }}
                             />
                           </CheckboxItem>
                         ))}
@@ -246,26 +248,30 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 placeholder="Número ISBN"
                 {...register('isbn')}
                 error={errors.isbn?.message}
+                disabled={isRead}
               />
 
-              {/* Campo de Grupo de Precificação via CustomSelect */}
+              {/* Grupo de Precificação dinâmico */}
               <Controller
                 control={control}
                 name="pricingGroup"
-                render={({ field }) => (
+                defaultValue={initialData.pricingGroup}
+                render={({ field: { value, onChange } }) => (
                   <>
                     <CustomSelect
                       id="pricingGroup"
                       name="pricingGroup"
                       label="Grupo de Precificação"
                       options={pricingGroupOptions}
-                      value={field.value}
-                      onChange={option =>
-                        field.onChange(option ? option.value : '')
-                      }
+                      value={value}
+                      onChange={opt => onChange(opt ? opt.value : '')}
+                      isDisabled={isRead || pricingGroupOptions.length === 0}
+                      placeholder="Selecione um grupo"
                     />
                     {errors.pricingGroup && (
-                      <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>
+                      <ErrorMessage>
+                        {errors.pricingGroup.message}
+                      </ErrorMessage>
                     )}
                   </>
                 )}
@@ -277,9 +283,10 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 placeholder="Código de Barras"
                 {...register('barcode')}
                 error={errors.barcode?.message}
+                disabled={isRead}
               />
 
-              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+              <Flex $direction="row" $gap="1rem">
                 <Input
                   id="dimensions.height"
                   label="Altura (cm)"
@@ -287,6 +294,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   placeholder="Altura"
                   {...register('dimensions.height')}
                   error={errors.dimensions?.height?.message}
+                  disabled={isRead}
                 />
                 <Input
                   id="dimensions.width"
@@ -295,10 +303,10 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   placeholder="Largura"
                   {...register('dimensions.width')}
                   error={errors.dimensions?.width?.message}
+                  disabled={isRead}
                 />
               </Flex>
-
-              <Flex $direction="row" $gap="1rem" $margin="0 0 1rem 0">
+              <Flex $direction="row" $gap="1rem">
                 <Input
                   id="dimensions.weight"
                   label="Peso (kg)"
@@ -306,6 +314,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   placeholder="Peso"
                   {...register('dimensions.weight')}
                   error={errors.dimensions?.weight?.message}
+                  disabled={isRead}
                 />
                 <Input
                   id="dimensions.depth"
@@ -314,6 +323,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   placeholder="Profundidade"
                   {...register('dimensions.depth')}
                   error={errors.dimensions?.depth?.message}
+                  disabled={isRead}
                 />
               </Flex>
 
@@ -321,12 +331,12 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 id="price"
                 label="Preço (R$)"
                 type="text"
-                maskFunction={currencyMask}
                 placeholder="Preço"
+                maskFunction={currencyMask}
                 {...register('price')}
                 error={errors.price?.message}
+                disabled={isRead}
               />
-
               <Input
                 id="stock"
                 label="Estoque"
@@ -334,32 +344,37 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 placeholder="Quantidade em estoque"
                 {...register('stock')}
                 error={errors.stock?.message}
+                disabled={isRead}
               />
 
               <Flex $direction="column">
                 <Flex $direction="row" $align="center" $gap="0.5rem">
                   <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
                   <ToggleButton
-                    onToggle={() => setValue('active', !active)}
+                    onToggle={() =>
+                      !isRead && setValue('active', !active)
+                    }
                     isActive={active}
+                    disabled={isRead}
                   />
                 </Flex>
                 {!active && (
-                  <Flex $direction="column">
-                    <Input
-                      id="inactivationReason"
-                      label="Motivo de inativação"
-                      placeholder="Informe o motivo de inativação"
-                      {...register('inactivationReason')}
-                      error={errors.inactivationReason?.message}
-                    />
-                  </Flex>
+                  <Input
+                    id="inactivationReason"
+                    label="Motivo de inativação"
+                    placeholder="Informe o motivo"
+                    {...register('inactivationReason')}
+                    error={errors.inactivationReason?.message}
+                    disabled={isRead}
+                  />
                 )}
               </Flex>
 
-              <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
-                Salvar Quadrinho
-              </SubmitButton>
+              {!isRead && (
+                <SubmitButton type="submit">
+                  {initialData.title ? 'Editar Quadrinho' : 'Salvar Quadrinho'}
+                </SubmitButton>
+              )}
             </Flex>
           </form>
         </ModalBody>
