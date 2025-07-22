@@ -1,4 +1,3 @@
-// src/app/Estoque/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,18 +31,14 @@ import {
 
 export default function Estoque() {
   const [isExpanded, setIsExpanded] = useState(false);
-
   const [products, setProducts] = useState<Product[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
-  // Valores iniciais para o formulário de criação
   const emptyForm: IComicForm = {
     title: '',
     author: '',
@@ -64,8 +59,11 @@ export default function Estoque() {
     inactivationReason: '',
   };
 
-  // Busca produtos da API
-  const fetchProducts = async () => {
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage]);
+
+  async function fetchProducts() {
     try {
       const data = await getProductsMaster(currentPage, itemsPerPage);
       setProducts(data);
@@ -75,11 +73,7 @@ export default function Estoque() {
       setProducts([]);
       setTotalItems(0);
     }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [currentPage]);
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -100,7 +94,6 @@ export default function Estoque() {
     setActiveProduct(null);
   };
 
-  // Mapeia do formulário para o payload da API
   const mapFormToPayload = (form: IComicForm) => ({
     title: form.title,
     author: form.author,
@@ -147,9 +140,7 @@ export default function Estoque() {
       <Navbar isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       <ContentContainer isExpanded={isExpanded}>
         <Header>
-          <HeaderTop>
-            <HeaderTitle>Estoque</HeaderTitle>
-          </HeaderTop>
+          <HeaderTop><HeaderTitle>Estoque</HeaderTitle></HeaderTop>
           <HeaderBottom>
             <SearchAndActionsBox>
               <ButtonBox>
@@ -169,13 +160,15 @@ export default function Estoque() {
             </SearchAndActionsBox>
           </HeaderBottom>
         </Header>
+
         <Content>
           <Tabela
             products={products}
             onEdit={handleOpenEdit}
-            onDelete={(p) => setProductToDelete(p)}
+            onDelete={p => setProductToDelete(p)}
           />
         </Content>
+
         <Footer>
           <PaginationLink
             itemsPerPage={itemsPerPage}
@@ -201,9 +194,10 @@ export default function Estoque() {
                   edition: activeProduct.edition,
                   pages: activeProduct.pageNumber,
                   synopsis: activeProduct.synopsis,
-                  category: activeProduct.productCategories,
+                  // agora mapeia de objetos para IDs
+                  category: activeProduct.productCategories.map(c => c.documentId),
                   isbn: activeProduct.isbn,
-                  pricingGroup: activeProduct.precificationType,
+                  pricingGroup: activeProduct.precificationType.documentId,
                   barcode: activeProduct.barCode,
                   dimensions: {
                     height: activeProduct.height,

@@ -1,5 +1,23 @@
 import api from './api';
 
+export interface ProductCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface PrecificationType {
+  id: number;
+  documentId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
 export interface Product {
   id: number;
   documentId: string;
@@ -26,8 +44,9 @@ export interface Product {
   updatedAt: string;
   publishedAt: string;
   locale: string | null;
-  precificationType: string;
-  productCategories: string[];
+  // Agora com objeto completo
+  precificationType: PrecificationType;
+  productCategories: ProductCategory[];
 }
 
 export interface CreateProductPayload {
@@ -50,26 +69,9 @@ export interface CreateProductPayload {
   stock: number;
   active: boolean;
   inactiveReason: string | null;
+  // Para envio continua sendo array de IDs
   precificationType: string;
   productCategories: string[];
-}
-
-export interface ProductCategory {
-  id: number;
-  documentId: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface PrecificationType {
-  id: number;
-  documentId: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
 }
 
 export interface ProductCategoriesResponse {
@@ -102,7 +104,7 @@ export async function getProductsMaster(
 ): Promise<Product[]> {
   const params: any = {};
   if (page) params.page = page;
-  if (pageSize) params.pageNumber = pageSize;
+  if (pageSize) params.pageSize = pageSize;
 
   const { data } = await api.get<Product[]>('/getProductsMaster', { params });
   return data;
@@ -138,16 +140,14 @@ export async function deleteProduct(
   return data;
 }
 
-export async function getProductCategories(
-): Promise<ProductCategoriesResponse> {
+export async function getProductCategories(): Promise<ProductCategoriesResponse> {
   const { data } = await api.get<ProductCategoriesResponse>(
     '/product-categories'
   );
   return data;
 }
 
-export async function getPrecificationTypes(
-): Promise<PrecificationTypesResponse> {
+export async function getPrecificationTypes(): Promise<PrecificationTypesResponse> {
   const { data } = await api.get<PrecificationTypesResponse>(
     '/precification-types'
   );
