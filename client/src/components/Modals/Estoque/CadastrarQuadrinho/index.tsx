@@ -1,3 +1,5 @@
+// src/components/Modals/Estoque/CadastrarQuadrinho.tsx
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -8,7 +10,7 @@ import Input from '@/components/Inputs/Input/Input';
 import { Flex } from '@/styles/global';
 import ToggleButton from '@/components/Button/ToggleTable';
 import CustomSelect from '@/components/Select';
-import { currencyMask } from '@/utils/masks';
+import { unformatCurrency } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
 
 import {
@@ -86,12 +88,8 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
   const isRead = readonly;
 
   // opções vindas da API
-  const [categoryOptions, setCategoryOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-  const [pricingGroupOptions, setPricingGroupOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
+  const [pricingGroupOptions, setPricingGroupOptions] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     async function loadOptions() {
@@ -122,6 +120,13 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     onClose();
   };
 
+  // Formata número para "R$ 29,90"
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+
   return (
     <ModalOverlay>
       <ModalContent>
@@ -136,7 +141,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex $direction="column" $gap="1rem">
-              {/* Campos de texto com placeholder */}
+              {/* Campos de texto */}
               <Input
                 id="title"
                 label="Título"
@@ -204,11 +209,11 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 disabled={isRead}
               />
 
-              {/* Categoria com defaultValue + placeholder não aplicável */}
+              {/* Categoria */}
               <Controller
                 control={control}
                 name="category"
-                defaultValue={initialData.category ?? []}
+                defaultValue={initialData.category}
                 render={({ field: { value = [], onChange } }) => {
                   const selected = Array.isArray(value) ? value : [];
                   return (
@@ -223,20 +228,14 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                               checked={selected.includes(opt.value)}
                               disabled={isRead}
                               onChange={e => {
-                                if (e.target.checked)
-                                  onChange([...selected, opt.value]);
-                                else
-                                  onChange(
-                                    selected.filter(v => v !== opt.value)
-                                  );
+                                if (e.target.checked) onChange([...selected, opt.value]);
+                                else onChange(selected.filter(v => v !== opt.value));
                               }}
                             />
                           </CheckboxItem>
                         ))}
                       </CheckboxGroupContainer>
-                      {errors.category && (
-                        <ErrorMessage>{errors.category.message}</ErrorMessage>
-                      )}
+                      {errors.category && <ErrorMessage>{errors.category.message}</ErrorMessage>}
                     </div>
                   );
                 }}
@@ -251,7 +250,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 disabled={isRead}
               />
 
-              {/* Grupo de Precificação dinâmico */}
+              {/* Grupo de Precificação */}
               <Controller
                 control={control}
                 name="pricingGroup"
@@ -264,15 +263,11 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                       label="Grupo de Precificação"
                       options={pricingGroupOptions}
                       value={value}
-                      onChange={opt => onChange(opt ? opt.value : '')}
-                      isDisabled={isRead || pricingGroupOptions.length === 0}
+                      onChange={opt => onChange(opt?.value ?? '')}
+                      isDisabled={isRead}
                       placeholder="Selecione um grupo"
                     />
-                    {errors.pricingGroup && (
-                      <ErrorMessage>
-                        {errors.pricingGroup.message}
-                      </ErrorMessage>
-                    )}
+                    {errors.pricingGroup && <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>}
                   </>
                 )}
               />
@@ -286,6 +281,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 disabled={isRead}
               />
 
+              {/* Dimensões */}
               <Flex $direction="row" $gap="1rem">
                 <Input
                   id="dimensions.height"
@@ -327,16 +323,26 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 />
               </Flex>
 
-              <Input
-                id="price"
-                label="Preço (R$)"
-                type="text"
-                placeholder="Preço"
-                maskFunction={currencyMask}
-                {...register('price')}
-                error={errors.price?.message}
-                disabled={isRead}
+              {/* Preço formatado */}
+              <Controller
+                control={control}
+                name="price"
+                defaultValue={initialData.price}
+                render={({ field }) => (
+                  <Input
+                    id="price"
+                    label="Preço (R$)"
+                    value={formatBRL(field.value)}
+                    onChange={e => {
+                      const numeric = unformatCurrency(e.target.value);
+                      field.onChange(numeric);
+                    }}
+                    error={errors.price?.message}
+                    disabled={isRead}
+                  />
+                )}
               />
+
               <Input
                 id="stock"
                 label="Estoque"
@@ -347,13 +353,12 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 disabled={isRead}
               />
 
+              {/* Ativo / inativação */}
               <Flex $direction="column">
                 <Flex $direction="row" $align="center" $gap="0.5rem">
                   <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
                   <ToggleButton
-                    onToggle={() =>
-                      !isRead && setValue('active', !active)
-                    }
+                    onToggle={() => !isRead && setValue('active', !active)}
                     isActive={active}
                     disabled={isRead}
                   />

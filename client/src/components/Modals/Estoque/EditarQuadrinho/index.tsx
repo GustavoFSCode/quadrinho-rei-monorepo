@@ -1,3 +1,5 @@
+// src/components/Modals/Estoque/EditarQuadrinho.tsx
+
 import React from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -6,17 +8,20 @@ import Input from '@/components/Inputs/Input/Input';
 import { Flex } from '@/styles/global';
 import ToggleButton from '@/components/Button/ToggleTable';
 import CustomSelect from '@/components/Select';
-import { currencyMask } from '@/utils/masks';
+import { unformatCurrency } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
-import { ModalOverlay, ModalContent, ModalHeader, ModalBody } from './styled';
-import Closed from '@/components/icons/Closed';
-import { SubmitButton } from '@/components/Forms/CardForm/styled';
-import { ErrorMessage } from '@/components/Forms/AddressForm/styled';
 import {
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   CheckboxGroupLabel,
   CheckboxGroupContainer,
   CheckboxItem,
 } from './styled';
+import Closed from '@/components/icons/Closed';
+import { SubmitButton } from '@/components/Forms/CardForm/styled';
+import { ErrorMessage } from '@/components/Forms/AddressForm/styled';
 
 export interface IComicForm {
   title: string;
@@ -95,6 +100,13 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     }
   };
 
+  // Helper para formatar número bruto em real
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+
   return (
     <ModalOverlay>
       <ModalContent>
@@ -172,7 +184,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 render={({ field }) => {
                   const handleCheckboxChange = (
                     val: string,
-                    checked: boolean,
+                    checked: boolean
                   ) => {
                     if (checked) field.onChange([...field.value, val]);
                     else field.onChange(field.value.filter(v => v !== val));
@@ -190,7 +202,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                               onChange={e =>
                                 handleCheckboxChange(
                                   opt.value,
-                                  e.target.checked,
+                                  e.target.checked
                                 )
                               }
                               disabled={isRead}
@@ -229,7 +241,9 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                       isDisabled={isRead}
                     />
                     {errors.pricingGroup && (
-                      <ErrorMessage>{errors.pricingGroup.message}</ErrorMessage>
+                      <ErrorMessage>
+                        {errors.pricingGroup.message}
+                      </ErrorMessage>
                     )}
                   </>
                 )}
@@ -285,14 +299,27 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 />
               </Flex>
 
-              <Input
-                id="price"
-                label="Preço (R$)"
-                maskFunction={currencyMask}
-                {...register('price')}
-                error={errors.price?.message}
-                disabled={isRead}
+              {/* Preço corretamente formatado: */}
+              <Controller
+                control={control}
+                name="price"
+                defaultValue={initialData.price}
+                render={({ field }) => (
+                  <Input
+                    id="price"
+                    label="Preço (R$)"
+                    // exibe diretamente formatado pelo Intl
+                    value={formatBRL(field.value)}
+                    onChange={e => {
+                      const num = unformatCurrency(e.target.value);
+                      field.onChange(num);
+                    }}
+                    error={errors.price?.message}
+                    disabled={isRead}
+                  />
+                )}
               />
+
               <Input
                 id="stock"
                 label="Estoque"
@@ -307,7 +334,9 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 <Flex $direction="row" $align="center" $gap="0.5rem">
                   <label style={{ fontWeight: 'bold' }}>Produto ativo</label>
                   <ToggleButton
-                    onToggle={() => !isRead && setValue('active', !active)}
+                    onToggle={() =>
+                      !isRead && setValue('active', !active)
+                    }
                     isActive={active}
                     disabled={isRead}
                   />
@@ -324,7 +353,10 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
               </Flex>
 
               {!isRead && (
-                <SubmitButton type="submit" style={{ padding: '0.5rem 1rem' }}>
+                <SubmitButton
+                  type="submit"
+                  style={{ padding: '0.5rem 1rem' }}
+                >
                   Editar Quadrinho
                 </SubmitButton>
               )}
