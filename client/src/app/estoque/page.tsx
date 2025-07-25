@@ -109,8 +109,7 @@ export default function Estoque() {
     length: form.dimensions.width,
     weight: form.dimensions.weight,
     depth: form.dimensions.depth,
-    priceBuy: form.price,
-    priceSell: form.price,
+    priceBuy: form.price,       // envia somente priceBuy
     stock: form.stock,
     active: form.active,
     inactiveReason: form.inactivationReason ?? null,
@@ -145,11 +144,7 @@ export default function Estoque() {
             <SearchAndActionsBox>
               <ButtonBox>
                 <Button
-                  text={
-                    <>
-                      <Plus /> Cadastrar quadrinho
-                    </>
-                  }
+                  text={<><Plus /> Cadastrar quadrinho</>}
                   type="button"
                   variant="purple"
                   width="215px"
@@ -194,7 +189,6 @@ export default function Estoque() {
                   edition: activeProduct.edition,
                   pages: activeProduct.pageNumber,
                   synopsis: activeProduct.synopsis,
-                  // agora mapeia de objetos para IDs
                   category: activeProduct.productCategories.map(c => c.documentId),
                   isbn: activeProduct.isbn,
                   pricingGroup: activeProduct.precificationType.documentId,
@@ -205,7 +199,7 @@ export default function Estoque() {
                     weight: activeProduct.weight,
                     depth: activeProduct.depth,
                   },
-                  price: activeProduct.priceSell,
+                  price: activeProduct.priceBuy, // agora priceBuy
                   stock: activeProduct.stock,
                   active: activeProduct.active,
                   inactivationReason: activeProduct.inactiveReason ?? '',

@@ -12,7 +12,6 @@ import Pencil from '@/components/icons/Pencil';
 import Trash from '@/components/icons/Trash';
 import { Product } from '@/services/productService';
 
-
 interface TabelaProps {
   products: Product[];
   onEdit: (product: Product) => void;
@@ -36,7 +35,7 @@ const Tabela: React.FC<TabelaProps> = ({ products, onEdit, onDelete }) => {
             <TableRow key={product.id}>
               <TableBodyCell>{product.title}</TableBodyCell>
               <TableBodyCell>
-                {product.priceSell.toLocaleString('pt-BR', {
+                {product.priceBuy.toLocaleString('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                 })}

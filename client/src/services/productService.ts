@@ -38,7 +38,7 @@ export interface Product {
   weight: number;
   depth: number;
   priceBuy: number;
-  priceSell: number;
+  priceSell: number;      // agora sempre vem calculado pelo backend
   stock: number;
   active: boolean;
   inactiveReason: string | null;
@@ -46,7 +46,6 @@ export interface Product {
   updatedAt: string;
   publishedAt: string;
   locale: string | null;
-  // Relações como objetos completos
   precificationType: PrecificationType;
   productCategories: ProductCategory[];
 }
@@ -66,12 +65,10 @@ export interface CreateProductPayload {
   length: number;
   weight: number;
   depth: number;
-  priceBuy: number;
-  priceSell: number;
+  priceBuy: number;        // envia somente priceBuy
   stock: number;
   active: boolean;
   inactiveReason: string | null;
-  // Continua enviando apenas os IDs das relações:
   precificationType: string;
   productCategories: string[];
 }
@@ -112,7 +109,6 @@ export async function getProductsMaster(
   return data;
 }
 
-// NOVO: busca produtos visíveis ao usuário, com filtro e paginação
 export async function getProductsUser(
   page?: number,
   pageSize?: number,
@@ -130,13 +126,13 @@ export async function getProductsUser(
     | Product[]
     | { data: Product[]; totalCount: number; page: number; pageSize: number }
   >('/getProductsUser', { params });
-
   return response.data;
 }
 
 export async function createProduct(
   payload: CreateProductPayload
 ): Promise<Product> {
+  // backend agora calcula priceSell automaticamente
   const response = await api.post<{ message: string; data: Product }>(
     '/createProduct',
     payload
