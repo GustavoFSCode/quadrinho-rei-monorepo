@@ -2,15 +2,14 @@ const utils = require('@strapi/utils');
 const { ApplicationError } = utils.errors;
 
 export class ProductService {
-
   public async getProductsMaster(ctx) {
     const { page, pageSize } = ctx.request.query;
 
     try {
       const products = await strapi.documents('api::product.product').findMany({
         populate: ['precificationType', 'productCategories'],
-        page: page,
-        pageSize: pageSize,
+        page,
+        pageSize,
       });
       return products;
     } catch (e) {
@@ -20,16 +19,84 @@ export class ProductService {
   }
 
   public async getProductsUser(ctx) {
-    const { page, pageSize } = ctx.request.query;
+    const { page, pageSize, filter } = ctx.request.query;
 
     try {
+      // busca todos os ativos com relações
       const products = await strapi.documents('api::product.product').findMany({
         filters: { active: true },
         populate: ['precificationType', 'productCategories'],
-        page: page,
-        pageSize: pageSize,
       });
-      return products;
+
+      // se vier filtro, faz busca manual nos campos
+      if (filter) {
+        const term = filter.toLowerCase();
+        const result = [];
+
+        // campos primários onde buscar
+        const fields = [
+          'title',
+          'author',
+          'publisher',
+          'year',
+          'issue',
+          'edition',
+          'synopsis',
+          'isbn',
+          'barCode',
+        ];
+
+        for (const p of products) {
+          // 1) campos básicos
+          for (const f of fields) {
+            const val = p[f];
+            if (
+              val != null &&
+              val.toString().toLowerCase().includes(term) &&
+              !result.includes(p)
+            ) {
+              result.push(p);
+            }
+          }
+          // 2) nome do tipo de precificação
+          if (
+            p.precificationType?.name
+              .toLowerCase()
+              .includes(term) &&
+            !result.includes(p)
+          ) {
+            result.push(p);
+          }
+          // 3) nomes das categorias
+          for (const cat of p.productCategories) {
+            if (
+              cat.name.toLowerCase().includes(term) &&
+              !result.includes(p)
+            ) {
+              result.push(p);
+            }
+          }
+        }
+
+        return result;
+      }
+
+      // sem filtro: aplica paginação manual
+      if (!page && !pageSize) {
+        return products;
+      }
+      const pg  = Number(page);
+      const ps  = Number(pageSize);
+      const startIndex = (pg - 1) * ps;
+      const endIndex   = startIndex + ps;
+      const paginated  = products.slice(startIndex, endIndex);
+
+      return {
+        data: paginated,
+        totalCount: products.length,
+        page,
+        pageSize,
+      };
     } catch (e) {
       console.error(`Erro ao buscar produtos usuário:`, e);
       throw new ApplicationError("Erro ao encontrar produtos");
@@ -133,12 +200,8 @@ export class ProductService {
     const { documentId } = ctx.params;
 
     try {
-      await strapi.documents('api::product.product').delete({
-        documentId,
-      });
-      return {
-        message: "Produto removido com sucesso!",
-      };
+      await strapi.documents('api::product.product').delete({ documentId });
+      return { message: "Produto removido com sucesso!" };
     } catch (e) {
       console.error(`Erro ao remover produto:`, e);
       throw new ApplicationError("Erro ao remover produto");

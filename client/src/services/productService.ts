@@ -1,3 +1,5 @@
+// src/services/productService.ts
+
 import api from './api';
 
 export interface ProductCategory {
@@ -44,7 +46,7 @@ export interface Product {
   updatedAt: string;
   publishedAt: string;
   locale: string | null;
-  // Agora com objeto completo
+  // Relações como objetos completos
   precificationType: PrecificationType;
   productCategories: ProductCategory[];
 }
@@ -69,7 +71,7 @@ export interface CreateProductPayload {
   stock: number;
   active: boolean;
   inactiveReason: string | null;
-  // Para envio continua sendo array de IDs
+  // Continua enviando apenas os IDs das relações:
   precificationType: string;
   productCategories: string[];
 }
@@ -108,6 +110,28 @@ export async function getProductsMaster(
 
   const { data } = await api.get<Product[]>('/getProductsMaster', { params });
   return data;
+}
+
+// NOVO: busca produtos visíveis ao usuário, com filtro e paginação
+export async function getProductsUser(
+  page?: number,
+  pageSize?: number,
+  filter?: string
+): Promise<
+  | Product[]
+  | { data: Product[]; totalCount: number; page: number; pageSize: number }
+> {
+  const params: any = {};
+  if (page) params.page = page;
+  if (pageSize) params.pageSize = pageSize;
+  if (filter) params.filter = filter;
+
+  const response = await api.get<
+    | Product[]
+    | { data: Product[]; totalCount: number; page: number; pageSize: number }
+  >('/getProductsUser', { params });
+
+  return response.data;
 }
 
 export async function createProduct(
