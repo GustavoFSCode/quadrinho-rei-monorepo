@@ -40,8 +40,8 @@ const Tabela: React.FC = () => {
         { id: 1, title: 'Homem-Aranha: N°1', qtd: 3, qtd_refund: 3 },
         { id: 2, title: 'Homem-Aranha: N°2', qtd: 1, qtd_refund: 1 },
         { id: 3, title: 'Homem-Aranha: N°3', qtd: 4, qtd_refund: 0 },
-        { id: 11, title: 'Batman: Noite Sombria', qtd: 2, qtd_refund: 2 },
-        { id: 12, title: 'Superman: O Último Herói', qtd: 3, qtd_refund: 3 },
+        { id: 11, title: 'Batman: Noite Sombria', qtd: 2, qtd_refund: 1 },
+        { id: 12, title: 'Superman: O Último Herói', qtd: 3, qtd_refund: 1 },
       ],
     },
     {
@@ -103,6 +103,7 @@ const Tabela: React.FC = () => {
                   <TableRow>
                     <TableHeadCell>Produtos</TableHeadCell>
                     <TableHeadCell center>Quantidade</TableHeadCell>
+                    <TableHeadCell center>Disponível para reembolso</TableHeadCell>
                     <TableHeadCell center>
                       Selecionar para reembolso
                     </TableHeadCell>
@@ -119,6 +120,7 @@ const Tabela: React.FC = () => {
                         {product.title}
                       </TableBodyCell>
                       <TableBodyCell center>{product.qtd}</TableBodyCell>
+                      <TableBodyCell center>{product.qtd_refund}</TableBodyCell>
                       {order.status === 'Entregue' ? (
                         product.qtd_refund > 0 ? (
                           <>
