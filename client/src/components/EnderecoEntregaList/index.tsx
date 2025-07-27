@@ -1,3 +1,7 @@
+// src/components/EnderecoEntregaList/index.tsx
+
+'use client';
+
 import React, { useState } from 'react';
 import {
   Container,
@@ -7,101 +11,41 @@ import {
   Title,
   Text,
   CustomCheckbox,
-  CustomLabel
+  CustomLabel,
 } from './styled';
+import { Address } from '@/services/clientService';
 
-interface Address {
-  id: number;
-  nameAddress: string;
-  TypeAddress: string;
-  typeLogradouro: string;
-  nameLogradouro: string;
-  number: string;
-  neighborhood: string;
-  cep: string;
-  city: string;
-  state: string;
-  country: string;
-  observation?: string;
+interface Props {
+  addresses: Address[];
 }
 
-const EnderecoEntregaList: React.FC = () => {
-  // Estado para armazenar o endereço selecionado (única escolha)
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-
-  // Mock de endereços de entrega
-  const mockAddresses: Address[] = [
-    {
-      id: 1,
-      nameAddress: 'Casa',
-      TypeAddress: 'Entrega',
-      typeLogradouro: 'Rua',
-      nameLogradouro: 'das Flores',
-      number: '123',
-      neighborhood: 'Jardim Primavera',
-      cep: '12345-678',
-      city: 'São Paulo',
-      state: 'SP',
-      country: 'Brasil',
-      observation: ''
-    },
-    {
-      id: 2,
-      nameAddress: 'Trabalho',
-      TypeAddress: 'Entrega',
-      typeLogradouro: 'Avenida',
-      nameLogradouro: 'Brasil',
-      number: '456',
-      neighborhood: 'Centro',
-      cep: '23456-789',
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      country: 'Brasil',
-      observation: ''
-    },
-    {
-      id: 3,
-      nameAddress: 'Outro',
-      TypeAddress: 'Entrega',
-      typeLogradouro: 'Rua',
-      nameLogradouro: 'dos Andradas',
-      number: '789',
-      neighborhood: 'Bairro Novo',
-      cep: '34567-890',
-      city: 'Belo Horizonte',
-      state: 'MG',
-      country: 'Brasil',
-      observation: ''
-    }
-  ];
-
-  const handleSelect = (id: number) => {
-    setSelectedAddressId(id);
-  };
+const EnderecoEntregaList: React.FC<Props> = ({ addresses }) => {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const frete = 'R$ 20,00';
 
   return (
     <Container>
-      {mockAddresses.map((address) => (
-        <Card key={address.id}>
+      {addresses.map(addr => (
+        <Card key={addr.documentId}>
           <AddressInfo>
-            <Title>{address.nameAddress}</Title>
+            <Title>{addr.nameAddress}</Title>
             <Text>
-              {address.typeLogradouro} {address.nameLogradouro}, {address.number}
+              {addr.typeLogradouro} {addr.nameLogradouro}, {addr.number}
             </Text>
             <Text>
-              {address.neighborhood} - {address.cep}
+              {addr.neighborhood} - {addr.cep}
             </Text>
             <Text>
-              {address.city} - {address.state}
+              {addr.city} - {addr.state}
             </Text>
-            <Text>{address.country}</Text>
-            {address.observation && <Text>Obs: {address.observation}</Text>}
-            <Text>Preço do frete: R$20,00</Text>
+            <Text>{addr.country}</Text>
+            {addr.observation && <Text>Obs: {addr.observation}</Text>}
+            <Text>Preço do frete: {frete}</Text>
           </AddressInfo>
           <CheckboxContainer>
             <CustomCheckbox
-              checked={selectedAddressId === address.id}
-              onChange={() => handleSelect(address.id)}
+              checked={selectedId === addr.documentId}
+              onChange={() => setSelectedId(addr.documentId)}
             />
             <CustomLabel>Selecionar</CustomLabel>
           </CheckboxContainer>

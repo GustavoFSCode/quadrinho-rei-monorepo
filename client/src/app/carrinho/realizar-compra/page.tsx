@@ -1,6 +1,8 @@
+// src/app/RealizarCompra/page.tsx (ou onde estiver seu componente)
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ContentContainer,
   Header,
@@ -18,7 +20,6 @@ import Button from '@/components/Button';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Componentes placeholders (a serem implementados futuramente)
 import CupomForm from '@/components/Forms/CupomForm/CupomForm';
 import EnderecoEntregaList from '@/components/EnderecoEntregaList';
 import EnderecoCobrancaList from '@/components/EnderecoCobrancaList';
@@ -27,17 +28,40 @@ import ModalEndereco from '@/components/Modals/RealizarCompra/ModalEndereco';
 import ModalCartao from '@/components/Modals/RealizarCompra/ModalCartao';
 import { clientDocumentId } from '@/config/documentId';
 
-const RealizarCompra: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [totalValue, setTotalValue] = useState<number>(0);
-  const [paymentTotal, setPaymentTotal] = useState<number>(0);
+import { useAuth } from '@/hooks/useAuth';
+import { getUser, Address } from '@/services/clientService';
 
-  const [showModalEndereco, setShowModalEndereco] = useState<boolean>(false);
-  const [showModalCartao, setShowModalCartao] = useState<boolean>(false);
+export default function RealizarCompra() {
+  const { user } = useAuth();
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
-  const handleFinalizarCompra = (): void => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [totalValue, setTotalValue] = useState(0);
+  const [paymentTotal, setPaymentTotal] = useState(0);
+
+  const [showModalEndereco, setShowModalEndereco] = useState(false);
+  const [showModalCartao, setShowModalCartao] = useState(false);
+
+  // Carrega os dados do usuário e extrai endereços
+  useEffect(() => {
+    if (!user.documentId) return;
+    (async () => {
+      try {
+        const fullUser = await getUser(user.documentId);
+        setAddresses(fullUser.client.addresses);
+      } catch (err) {
+        console.error('Erro ao carregar usuário:', err);
+      }
+    })();
+  }, [user.documentId]);
+
+  const handleFinalizarCompra = () => {
     toast.success('Compra finalizada com sucesso!');
   };
+
+  // Separe em cobranças e entregas
+  const entrega = addresses.filter(a => a.TypeAddress === 'Entrega');
+  const cobranca = addresses.filter(a => a.TypeAddress === 'Cobrança');
 
   return (
     <>
@@ -50,66 +74,51 @@ const RealizarCompra: React.FC = () => {
         </Header>
         <Content>
           <Flex $direction="column" $gap="1rem">
-            <Flex $direction="column" $gap="1rem">
-              <SectionTitle>Cupons</SectionTitle>
-              <CupomForm />
-            </Flex>
-            <Flex $direction="column" $gap="1rem">
-              <SectionTitle>
-                Endereço
-                <span>-</span>
-                <Button
-                  text="Adicionar endereço"
-                  type="button"
-                  width="170px"
-                  height="40px"
-                  variant="purple"
-                  onClick={() => setShowModalEndereco(true)}
-                />
-              </SectionTitle>
-              <Flex $direction="column" $gap="1rem">
-                <SubSectionTitle>Endereço de entrega</SubSectionTitle>
-                <EnderecoEntregaList />
-              </Flex>
-              <Flex $direction="column" $gap="1rem">
-                <SubSectionTitle>Endereço de cobrança</SubSectionTitle>
-                <EnderecoCobrancaList />
-              </Flex>
-            </Flex>
-            <Flex $direction="column" $gap="1rem">
-              <SectionTitle>
-                Cartão
-                <span>-</span>
-                <Button
-                  text="Adicionar cartão"
-                  width="150px"
-                  height="40px"
-                  type="button"
-                  variant="purple"
-                  onClick={() => setShowModalCartao(true)}
-                />
-              </SectionTitle>
-              <CartaoList
-                onTotalChange={setPaymentTotal}
-                totalOrder={totalValue}
+            <SectionTitle>Cupons</SectionTitle>
+            <CupomForm />
+
+            <SectionTitle>
+              Endereço{' '}
+              <span>-</span>{' '}
+              <Button
+                text="Adicionar endereço"
+                type="button"
+                width="170px"
+                height="40px"
+                variant="purple"
+                onClick={() => setShowModalEndereco(true)}
               />
-            </Flex>
+            </SectionTitle>
+
+            <SubSectionTitle>Endereço de entrega</SubSectionTitle>
+            <EnderecoEntregaList addresses={entrega} />
+
+            <SubSectionTitle>Endereço de cobrança</SubSectionTitle>
+            <EnderecoCobrancaList addresses={cobranca} />
+
+            <SectionTitle>
+              Cartão <span>-</span>{' '}
+              <Button
+                text="Adicionar cartão"
+                width="150px"
+                height="40px"
+                type="button"
+                variant="purple"
+                onClick={() => setShowModalCartao(true)}
+              />
+            </SectionTitle>
+            <CartaoList onTotalChange={setPaymentTotal} totalOrder={totalValue} />
+
             <Flex $direction="row" $gap="2rem">
               <Tabela onTotalChange={setTotalValue} />
               <Flex $direction="column" $gap="20px" $justify="center">
                 <StyledParagraph>
                   Valor total de pagamento:{' '}
-                  {paymentTotal.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {paymentTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </StyledParagraph>
                 <StyledParagraph>
                   Valor total do pedido:{' '}
-                  {totalValue.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </StyledParagraph>
                 <Button
                   text="Finalizar compra"
@@ -123,27 +132,28 @@ const RealizarCompra: React.FC = () => {
           </Flex>
         </Content>
       </ContentContainer>
+
       {showModalEndereco && (
         <ModalEndereco
-          onClose={() => setShowModalEndereco(false)}
-          onAddressRefresh={async () => {
-            // Lógica para atualizar a lista de enderecos (caso necessário)
-          }}
-          clientDocumentId={clientDocumentId}
-        />
+        onClose={() => setShowModalEndereco(false)}
+        onAddressRefresh={async () => {
+          // Lógica para atualizar a lista de enderecos (caso necessário)
+        }}
+        clientDocumentId={clientDocumentId}
+      />
       )}
+
       {showModalCartao && (
         <ModalCartao
-          onClose={() => setShowModalCartao(false)}
-          onCardsRefresh={async () => {
-            // Lógica para atualizar a lista de cartões (caso necessário)
-          }}
-          clientDocumentId={clientDocumentId}
-        />
+        onClose={() => setShowModalCartao(false)}
+        onCardsRefresh={async () => {
+          // Lógica para atualizar a lista de cartões (caso necessário)
+        }}
+        clientDocumentId={clientDocumentId}
+      />
       )}
+
       <ToastContainer />
     </>
   );
-};
-
-export default RealizarCompra;
+}

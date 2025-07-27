@@ -13,8 +13,10 @@ import {
 } from 'react';
 import { login as loginService } from '@/services/authService';
 
+// Agora o User inclui documentId
 export interface User {
   id: number;
+  documentId: string;
   email: string;
   username: string;
 }
@@ -45,9 +47,9 @@ const AuthProvider = ({ children }: ChildrenProps) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const dataUser = localStorage.getItem(localStorageKeys.user);
-    if (dataUser) {
-      setUser(JSON.parse(dataUser));
+    const data = localStorage.getItem(localStorageKeys.user);
+    if (data) {
+      setUser(JSON.parse(data));
     }
     setLoading(false);
   }, []);
@@ -56,15 +58,22 @@ const AuthProvider = ({ children }: ChildrenProps) => {
 
   const login = async (identifier: string, password: string) => {
     try {
-      const { jwt, refreshToken = '', user: loginUser } = await loginService(identifier, password);
-      // Armazena os tokens e o usuário no localStorage
+      const { jwt, refreshToken = '', user: loginUser } =
+        await loginService(identifier, password);
+
+      // salve tokens e user (com documentId) no localStorage
       localStorage.setItem(localStorageKeys.accessToken, jwt);
       localStorage.setItem(localStorageKeys.refreshToken, refreshToken);
       localStorage.setItem(localStorageKeys.user, JSON.stringify(loginUser));
-      // Atualiza o estado do usuário no contexto
+      localStorage.setItem(
+        localStorageKeys.userDocumentId,
+        loginUser.documentId
+      );
+
+      // atualiza o contexto com o objeto completo
       setUser(loginUser);
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -72,19 +81,16 @@ const AuthProvider = ({ children }: ChildrenProps) => {
     localStorage.removeItem(localStorageKeys.user);
     localStorage.removeItem(localStorageKeys.accessToken);
     localStorage.removeItem(localStorageKeys.refreshToken);
+    localStorage.removeItem(localStorageKeys.userDocumentId);
     setUser({} as User);
-    // Opcional: redirecionar para a tela de login após o logout
     // redirect('/login');
   };
 
-  // Rotas públicas (ex: '/login', '/')
+  // Rotas que não precisam de auth
   const publicRoutes = ['/login', '/'];
 
-  if (loading) {
-    return null; // ou componente de loading
-  }
+  if (loading) return null; // ou um loading spinner
 
-  // Opcional: redirecionamento se a rota for protegida e o usuário não estiver autenticado
   /*
   if (!isAuthenticated && !publicRoutes.includes(pathname)) {
     redirect('/login');
@@ -92,12 +98,13 @@ const AuthProvider = ({ children }: ChildrenProps) => {
   */
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, setUser, isAuthenticated, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
 export default AuthProvider;
-
 export const useAuth = () => useContext(AuthContext);

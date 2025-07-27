@@ -1,3 +1,4 @@
+//@/services/clientService
 import api from './api';
 
 // Interfaces para os dados retornados pela API
@@ -116,6 +117,10 @@ export interface CreateClientPayload {
   Card: CreateCardPayload[];
 }
 
+export interface UserWithClient extends User {
+  client: Client;
+}
+
 export async function getClient(
   documentId?: string,
   page?: number,
@@ -212,5 +217,14 @@ export async function createAddress(
   payload: { address: CreateAddressPayload }
 ): Promise<Address> {
   const { data } = await api.post(`/createAddress/${clientDocumentId}`, payload);
+  return data;
+}
+
+export async function getUser(
+  userDocumentId: string
+): Promise<UserWithClient> {
+  const { data } = await api.get<UserWithClient>(
+    `/getUser/${userDocumentId}`
+  );
   return data;
 }

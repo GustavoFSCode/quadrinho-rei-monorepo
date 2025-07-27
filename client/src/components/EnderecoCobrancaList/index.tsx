@@ -1,3 +1,7 @@
+// src/components/EnderecoCobrancaList/index.tsx
+
+'use client';
+
 import React, { useState } from 'react';
 import {
   Container,
@@ -7,100 +11,39 @@ import {
   Title,
   Text,
   CustomCheckbox,
-  CustomLabel
+  CustomLabel,
 } from './styled';
+import { Address } from '@/services/clientService';
 
-interface Address {
-  id: number;
-  nameAddress: string;
-  TypeAddress: string;
-  typeLogradouro: string;
-  nameLogradouro: string;
-  number: string;
-  neighborhood: string;
-  cep: string;
-  city: string;
-  state: string;
-  country: string;
-  observation?: string;
+interface Props {
+  addresses: Address[];
 }
 
-const EnderecoCobrancaList: React.FC = () => {
-  // Estado para armazenar o endereço selecionado (única escolha)
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-
-  // Mock de endereços de cobrança
-  const mockAddresses: Address[] = [
-    {
-      id: 1,
-      nameAddress: 'Residencial',
-      TypeAddress: 'Cobrança',
-      typeLogradouro: 'Rua',
-      nameLogradouro: 'dos Limoeiros',
-      number: '101',
-      neighborhood: 'Centro',
-      cep: '11111-111',
-      city: 'Curitiba',
-      state: 'PR',
-      country: 'Brasil',
-      observation: ''
-    },
-    {
-      id: 2,
-      nameAddress: 'Escritório',
-      TypeAddress: 'Cobrança',
-      typeLogradouro: 'Avenida',
-      nameLogradouro: 'Central',
-      number: '202',
-      neighborhood: 'Bairro Comercial',
-      cep: '22222-222',
-      city: 'São Paulo',
-      state: 'SP',
-      country: 'Brasil',
-      observation: ''
-    },
-    {
-      id: 3,
-      nameAddress: 'Alternativo',
-      TypeAddress: 'Cobrança',
-      typeLogradouro: 'Praça',
-      nameLogradouro: 'da Liberdade',
-      number: '303',
-      neighborhood: 'Liberdade',
-      cep: '33333-333',
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      country: 'Brasil',
-      observation: ''
-    }
-  ];
-
-  const handleSelect = (id: number) => {
-    setSelectedAddressId(id);
-  };
+const EnderecoCobrancaList: React.FC<Props> = ({ addresses }) => {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
     <Container>
-      {mockAddresses.map((address) => (
-        <Card key={address.id}>
+      {addresses.map(addr => (
+        <Card key={addr.documentId}>
           <AddressInfo>
-            <Title>{address.nameAddress}</Title>
+            <Title>{addr.nameAddress}</Title>
             <Text>
-              {address.typeLogradouro} {address.nameLogradouro}, {address.number}
+              {addr.typeLogradouro} {addr.nameLogradouro}, {addr.number}
             </Text>
             <Text>
-              {address.neighborhood} - {address.cep}
+              {addr.neighborhood} - {addr.cep}
             </Text>
             <Text>
-              {address.city} - {address.state}
+              {addr.city} - {addr.state}
             </Text>
-            <Text>{address.country}</Text>
-            {address.observation && <Text>Obs: {address.observation}</Text>}
+            <Text>{addr.country}</Text>
+            {addr.observation && <Text>Obs: {addr.observation}</Text>}
           </AddressInfo>
           <CheckboxContainer>
             <CustomCheckbox
-              checked={selectedAddressId === address.id}
-              onChange={() => handleSelect(address.id)}
+              checked={selectedId === addr.documentId}
+              onChange={() => setSelectedId(addr.documentId)}
             />
             <CustomLabel>Selecionar</CustomLabel>
           </CheckboxContainer>
