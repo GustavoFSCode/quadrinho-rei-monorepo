@@ -33,33 +33,50 @@ export class ProductService {
         filters: { active: true },
         populate: ['precificationType', 'productCategories'],
       });
-
+  
       if (filter) {
         const term = filter.toLowerCase();
         const result = [];
-        const fields = ['title','author','publisher','year','issue','edition','synopsis','isbn','barCode'];
+        const fields = ['title', 'author', 'publisher', 'year', 'issue', 'edition', 'synopsis', 'isbn', 'barCode'];
+        const numericFields = ['pageNumber', 'priceBuy', 'priceSell', 'stock', 'height', 'length', 'weight', 'depth']; // inclui todos os campos numéricos relevantes
+  
         for (const p of products) {
+          // Verifica campos textuais
           for (const f of fields) {
             const val = p[f];
             if (val != null && val.toString().toLowerCase().includes(term) && !result.includes(p)) {
               result.push(p);
             }
           }
+  
+          // Verifica campos numéricos como string (contains)
+          for (const nf of numericFields) {
+            const val = p[nf];
+            if (val != null && val.toString().includes(term) && !result.includes(p)) {
+              result.push(p);
+            }
+          }
+  
+          // Verifica nome do tipo de precificação
           if (p.precificationType?.name.toLowerCase().includes(term) && !result.includes(p)) {
             result.push(p);
           }
+  
+          // Verifica nome das categorias
           for (const cat of p.productCategories) {
             if (cat.name.toLowerCase().includes(term) && !result.includes(p)) {
               result.push(p);
             }
           }
         }
+  
         return result;
       }
-
+  
       if (!page && !pageSize) {
         return products;
       }
+  
       const pg = Number(page), ps = Number(pageSize);
       const start = (pg - 1) * ps;
       const end = start + ps;
@@ -74,6 +91,7 @@ export class ProductService {
       throw new ApplicationError("Erro ao encontrar produtos");
     }
   }
+  
 
   public async createProduct(ctx) {
     const body = ctx.request.body;

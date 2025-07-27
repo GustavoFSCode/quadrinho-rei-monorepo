@@ -66,7 +66,6 @@ export default function Home() {
       console.error('Erro ao buscar quadrinhos:', err);
       setProducts([]);
       setTotalItems(0);
-      toast.error('Falha ao carregar quadrinhos');
     }
   }
 
