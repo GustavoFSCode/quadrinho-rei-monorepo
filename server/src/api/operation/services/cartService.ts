@@ -111,3 +111,70 @@ export class CartService {
         }
     }
 
+    public async getOrders(ctx) {
+        const me = ctx.state.user.documentId;
+        const query = ctx.request.query;
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        cart: {
+                            populate: {
+                                cartOrders: {
+                                    populate: {
+                                        product: {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const orders = user?.client?.cart?.cartOrders.map((order) => {
+            return {
+                documentId: order?.documentId,
+                title: order?.product.title,
+                price: order?.product.priceSell,
+                stock: order?.product.stock,
+                quantity: order?.quantity
+            }
+        }) || [];
+
+        const totalValue = orders.reduce((acc, order) => acc + (order?.price * order?.quantity), 0);
+
+        try {
+            let paginatedOrders = orders;
+
+            if (query.page && query.pageSize) {
+                const page = parseInt(query.page, 10) || 1;
+                const pageSize = parseInt(query.pageSize, 10) || 10;
+
+                const startIndex = (page - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+
+                paginatedOrders = orders.slice(startIndex, endIndex);
+            }
+
+            return {
+                data: {
+                    totalValue: totalValue,
+                    orders: paginatedOrders,
+                    pagination: {
+                        page: query.page || 1,
+                        pageSize: query.pageSize || 10,
+                        totalOrders: orders.length,
+                        totalPages: Math.ceil(orders.length / (query.pageSize || 10)),
+                    }
+                }
+            };
+        } catch (e) {
+            console.log(e);
+            throw new ApplicationError("Erro ao listar carrinho");
+        }
+    }
+
+
