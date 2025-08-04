@@ -99,5 +99,11 @@ module.exports = {
       path: "/removeProduct/:documentId",
       handler: "operation.removeProduct",
     },
+    /* Carrinho */
+    {
+      method: "POST",
+      path: "/createOrder",
+      handler: "operation.createOrder",
+    },
   ],
 };
