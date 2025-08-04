@@ -73,3 +73,41 @@ export class CartService {
 
     }
 
+    public async updateQuantityOrder(ctx) {
+
+        const body = ctx.request.body;
+        const me = ctx.state.user.documentId
+
+        const order = await strapi.documents('api::card-order.card-order').findOne({
+            documentId: body.order,
+            populate: {
+                product: {}
+            }
+        })
+
+        if (!body?.order || !order) throw new ApplicationError("Erro ao encontrar pedido")
+
+        if (body?.quantity < 1 || body?.quantity > order.product.stock) throw new ApplicationError("Quantidade inválida");
+
+        try {
+
+            const totalValue = body.quantity * order.product.priceSell
+
+            const cartUpdated = await strapi.documents('api::card-order.card-order').update({
+                documentId: order.documentId,
+                data: {
+                    quantity: body.quantity,
+                    totalValue: totalValue
+                }
+            })
+
+            return {
+                data: cartUpdated,
+                message: "Quantidade atualizada com sucesso!"
+            }
+        } catch (e) {
+            console.log(e);
+            throw new ApplicationError("Erro ao editar pedido");
+        }
+    }
+

@@ -105,5 +105,25 @@ module.exports = {
       path: "/createOrder",
       handler: "operation.createOrder",
     },
+    {
+      method: "PUT",
+      path: "/updateQuantityOrder",
+      handler: "operation.updateQuantityOrder",
+    },
+    {
+      method: "GET",
+      path: "/getOrders",
+      handler: "operation.getOrders",
+    },
+    {
+      method: "DELETE",
+      path: "/removeAllOrders",
+      handler: "operation.removeAllOrders",
+    },
+    {
+      method: "DELETE",
+      path: "/removeOrder/:orderId",
+      handler: "operation.removeOrder",
+    },
   ],
 };

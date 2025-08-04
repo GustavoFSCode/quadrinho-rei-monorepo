@@ -88,6 +88,22 @@ export default factories.createCoreController(
     async createOrder(ctx) {
       const productService = new CartService();
       return productService.createOrder(ctx);
-    }
+    },
+    async updateQuantityOrder(ctx) {
+      const cartService = new CartService();
+      return cartService.updateQuantityOrder(ctx);
+    },
+    async getOrders(ctx) {
+      const cartService = new CartService();
+      return cartService.getOrders(ctx);
+    },
+    async removeAllOrders(ctx) {
+      const cartService = new CartService();
+      return cartService.removeAllOrders(ctx);
+    },
+    async removeOrder(ctx) {
+      const cartService = new CartService();
+      return cartService.removeOrder(ctx);
+    },
   })
 );
