@@ -209,3 +209,23 @@ export class CartService {
         return "Carrinho limpo com sucesso!";
     }
 
+    public async removeOrder(ctx) {
+        const me = ctx.state.user.documentId
+        const order = ctx.params.orderId
+
+        if (!order) throw new ApplicationError("Erro ao encontrar pedido");
+
+        try {
+
+            await strapi.documents('api::card-order.card-order').delete({
+                documentId: order
+            })
+
+            return "Pedido removido com sucesso do carrinho!"
+
+        } catch (e) {
+            console.log(e)
+            throw new ApplicationError("Erro ao remover item do carrinho")
+        }
+    }
+}
