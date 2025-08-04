@@ -28,6 +28,14 @@
       "relation": "manyToOne",
       "target": "api::purchase.purchase",
       "inversedBy": "coupons"
+    },
+    "couponStatus": {
+      "type": "enumeration",
+      "enum": [
+        "NaoUsado",
+        "EmUso",
+        "Usado"
+      ]
     }
   }
 }
