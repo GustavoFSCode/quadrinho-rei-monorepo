@@ -4,7 +4,8 @@
   "info": {
     "singularName": "purchase",
     "pluralName": "purchases",
-    "displayName": "Purchase"
+    "displayName": "Purchase",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -30,9 +31,9 @@
     },
     "client": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::client.client",
-      "inversedBy": "purchase"
+      "inversedBy": "purchases"
     },
     "cartOrders": {
       "type": "relation",
@@ -42,6 +43,19 @@
     },
     "totalValue": {
       "type": "decimal"
+    },
+    "purchaseStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Pendente",
+        "Finalizado"
+      ]
+    },
+    "purchaseSalesStatus": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::purchase-sales-status.purchase-sales-status",
+      "inversedBy": "purchases"
     }
   }
 }

@@ -672,7 +672,7 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     name: Schema.Attribute.String;
     phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    purchase: Schema.Attribute.Relation<'oneToOne', 'api::purchase.purchase'>;
+    purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
     ranking: Schema.Attribute.Integer;
     typePhone: Schema.Attribute.Enumeration<['Celular', 'Fixo']>;
     updatedAt: Schema.Attribute.DateTime;
@@ -699,6 +699,7 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
   attributes: {
     client: Schema.Attribute.Relation<'oneToOne', 'api::client.client'>;
     code: Schema.Attribute.String;
+    couponStatus: Schema.Attribute.Enumeration<['NaoUsado', 'EmUso', 'Usado']>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -898,9 +899,40 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPurchaseSalesStatusPurchaseSalesStatus
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'purchase_sales_statuses';
+  info: {
+    displayName: 'PurchaseSalesStatus';
+    pluralName: 'purchase-sales-statuses';
+    singularName: 'purchase-sales-status';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::purchase-sales-status.purchase-sales-status'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
   collectionName: 'purchases';
   info: {
+    description: '';
     displayName: 'Purchase';
     pluralName: 'purchases';
     singularName: 'purchase';
@@ -915,7 +947,7 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::card-order.card-order'
     >;
-    client: Schema.Attribute.Relation<'oneToOne', 'api::client.client'>;
+    client: Schema.Attribute.Relation<'manyToOne', 'api::client.client'>;
     coupons: Schema.Attribute.Relation<'oneToMany', 'api::coupon.coupon'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -927,6 +959,11 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    purchaseSalesStatus: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::purchase-sales-status.purchase-sales-status'
+    >;
+    purchaseStatus: Schema.Attribute.Enumeration<['Pendente', 'Finalizado']>;
     totalValue: Schema.Attribute.Decimal;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1458,6 +1495,7 @@ declare module '@strapi/strapi' {
       'api::precification-type.precification-type': ApiPrecificationTypePrecificationType;
       'api::product-category.product-category': ApiProductCategoryProductCategory;
       'api::product.product': ApiProductProduct;
+      'api::purchase-sales-status.purchase-sales-status': ApiPurchaseSalesStatusPurchaseSalesStatus;
       'api::purchase.purchase': ApiPurchasePurchase;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

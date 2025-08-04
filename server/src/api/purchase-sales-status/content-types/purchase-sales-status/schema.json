@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "purchase_sales_statuses",
+  "info": {
+    "singularName": "purchase-sales-status",
+    "pluralName": "purchase-sales-statuses",
+    "displayName": "PurchaseSalesStatus"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "purchases": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::purchase.purchase",
+      "mappedBy": "purchaseSalesStatus"
+    }
+  }
+}

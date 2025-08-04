@@ -70,9 +70,9 @@
       "target": "api::coupon.coupon",
       "mappedBy": "client"
     },
-    "purchase": {
+    "purchases": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::purchase.purchase",
       "mappedBy": "client"
     }
