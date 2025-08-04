@@ -3,7 +3,7 @@ const { ApplicationError } = require('@strapi/utils').errors;
 
 class clientService {
 
-    async getClient(id: any, ctx : any) : Promise<any> {
+    async getClient(id: any, ctx: any): Promise<any> {
 
         const { page, pageSize, filter } = ctx.request.query
 
@@ -25,43 +25,43 @@ class clientService {
             return []
         }
 
-        const filteringClient : string[] = ["name", "birthDate", "gender", "cpf", "phone", "typePhone"]
+        const filteringClient: string[] = ["name", "birthDate", "gender", "cpf", "phone", "typePhone"]
 
-        const filteringAddress : string[] = ["nameAddress", "TypeAddress", "typeLogradouro", "nameLogradouro", "number", "neighborhood",
+        const filteringAddress: string[] = ["nameAddress", "TypeAddress", "typeLogradouro", "nameLogradouro", "number", "neighborhood",
             "cep", "city", "state", "country"
         ]
 
-        const filteringCards : string[] = ["holderName", "numberCard", "flagCard", "safeNumber"]
+        const filteringCards: string[] = ["holderName", "numberCard", "flagCard", "safeNumber"]
 
-        const filteringUser : string[] = ["username", "email"]
+        const filteringUser: string[] = ["username", "email"]
 
-        if(filter) {
-            for(const u of user) {
-                for(const f of filteringClient) {
-                    if(u[f].toLowerCase().includes(filter.toLowerCase())) {
-                        if(!response.includes(u)) response.push(u)
+        if (filter) {
+            for (const u of user) {
+                for (const f of filteringClient) {
+                    if (u[f].toLowerCase().includes(filter.toLowerCase())) {
+                        if (!response.includes(u)) response.push(u)
                     }
                 }
 
-                for(const a of u.addresses) {
-                    for(const f of filteringAddress) {
-                        if(a[f].toLowerCase().includes(filter.toLowerCase())) {
-                            if(!response.includes(u)) response.push(u)
+                for (const a of u.addresses) {
+                    for (const f of filteringAddress) {
+                        if (a[f].toLowerCase().includes(filter.toLowerCase())) {
+                            if (!response.includes(u)) response.push(u)
                         }
                     }
                 }
 
-                for(const c of u.cards) {
-                    for(const f of filteringCards) {
-                        if(c[f].toLowerCase().includes(filter.toLowerCase())) {
-                            if(!response.includes(u)) response.push(u)
+                for (const c of u.cards) {
+                    for (const f of filteringCards) {
+                        if (c[f].toLowerCase().includes(filter.toLowerCase())) {
+                            if (!response.includes(u)) response.push(u)
                         }
                     }
                 }
 
-                for(const f of filteringUser) {
-                    if(u.user[f].toLowerCase().includes(filter.toLowerCase())) {
-                        if(!response.includes(u)) response.push(u)
+                for (const f of filteringUser) {
+                    if (u.user[f].toLowerCase().includes(filter.toLowerCase())) {
+                        if (!response.includes(u)) response.push(u)
                     }
                 }
             }
@@ -71,9 +71,9 @@ class clientService {
 
 
 
-        
 
-        if(!page && !pageSize) return user
+
+        if (!page && !pageSize) return user
 
         const startIndex = (Number(page) - 1) * Number(pageSize);
         const endIndex = startIndex + Number(pageSize);
@@ -87,8 +87,8 @@ class clientService {
         };
     }
 
-    async createClient(data){
-        try{
+    async createClient(data) {
+        try {
             const {
                 email,
                 password,
@@ -102,13 +102,13 @@ class clientService {
                 Address,
                 Card,
             } = data
-            
+
             const users = await strapi.documents('plugin::users-permissions.user').findMany({
-                filters:{
+                filters: {
                     email: email
                 }
             });
-            if(users.length > 0){
+            if (users.length > 0) {
                 throw new ApplicationError("Email já cadastrado")
             }
 
@@ -116,7 +116,7 @@ class clientService {
             let addressIsDelivery = false
             let addresses = [];
 
-            for(const field of Address){
+            for (const field of Address) {
                 const createAddress = await strapi.documents('api::address.address').create({
                     data: {
                         nameAddress: field.nameAddress,
@@ -132,17 +132,17 @@ class clientService {
                         observation: field.observation,
                     }
                 })
-                if(field.TypeAddress === 'Cobrança'){
+                if (field.TypeAddress === 'Cobrança') {
                     addressIsBilling = true
                 }
-                if(field.TypeAddress === 'Entrega'){
+                if (field.TypeAddress === 'Entrega') {
                     addressIsDelivery = true
                 }
                 addresses.push(createAddress.documentId)
             }
 
-            if(!addressIsBilling || !addressIsDelivery){
-                for(const a of addresses){
+            if (!addressIsBilling || !addressIsDelivery) {
+                for (const a of addresses) {
                     await strapi.documents('api::address.address').delete({
                         documentId: a
                     })
@@ -150,22 +150,22 @@ class clientService {
                 throw new ApplicationError("O cliente precisa ter um endereço de cobrança e um endereço de entrega");
             }
 
-            
+
             let cards = [];
 
-            for(const field of Card){
+            for (const field of Card) {
                 const createCard = await strapi.documents('api::card.card').create({
                     data: {
                         holderName: field.holderName,
                         numberCard: field.numberCard,
                         flagCard: field.flagCard,
-                        safeNumber : field.safeNumber,
+                        safeNumber: field.safeNumber,
                         isFavorite: field.isFavorite
                     }
                 })
                 cards.push(createCard.documentId)
             }
-            
+
             const user = await strapi.documents('plugin::users-permissions.user').create({
                 data: {
                     username: email.toLowerCase(),
@@ -179,7 +179,7 @@ class clientService {
             })
 
 
-           const client = await strapi.documents('api::client.client').create({
+            const client = await strapi.documents('api::client.client').create({
                 data: {
                     name,
                     birthDate,
@@ -193,12 +193,18 @@ class clientService {
                     addresses: addresses
                 }
             })
+
+            await strapi.documents('api::cart.cart').create({
+                data: {
+                    client: client.documentId
+                }
+            })
             return await strapi.documents('api::client.client').findOne({
                 documentId: client.documentId,
                 populate: ['addresses', 'cards', 'user']
             })
 
-        }catch(error){
+        } catch (error) {
             if (error instanceof ApplicationError) {
                 throw new ApplicationError(error.message);
             }
@@ -206,11 +212,11 @@ class clientService {
             throw new ApplicationError("Ocorreu um erro, tente novamente");
         }
     }
-    async editClient (ctx){
-        try{
-            const {clientDocumentId} = ctx.request.params;
-            const {clientEdit} = ctx.request.body;
-            if(!clientDocumentId){
+    async editClient(ctx) {
+        try {
+            const { clientDocumentId } = ctx.request.params;
+            const { clientEdit } = ctx.request.body;
+            if (!clientDocumentId) {
                 throw new ApplicationError("ID não localizado.");
             }
             const client = await strapi.documents('api::client.client').findOne({
@@ -218,7 +224,7 @@ class clientService {
                 populate: ['user']
             })
 
-            if(!client){
+            if (!client) {
                 throw new ApplicationError("Cliente nao encontrado");
             }
 
@@ -232,7 +238,7 @@ class clientService {
                 data: clientEdit.client,
                 populate: ['user']
             });
-        }catch(error){
+        } catch (error) {
             if (error instanceof ApplicationError) {
                 throw new ApplicationError(error.message);
             }
@@ -240,6 +246,6 @@ class clientService {
             throw new ApplicationError("Ocorreu um erro, tente novamente");
         }
     }
-   
 
-} export {clientService}
+
+} export { clientService }
