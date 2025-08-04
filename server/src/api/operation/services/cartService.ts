@@ -178,3 +178,34 @@ export class CartService {
     }
 
 
+    public async removeAllOrders(ctx) {
+        const me = ctx.state.user.documentId
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        cart: {
+                            populate: {
+                                cartOrders: { populate: { purchase: {} } }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        if (!user || !user?.client) throw new ApplicationError("Erro ao encontrar usuário");
+
+        if (!user?.client?.cart?.cartOrders || user.client.cart.cartOrders.length === 0) return "Carrinho limpo com sucesso!"
+
+        for (const order of user.client.cart.cartOrders) {
+            await strapi.documents('api::card-order.card-order').delete({
+                documentId: order.documentId
+            })
+        }
+
+        return "Carrinho limpo com sucesso!";
+    }
+
