@@ -62,6 +62,9 @@
       "relation": "oneToOne",
       "target": "api::trade.trade",
       "mappedBy": "purchase"
+    },
+    "date": {
+      "type": "date"
     }
   }
 }
