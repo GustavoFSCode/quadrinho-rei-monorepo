@@ -283,7 +283,8 @@ export class PurchaseService {
             documentId: pendentPurchase.documentId,
             data: {
                 purchaseStatus: "Finalizado",
-                purchaseSalesStatus: paymentStatus[0].documentId
+                purchaseSalesStatus: paymentStatus[0].documentId,
+                date: new Date()
             },
             populate: {
                 coupons: {},
