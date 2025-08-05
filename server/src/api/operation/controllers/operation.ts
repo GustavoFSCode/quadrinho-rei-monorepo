@@ -128,5 +128,9 @@ export default factories.createCoreController(
       const purchaseService = new PurchaseService();
       return purchaseService.insertAddresses(ctx)
     },
+    async endPurchase(ctx) {
+      const purchaseService = new PurchaseService();
+      return purchaseService.endPurchase(ctx);
+    },
   })
 );

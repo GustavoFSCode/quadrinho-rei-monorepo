@@ -250,3 +250,83 @@ export class PurchaseService {
         return "Endereços relacionados com sucesso!";
     }
 
+    public async endPurchase(ctx) {
+        const me = ctx.state.user.documentId
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        cart: {
+                            populate: { cartOrders: {} }
+                        },
+                        purchases: {}
+                    }
+                }
+            }
+        })
+
+        if (!user) throw new ApplicationError("Erro ao encontrar usuário")
+
+        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+
+        const paymentStatus = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
+            filters: {
+                name: {
+                    $eq: "Pagamento realizado"
+                }
+            }
+        })
+
+        const purchaseUpdate = await strapi.documents('api::purchase.purchase').update({
+            documentId: pendentPurchase.documentId,
+            data: {
+                purchaseStatus: "Finalizado",
+                purchaseSalesStatus: paymentStatus[0].documentId
+            },
+            populate: {
+                coupons: {},
+                cartOrders: { populate: { product: {} } }
+            }
+        })
+
+        for (const order of purchaseUpdate.cartOrders) {
+            const findProduct = await strapi.documents('api::product.product').findOne({
+                documentId: order.product.documentId
+            })
+
+            const reduceQuantity = findProduct.stock - order.quantity > 0 ? findProduct.stock - order.quantity : 0
+
+            await strapi.documents('api::product.product').update({
+                documentId: order.product.documentId,
+                data: {
+                    stock: reduceQuantity,
+                    updatedAt: new Date()
+                }
+            })
+        }
+
+        if (!purchaseUpdate?.coupons || purchaseUpdate.coupons.length === 0) {
+            return {
+                data: purchaseUpdate,
+                message: "Pedido finalizado com sucesso!"
+            }
+        }
+
+        for (const coupon of purchaseUpdate?.coupons) {
+            await strapi.documents('api::coupon.coupon').update({
+                documentId: coupon.documentId,
+                data: {
+                    couponStatus: "Usado",
+                    updatedAt: new Date(),
+                }
+            })
+        }
+
+        return {
+            data: purchaseUpdate,
+            message: "Pedido finalizado com sucesso!"
+        }
+    }
+}

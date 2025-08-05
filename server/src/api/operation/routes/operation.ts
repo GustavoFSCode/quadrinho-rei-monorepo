@@ -152,5 +152,10 @@ module.exports = {
       path: "/insertAddresses",
       handler: "operation.insertAddresses",
     },
+    {
+      method: "POST",
+      path: "/endPurchase",
+      handler: "operation.endPurchase",
+    },
   ],
 };
