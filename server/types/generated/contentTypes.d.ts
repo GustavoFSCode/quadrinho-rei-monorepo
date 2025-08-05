@@ -1010,6 +1010,7 @@ export interface ApiTradeStatusTradeStatus extends Struct.CollectionTypeSchema {
 export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
   collectionName: 'trades';
   info: {
+    description: '';
     displayName: 'Trade';
     pluralName: 'trades';
     singularName: 'trade';
@@ -1032,6 +1033,7 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     purchase: Schema.Attribute.Relation<'oneToOne', 'api::purchase.purchase'>;
+    totalValue: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     tradeStatus: Schema.Attribute.Relation<
       'manyToOne',
       'api::trade-status.trade-status'

@@ -4,7 +4,8 @@
   "info": {
     "singularName": "trade",
     "pluralName": "trades",
-    "displayName": "Trade"
+    "displayName": "Trade",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -39,6 +40,10 @@
       "relation": "manyToOne",
       "target": "api::trade-status.trade-status",
       "inversedBy": "trades"
+    },
+    "totalValue": {
+      "default": 0,
+      "type": "decimal"
     }
   }
 }
