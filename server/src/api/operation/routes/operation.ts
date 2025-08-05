@@ -125,5 +125,12 @@ module.exports = {
       path: "/removeOrder/:orderId",
       handler: "operation.removeOrder",
     },
+
+    /* Purchases */
+    {
+      method: "GET",
+      path: "/getPurchase",
+      handler: "operation.getPurchase",
+    },
   ],
 };

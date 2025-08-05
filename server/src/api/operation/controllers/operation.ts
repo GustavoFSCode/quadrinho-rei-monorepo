@@ -9,6 +9,8 @@ import { cardService } from "../services/cardService";
 import { AddressService } from "../services/addressService";
 import { ProductService } from "../services/productService";
 import { CartService } from "../services/cartService";
+import { PurchaseService } from "../services/purchaseService";
+import { SalesManagement } from "../services/salesManagement";
 
 export default factories.createCoreController(
   "api::operation.operation",
@@ -104,6 +106,11 @@ export default factories.createCoreController(
     async removeOrder(ctx) {
       const cartService = new CartService();
       return cartService.removeOrder(ctx);
+    },
+    /* Purchases */
+    async getPurchase(ctx) {
+      const purchaseService = new PurchaseService();
+      return purchaseService.getPurchase(ctx);
     },
   })
 );
