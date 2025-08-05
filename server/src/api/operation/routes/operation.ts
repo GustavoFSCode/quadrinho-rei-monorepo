@@ -137,5 +137,10 @@ module.exports = {
       path: "/createUpdatePurchase",
       handler: "operation.createUpdatePurchase",
     },
+    {
+      method: "POST",
+      path: "/insertCouponPurchase",
+      handler: "operation.insertCouponPurchase",
+    },
   ],
 };

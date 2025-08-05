@@ -123,3 +123,65 @@ export class PurchaseService {
     }
 
 
+    public async insertCouponPurchase(ctx) {
+
+        const me = ctx.state.user.documentId
+        const body = ctx.request.body
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        cart: {
+                            populate: { cartOrders: {} }
+                        },
+                        purchases: {}
+                    }
+                }
+            }
+        })
+
+        const couponsFound = await strapi.documents('api::coupon.coupon').findMany({
+            filters: {
+                code: {
+                    $eq: body.coupon
+                }
+            }
+        })
+
+        const coupon = couponsFound[0]
+
+        if (!coupon) throw new ApplicationError("Cupom não encontrado")
+
+        if (coupon.couponStatus === "EmUso" || coupon.couponStatus === "Usado") throw new ApplicationError("Este cupom não pode ser utilizado")
+
+        if (!user) throw new ApplicationError("Erro ao encontrar usuário")
+
+        const totalValue = user?.client?.cart?.cartOrders.reduce((acc, order) => acc + order.totalValue, 0) || 0
+
+        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+
+        if (!pendentPurchase) throw new ApplicationError("Erro ao encontrar compra");
+
+        await strapi.documents('api::coupon.coupon').update({
+            documentId: coupon.documentId,
+            data: {
+                couponStatus: "EmUso"
+            }
+        })
+
+        await strapi.documents('api::purchase.purchase').update({
+            documentId: pendentPurchase.documentId,
+            data: {
+                coupons: {
+                    connect: [{ documentId: coupon.documentId }],
+                },
+                totalValue: totalValue - coupon.price > 0 ? totalValue - coupon.price : 0,
+                updatedAt: new Date()
+            }
+        })
+
+        return "Cupom utilizado com sucesso!"
+    }
+
