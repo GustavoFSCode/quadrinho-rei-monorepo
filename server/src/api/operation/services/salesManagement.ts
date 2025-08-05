@@ -16,3 +16,18 @@ export class SalesManagement {
         };
     }
 
+    public async getSalesStatus(ctx) {
+
+        try {
+            const status = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
+                fields: ['id', 'name']
+            })
+
+            return status;
+        } catch (e) {
+            console.log(e);
+            throw new ApplicationError("Erro ao encontrar status")
+        }
+
+    }
+

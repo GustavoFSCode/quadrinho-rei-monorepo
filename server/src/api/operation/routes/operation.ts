@@ -163,5 +163,10 @@ module.exports = {
       path: "/getSales",
       handler: "operation.getSales",
     },
+    {
+      method: "GET",
+      path: "/getSalesStatus",
+      handler: "operation.getSalesStatus",
+    },
   ],
 };
