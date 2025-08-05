@@ -157,5 +157,11 @@ module.exports = {
       path: "/endPurchase",
       handler: "operation.endPurchase",
     },
+    /* Sales */
+    {
+      method: "GET",
+      path: "/getSales",
+      handler: "operation.getSales",
+    },
   ],
 };

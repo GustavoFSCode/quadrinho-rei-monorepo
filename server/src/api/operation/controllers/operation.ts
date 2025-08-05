@@ -132,5 +132,10 @@ export default factories.createCoreController(
       const purchaseService = new PurchaseService();
       return purchaseService.endPurchase(ctx);
     },
+    /* Sales */
+    async getSales(ctx) {
+      const salesService = new SalesManagement();
+      return salesService.getSales(ctx);
+    },
   })
 );
