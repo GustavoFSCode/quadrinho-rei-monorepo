@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trades",
+  "info": {
+    "singularName": "trade",
+    "pluralName": "trades",
+    "displayName": "Trade"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "cartOrder": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::card-order.card-order",
+      "inversedBy": "trade"
+    },
+    "coupon": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::coupon.coupon",
+      "inversedBy": "trade"
+    },
+    "client": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::client.client",
+      "inversedBy": "trades"
+    },
+    "purchase": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::purchase.purchase",
+      "inversedBy": "trade"
+    }
+  }
+}

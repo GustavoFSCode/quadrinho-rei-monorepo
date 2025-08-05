@@ -540,6 +540,7 @@ export interface ApiCardOrderCardOrder extends Struct.CollectionTypeSchema {
     purchase: Schema.Attribute.Relation<'manyToOne', 'api::purchase.purchase'>;
     quantity: Schema.Attribute.Integer;
     totalValue: Schema.Attribute.Decimal;
+    trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -674,6 +675,7 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
     ranking: Schema.Attribute.Integer;
+    trades: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'>;
     typePhone: Schema.Attribute.Enumeration<['Celular', 'Fixo']>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -712,6 +714,7 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     price: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
     purchase: Schema.Attribute.Relation<'manyToOne', 'api::purchase.purchase'>;
+    trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -965,6 +968,38 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
     >;
     purchaseStatus: Schema.Attribute.Enumeration<['Pendente', 'Finalizado']>;
     totalValue: Schema.Attribute.Decimal;
+    trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
+  collectionName: 'trades';
+  info: {
+    displayName: 'Trade';
+    pluralName: 'trades';
+    singularName: 'trade';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    cartOrder: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::card-order.card-order'
+    >;
+    client: Schema.Attribute.Relation<'manyToOne', 'api::client.client'>;
+    coupon: Schema.Attribute.Relation<'oneToOne', 'api::coupon.coupon'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    purchase: Schema.Attribute.Relation<'oneToOne', 'api::purchase.purchase'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1497,6 +1532,7 @@ declare module '@strapi/strapi' {
       'api::product.product': ApiProductProduct;
       'api::purchase-sales-status.purchase-sales-status': ApiPurchaseSalesStatusPurchaseSalesStatus;
       'api::purchase.purchase': ApiPurchasePurchase;
+      'api::trade.trade': ApiTradeTrade;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

@@ -36,6 +36,12 @@
         "EmUso",
         "Usado"
       ]
+    },
+    "trade": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::trade.trade",
+      "mappedBy": "coupon"
     }
   }
 }

@@ -34,6 +34,12 @@
       "relation": "manyToOne",
       "target": "api::purchase.purchase",
       "inversedBy": "cartOrders"
+    },
+    "trade": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::trade.trade",
+      "mappedBy": "cartOrder"
     }
   }
 }

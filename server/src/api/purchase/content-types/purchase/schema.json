@@ -56,6 +56,12 @@
       "relation": "manyToOne",
       "target": "api::purchase-sales-status.purchase-sales-status",
       "inversedBy": "purchases"
+    },
+    "trade": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::trade.trade",
+      "mappedBy": "purchase"
     }
   }
 }
