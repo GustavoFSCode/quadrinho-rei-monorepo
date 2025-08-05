@@ -219,3 +219,34 @@ export class PurchaseService {
         return "Cartões inseridos com sucesso!"
     }
 
+    public async insertAddresses(ctx) {
+        const me = ctx.state.user.documentId
+        const body = ctx.request.body
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        purchases: { populate: { addresses: {} } }
+                    }
+                }
+            }
+        })
+
+        if (!user) throw new ApplicationError("Erro ao encontrar usuário")
+
+        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+
+        await strapi.documents('api::purchase.purchase').update({
+            documentId: pendentPurchase.documentId,
+            data: {
+                addresses: {
+                    connect: [...body.addresses]
+                }
+            }
+        })
+
+        return "Endereços relacionados com sucesso!";
+    }
+

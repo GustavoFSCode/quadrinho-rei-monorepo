@@ -147,5 +147,10 @@ module.exports = {
       path: "/insertCards",
       handler: "operation.insertCards",
     },
+    {
+      method: "POST",
+      path: "/insertAddresses",
+      handler: "operation.insertAddresses",
+    },
   ],
 };
