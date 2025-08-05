@@ -975,6 +975,35 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiTradeStatusTradeStatus extends Struct.CollectionTypeSchema {
+  collectionName: 'trade_statuses';
+  info: {
+    displayName: 'TradeStatus';
+    pluralName: 'trade-statuses';
+    singularName: 'trade-status';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::trade-status.trade-status'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    trades: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
   collectionName: 'trades';
   info: {
@@ -1000,6 +1029,10 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     purchase: Schema.Attribute.Relation<'oneToOne', 'api::purchase.purchase'>;
+    tradeStatus: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::trade-status.trade-status'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1532,6 +1565,7 @@ declare module '@strapi/strapi' {
       'api::product.product': ApiProductProduct;
       'api::purchase-sales-status.purchase-sales-status': ApiPurchaseSalesStatusPurchaseSalesStatus;
       'api::purchase.purchase': ApiPurchasePurchase;
+      'api::trade-status.trade-status': ApiTradeStatusTradeStatus;
       'api::trade.trade': ApiTradeTrade;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

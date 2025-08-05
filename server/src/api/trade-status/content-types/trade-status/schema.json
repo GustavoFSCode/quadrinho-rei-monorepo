@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trade_statuses",
+  "info": {
+    "singularName": "trade-status",
+    "pluralName": "trade-statuses",
+    "displayName": "TradeStatus"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "trades": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::trade.trade",
+      "mappedBy": "tradeStatus"
+    }
+  }
+}

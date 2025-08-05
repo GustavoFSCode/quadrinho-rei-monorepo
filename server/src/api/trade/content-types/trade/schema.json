@@ -33,6 +33,12 @@
       "relation": "oneToOne",
       "target": "api::purchase.purchase",
       "inversedBy": "trade"
+    },
+    "tradeStatus": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::trade-status.trade-status",
+      "inversedBy": "trades"
     }
   }
 }

@@ -40,6 +40,12 @@
       "relation": "oneToOne",
       "target": "api::trade.trade",
       "mappedBy": "cartOrder"
+    },
+    "refunded": {
+      "type": "boolean"
+    },
+    "quantityRefund": {
+      "type": "integer"
     }
   }
 }
