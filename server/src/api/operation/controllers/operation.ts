@@ -141,5 +141,9 @@ export default factories.createCoreController(
       const salesService = new SalesManagement();
       return salesService.getSalesStatus(ctx);
     },
+    async editSalesStatus(ctx) {
+      const salesService = new SalesManagement();
+      return salesService.editSalesStatus(ctx);
+    }
   })
 );

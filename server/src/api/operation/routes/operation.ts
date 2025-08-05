@@ -168,5 +168,10 @@ module.exports = {
       path: "/getSalesStatus",
       handler: "operation.getSalesStatus",
     },
+    {
+      method: "PUT",
+      path: "/editSalesStatus/:saleId",
+      handler: "operation.editSalesStatus",
+    },
   ],
 };
