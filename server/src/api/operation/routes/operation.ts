@@ -142,5 +142,10 @@ module.exports = {
       path: "/insertCouponPurchase",
       handler: "operation.insertCouponPurchase",
     },
+    {
+      method: "POST",
+      path: "/insertCards",
+      handler: "operation.insertCards",
+    },
   ],
 };

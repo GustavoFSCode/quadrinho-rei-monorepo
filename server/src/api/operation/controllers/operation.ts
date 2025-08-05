@@ -120,5 +120,9 @@ export default factories.createCoreController(
       const purchaseService = new PurchaseService();
       return purchaseService.insertCouponPurchase(ctx);
     },
+    async insertCards(ctx) {
+      const purchaseService = new PurchaseService();
+      return purchaseService.insertCards(ctx)
+    },
   })
 );

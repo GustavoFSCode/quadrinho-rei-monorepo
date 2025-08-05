@@ -185,3 +185,37 @@ export class PurchaseService {
         return "Cupom utilizado com sucesso!"
     }
 
+    public async insertCards(ctx) {
+        const me = ctx.state.user.documentId
+        const body = ctx.request.body
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        cart: {
+                            populate: { cartOrders: {} }
+                        },
+                        purchases: {}
+                    }
+                }
+            }
+        })
+
+        if (!user) throw new ApplicationError("Erro ao encontrar usuário")
+
+        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+
+        await strapi.documents('api::purchase.purchase').update({
+            documentId: pendentPurchase.documentId,
+            data: {
+                cards: {
+                    connect: [body.cards]
+                }
+            }
+        })
+
+        return "Cartões inseridos com sucesso!"
+    }
+
