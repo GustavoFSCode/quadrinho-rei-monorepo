@@ -539,6 +539,8 @@ export interface ApiCardOrderCardOrder extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     purchase: Schema.Attribute.Relation<'manyToOne', 'api::purchase.purchase'>;
     quantity: Schema.Attribute.Integer;
+    quantityRefund: Schema.Attribute.Integer;
+    refunded: Schema.Attribute.Boolean;
     totalValue: Schema.Attribute.Decimal;
     trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
