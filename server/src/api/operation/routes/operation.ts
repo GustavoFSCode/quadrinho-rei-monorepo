@@ -173,5 +173,11 @@ module.exports = {
       path: "/editSalesStatus/:saleId",
       handler: "operation.editSalesStatus",
     },
+    /* My purchases */
+    {
+      method: "GET",
+      path: "/getMyPurchases",
+      handler: "operation.getMyPurchases",
+    },
   ],
 };

@@ -11,6 +11,7 @@ import { ProductService } from "../services/productService";
 import { CartService } from "../services/cartService";
 import { PurchaseService } from "../services/purchaseService";
 import { SalesManagement } from "../services/salesManagement";
+import { MyPurchase } from "../services/myPurchaseService";
 
 export default factories.createCoreController(
   "api::operation.operation",
@@ -144,6 +145,12 @@ export default factories.createCoreController(
     async editSalesStatus(ctx) {
       const salesService = new SalesManagement();
       return salesService.editSalesStatus(ctx);
+    },
+    /* My purchases */
+    async getMyPurchases(ctx) {
+      const myPurchasesService = new MyPurchase();
+      return myPurchasesService.getMyPurchases(ctx);
+    },
     }
   })
 );
