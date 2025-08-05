@@ -151,6 +151,9 @@ export default factories.createCoreController(
       const myPurchasesService = new MyPurchase();
       return myPurchasesService.getMyPurchases(ctx);
     },
+    async getMyTrades(ctx) {
+      const myPurchasesService = new MyPurchase();
+      return myPurchasesService.getMyTrades(ctx);
     }
   })
 );

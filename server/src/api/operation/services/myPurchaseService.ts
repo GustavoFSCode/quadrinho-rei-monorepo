@@ -60,3 +60,26 @@ export class MyPurchase {
         }
     }
 
+    public async getMyTrades(ctx) {
+        const me = ctx.state.user.documentId;
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        trades: {
+                            populate: {
+                                coupon: {},
+                                tradeStatus: {},
+                                cartOrder: {}
+                            }
+                        }
+                    }
+                }
+            },
+        })
+
+        return user.client.trades
+    }
+}

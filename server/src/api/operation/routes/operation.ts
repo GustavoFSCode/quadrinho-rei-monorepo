@@ -179,5 +179,10 @@ module.exports = {
       path: "/getMyPurchases",
       handler: "operation.getMyPurchases",
     },
+    {
+      method: "GET",
+      path: "/getMyTrades",
+      handler: "operation.getMyTrades",
+    },
   ],
 };
