@@ -112,5 +112,9 @@ export default factories.createCoreController(
       const purchaseService = new PurchaseService();
       return purchaseService.getPurchase(ctx);
     },
+    async createUpdatePurchase(ctx) {
+      const purchaseService = new PurchaseService();
+      return purchaseService.createUpdatePurchase(ctx);
+    },
   })
 );

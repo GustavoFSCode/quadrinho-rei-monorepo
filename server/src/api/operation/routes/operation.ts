@@ -132,5 +132,10 @@ module.exports = {
       path: "/getPurchase",
       handler: "operation.getPurchase",
     },
+    {
+      method: "POST",
+      path: "/createUpdatePurchase",
+      handler: "operation.createUpdatePurchase",
+    },
   ],
 };
