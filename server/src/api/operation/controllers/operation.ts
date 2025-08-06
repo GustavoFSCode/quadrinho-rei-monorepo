@@ -165,6 +165,10 @@ export default factories.createCoreController(
       const tradesService = new TradeService();
       return tradesService.getTrades(ctx);
     },
+    async editTradeStatus(ctx) {
+      const tradesService = new TradeService();
+      return tradesService.editTradeStatus(ctx);
+    },
     }
   })
 );

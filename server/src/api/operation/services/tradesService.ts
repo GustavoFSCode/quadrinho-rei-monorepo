@@ -38,3 +38,33 @@ export class TradeService {
         return statuses;
     }
 
+    public async editTradeStatus(ctx) {
+        const tradeId = ctx.request.param.tradeId
+        const body = ctx.request.body;
+
+        const foundTrade = await strapi.documents('api::trade.trade').findOne({
+            documentId: tradeId
+        })
+
+        if (!tradeId || !foundTrade) throw new ApplicationError("Erro ao encontrar troca");
+
+        const status = await strapi.documents('api::trade-status.trade-status').findOne({
+            documentId: body?.status
+        })
+
+        if (!body?.status || !status) throw new ApplicationError("Erro ao encontrar status de troca")
+
+        try {
+            await strapi.documents('api::trade.trade').update({
+                documentId: tradeId,
+                data: {
+                    tradeStatus: status.documentId,
+                    updatedAt: new Date(),
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new ApplicationError("Erro ao modificar status da troca");
+        }
+    }
+
