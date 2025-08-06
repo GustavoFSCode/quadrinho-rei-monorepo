@@ -184,5 +184,10 @@ module.exports = {
       path: "/getMyTrades",
       handler: "operation.getMyTrades",
     },
+    {
+      method: "POST",
+      path: "/requestTrade",
+      handler: "operation.requestTrade",
+    },
   ],
 };

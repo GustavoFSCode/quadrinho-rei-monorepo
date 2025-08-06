@@ -60,6 +60,75 @@ export class MyPurchase {
         }
     }
 
+    public async requestTrade(ctx) {
+        const me = ctx.state.user.documentId;
+        const body = ctx.request.body;
+
+        const user = await strapi.documents('plugin::users-permissions.user').findOne({
+            documentId: me,
+            populate: {
+                client: {
+                    populate: {
+                        trades: {
+                            populate: {
+                                cartOrder: {}
+                            }
+
+                        }
+                    }
+                }
+            }
+        })
+
+        const tradeStatus = await strapi.documents('api::trade-status.trade-status').findMany({
+            filters: {
+                name: { $eq: "Aberto" }
+            }
+        })
+
+        const order = await strapi.documents('api::card-order.card-order').findOne({
+            documentId: body.order,
+            populate: {
+                product: {},
+                purchase: {}
+            }
+        })
+
+        if (!order) throw new ApplicationError("Erro ao encontrar pedido");
+
+        if (body?.quantity > (order?.quantity - order?.quantityRefund)) throw new ApplicationError("Quantidade não permitida para reembolso");
+
+        try {
+
+            const totalRefundValue = body?.quantity * order.product.priceSell
+
+            await strapi.documents('api::trade.trade').create({
+                data: {
+                    cartOrder: body.order,
+                    purchase: body.purchase,
+                    totalValue: totalRefundValue,
+                    client: user.client.documentId,
+                    tradeStatus: tradeStatus[0].documentId,
+                    createdAt: new Date(),
+                    publishedAt: new Date()
+                }
+            })
+
+            await strapi.documents('api::card-order.card-order').update({
+                documentId: order.documentId,
+                data: {
+                    quantityRefund: order.quantityRefund + (body.quantity | 0),
+                    updatedAt: new Date(),
+                }
+            })
+
+            return "Troca requisitada com sucesso!"
+        } catch (e) {
+            console.log(e);
+            throw new ApplicationError("Erro ao requisitar troca");
+        }
+    }
+
     public async getMyTrades(ctx) {
         const me = ctx.state.user.documentId;
 
