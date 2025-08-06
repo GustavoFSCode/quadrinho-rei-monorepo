@@ -160,6 +160,11 @@ export default factories.createCoreController(
       const myPurchasesService = new MyPurchase();
       return myPurchasesService.requestTrade(ctx);
     },
+    /* Trades */
+    async getTrades(ctx) {
+      const tradesService = new TradeService();
+      return tradesService.getTrades(ctx);
+    },
     }
   })
 );

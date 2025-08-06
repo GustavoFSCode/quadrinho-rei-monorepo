@@ -189,5 +189,11 @@ module.exports = {
       path: "/requestTrade",
       handler: "operation.requestTrade",
     },
+    /* Trades */
+    {
+      method: "GET",
+      path: "/getTrades",
+      handler: "operation.getTrades",
+    },
   ],
 };
