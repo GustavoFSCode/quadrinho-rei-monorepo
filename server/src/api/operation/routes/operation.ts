@@ -200,5 +200,10 @@ module.exports = {
       path: "/editTradeStatus/:tradeId",
       handler: "operation.editTradeStatus"
     },
+    {
+      method: "POST",
+      path: "/generateCoupon/:tradeId",
+      handler: "operation.generateCoupon"
+    }
   ],
 };

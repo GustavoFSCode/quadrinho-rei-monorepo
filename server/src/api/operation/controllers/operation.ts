@@ -169,6 +169,9 @@ export default factories.createCoreController(
       const tradesService = new TradeService();
       return tradesService.editTradeStatus(ctx);
     },
+    async generateCoupon(ctx) {
+      const tradesService = new TradeService();
+      return tradesService.generateCoupon(ctx);
     }
   })
 );

@@ -68,3 +68,57 @@ export class TradeService {
         }
     }
 
+    public async generateCoupon(ctx) {
+        const tradeId = ctx.params.tradeId
+
+        const coupons = await strapi.documents('api::coupon.coupon').findMany({})
+        const trade = await strapi.documents('api::trade.trade').findOne({
+            documentId: tradeId,
+        })
+
+        if (!tradeId || !trade) throw new ApplicationError("Erro ao encontrar troca");
+
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+        const generateCode = async () => {
+            let couponCode = '';
+            for (let i = 0; i < 10; i++) {
+                const randomChar = characters.charAt(Math.floor(Math.random() * characters.length));
+                couponCode += randomChar;
+            }
+
+            return couponCode;
+        }
+
+        var code = "";
+
+        do {
+            code = await generateCode();
+        } while (coupons.some((coupon) => coupon.code === code));
+
+        const newCoupon = await strapi.documents('api::coupon.coupon').create({
+            data: {
+                code: code,
+                couponStatus: "NaoUsado",
+                price: trade.totalValue,
+                createdAt: new Date(),
+                publishedAt: new Date()
+            }
+        })
+
+        await strapi.documents('api::trade.trade').update({
+            documentId: trade.documentId,
+            data: {
+                coupon: newCoupon.documentId,
+                updatedAt: new Date()
+            }
+        })
+
+        return {
+            data: {
+                coupon: newCoupon,
+                message: "Cupom criado com sucesso!"
+            }
+        }
+    }
+}
