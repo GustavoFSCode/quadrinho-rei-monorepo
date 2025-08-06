@@ -13,9 +13,9 @@
   "attributes": {
     "cartOrder": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::card-order.card-order",
-      "inversedBy": "trade"
+      "inversedBy": "trades"
     },
     "coupon": {
       "type": "relation",
@@ -29,12 +29,6 @@
       "target": "api::client.client",
       "inversedBy": "trades"
     },
-    "purchase": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::purchase.purchase",
-      "inversedBy": "trade"
-    },
     "tradeStatus": {
       "type": "relation",
       "relation": "manyToOne",
@@ -44,6 +38,12 @@
     "totalValue": {
       "default": 0,
       "type": "decimal"
+    },
+    "purchases": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::purchase.purchase",
+      "mappedBy": "trade"
     }
   }
 }

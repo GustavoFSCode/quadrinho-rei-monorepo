@@ -59,9 +59,9 @@
     },
     "trade": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::trade.trade",
-      "mappedBy": "purchase"
+      "inversedBy": "purchases"
     },
     "date": {
       "type": "date"

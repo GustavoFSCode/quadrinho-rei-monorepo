@@ -542,7 +542,7 @@ export interface ApiCardOrderCardOrder extends Struct.CollectionTypeSchema {
     quantityRefund: Schema.Attribute.Integer;
     refunded: Schema.Attribute.Boolean;
     totalValue: Schema.Attribute.Decimal;
-    trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
+    trades: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -971,7 +971,7 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
     >;
     purchaseStatus: Schema.Attribute.Enumeration<['Pendente', 'Finalizado']>;
     totalValue: Schema.Attribute.Decimal;
-    trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
+    trade: Schema.Attribute.Relation<'manyToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1020,7 +1020,7 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
   };
   attributes: {
     cartOrder: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'api::card-order.card-order'
     >;
     client: Schema.Attribute.Relation<'manyToOne', 'api::client.client'>;
@@ -1032,7 +1032,7 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'> &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    purchase: Schema.Attribute.Relation<'oneToOne', 'api::purchase.purchase'>;
+    purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
     totalValue: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     tradeStatus: Schema.Attribute.Relation<
       'manyToOne',

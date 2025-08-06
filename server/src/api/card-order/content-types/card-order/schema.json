@@ -35,17 +35,17 @@
       "target": "api::purchase.purchase",
       "inversedBy": "cartOrders"
     },
-    "trade": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::trade.trade",
-      "mappedBy": "cartOrder"
-    },
     "refunded": {
       "type": "boolean"
     },
     "quantityRefund": {
       "type": "integer"
+    },
+    "trades": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::trade.trade",
+      "mappedBy": "cartOrder"
     }
   }
 }
