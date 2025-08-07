@@ -24,7 +24,7 @@ export class PurchaseService {
             }
         })
 
-        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
 
         return {
             addresses: pendentPurchase?.addresses,
@@ -269,7 +269,7 @@ export class PurchaseService {
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
 
-        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
 
         const paymentStatus = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
             filters: {
@@ -289,6 +289,13 @@ export class PurchaseService {
             populate: {
                 coupons: {},
                 cartOrders: { populate: { product: {} } }
+            }
+        })
+
+        await strapi.documents('api::cart.cart').update({
+            documentId: user.client.cart.documentId,
+            data: {
+                cartOrders: { set: [] }
             }
         })
 
