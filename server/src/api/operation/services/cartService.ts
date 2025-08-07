@@ -15,7 +15,20 @@ export class CartService {
             populate: {
                 client: {
                     populate: {
-                        cart: {}
+                        cart: {
+                            populate: {
+                                cartOrders: {
+                                    populate: {
+                                        product: {},
+                                        purchase: {
+                                            populate: {
+                                                purchaseSalesStatus: {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -37,7 +50,31 @@ export class CartService {
 
         if (!body?.quantity || body?.quantity < 1) throw new ApplicationError("Quantidade inválida")
 
-        try {
+        const hasOrders = user?.client?.cart?.cartOrders.length > 0;
+        const existingOrder = user?.client?.cart?.cartOrders.find(order => order.product.documentId === body.product && (() => {
+            if (order?.purchase) {
+                return order.purchase.purchaseStatus === 'Pendente'
+            }
+
+            return true
+        })());
+        if (hasOrders && existingOrder) {
+            const quantityVerify = existingOrder.quantity + body.quantity;
+
+            if (quantityVerify >= product.stock) {
+                console.log(`Quantidade Verify: ${quantityVerify}, product.stock: ${product.stock}`)
+                throw new ApplicationError("Quantidade acima do estoque, tente novamente");
+            }
+
+            await strapi.documents('api::card-order.card-order').update({
+                documentId: existingOrder.documentId,
+                data: {
+                    quantity: quantityVerify,
+                    totalValue: product.priceSell * quantityVerify,
+                    updatedAt: new Date()
+                }
+            })
+        } else {
             const order = await strapi.documents('api::card-order.card-order').create({
                 data: {
                     product: product.documentId,
@@ -60,15 +97,9 @@ export class CartService {
             })
 
             console.log('E');
-
-            return {
-                data: cartUpdate,
-                message: "Produto adicionado com sucesso ao carrinho!"
-            }
-
-        } catch (e) {
-            console.log(e);
-            throw new ApplicationError("Erro ao criar pedido");
+        }
+        return {
+            message: "Produto adicionado com sucesso ao carrinho!"
         }
 
     }
@@ -124,7 +155,8 @@ export class CartService {
                             populate: {
                                 cartOrders: {
                                     populate: {
-                                        product: {}
+                                        product: {},
+                                        purchase: { populate: { purchaseSalesStatus: {} } }
                                     }
                                 }
                             }
@@ -134,15 +166,23 @@ export class CartService {
             }
         });
 
-        const orders = user?.client?.cart?.cartOrders.map((order) => {
-            return {
-                documentId: order?.documentId,
-                title: order?.product.title,
-                price: order?.product.priceSell,
-                stock: order?.product.stock,
-                quantity: order?.quantity
-            }
-        }) || [];
+        const orders = user?.client?.cart?.cartOrders
+            .filter((order) => {
+                if (order?.purchase) {
+                    return order?.purchase?.purchaseStatus === "Pendente"
+                }
+
+                return true
+            })
+            .map((order) => {
+                return {
+                    documentId: order?.documentId,
+                    title: order?.product.title,
+                    price: order?.product.priceSell,
+                    stock: order?.product.stock,
+                    quantity: order?.quantity
+                }
+            }) || [];
 
         const totalValue = orders.reduce((acc, order) => acc + (order?.price * order?.quantity), 0);
 
