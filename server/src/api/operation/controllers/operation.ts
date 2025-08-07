@@ -13,6 +13,7 @@ import { PurchaseService } from "../services/purchaseService";
 import { SalesManagement } from "../services/salesManagement";
 import { MyPurchase } from "../services/myPurchaseService";
 import { TradeService } from "../services/tradesService";
+import { DashboardService } from "../services/dashboardService";
 
 export default factories.createCoreController(
   "api::operation.operation",
@@ -172,6 +173,11 @@ export default factories.createCoreController(
     async generateCoupon(ctx) {
       const tradesService = new TradeService();
       return tradesService.generateCoupon(ctx);
+    },
+    async getDashboard(ctx) {
+      const dashboardService = new DashboardService();
+      return dashboardService.getDashboard(ctx);
+    },
     }
   })
 );

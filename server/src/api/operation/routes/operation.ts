@@ -201,9 +201,15 @@ module.exports = {
       handler: "operation.editTradeStatus"
     },
     {
+
       method: "POST",
       path: "/generateCoupon/:tradeId",
       handler: "operation.generateCoupon"
-    }
+    },
+    {
+      method: "GET",
+      path: "/getDashboard",
+      handler: "operation.getDashboard"
+    },
   ],
 };
