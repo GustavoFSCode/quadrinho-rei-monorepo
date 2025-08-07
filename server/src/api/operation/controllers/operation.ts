@@ -178,6 +178,9 @@ export default factories.createCoreController(
       const dashboardService = new DashboardService();
       return dashboardService.getDashboard(ctx);
     },
+    async getProductCategories(ctx) {
+      const dashboardService = new DashboardService();
+      return dashboardService.getProductCategories(ctx);
     }
   })
 );

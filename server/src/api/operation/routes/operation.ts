@@ -211,5 +211,10 @@ module.exports = {
       path: "/getDashboard",
       handler: "operation.getDashboard"
     },
+    {
+      method: "GET",
+      path: "/getProductCategories",
+      handler: "operation.getProductCategories"
+    },
   ],
 };
