@@ -55,7 +55,7 @@ const Tabela: React.FC = () => {
       title: 'Batman: Noite Sombria',
       qtd: 2,
       date: '21/03/2025',
-      status: 'Troca não aprovada',
+      status: 'Troca recusada',
       qtd_refund: 2,
       cupom: '',
     },
@@ -64,7 +64,7 @@ const Tabela: React.FC = () => {
       title: 'Superman: O Último Herói',
       qtd: 3,
       date: '21/03/2025',
-      status: 'Troca em andamento',
+      status: 'Em troca',
       qtd_refund: 3,
     },
   ];

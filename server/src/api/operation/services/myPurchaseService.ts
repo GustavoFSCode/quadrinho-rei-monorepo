@@ -12,7 +12,13 @@ export class MyPurchase {
                     populate: {
                         purchases: {
                             populate: {
-                                cartOrders: {},
+                                cartOrders: {
+                                    populate: {
+                                        product: {
+                                            fields: ['title']
+                                        }
+                                    }
+                                },
                                 purchaseSalesStatus: {}
                             }
                         }
@@ -141,7 +147,13 @@ export class MyPurchase {
                             populate: {
                                 coupon: {},
                                 tradeStatus: {},
-                                cartOrder: {}
+                                cartOrder: {
+                                    populate: {
+                                        product: {
+                                            fields: ['title']
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
