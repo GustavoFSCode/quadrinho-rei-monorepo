@@ -284,7 +284,7 @@ export class PurchaseService {
         const paymentStatus = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
             filters: {
                 name: {
-                    $eq: "Pagamento realizado"
+                    $eq: "Em processamento"
                 }
             }
         })

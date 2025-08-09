@@ -6,7 +6,13 @@ export class SalesManagement {
             populate: {
                 client: {},
                 purchaseSalesStatus: {},
-                cartOrders: {}
+                cartOrders: {
+                    populate: {
+                        product: {
+                            fields: ['title']
+                        }
+                    }
+                }
             },
             sort: "id:desc"
         })

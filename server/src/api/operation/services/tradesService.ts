@@ -6,10 +6,15 @@ export class TradeService {
 
         const trades = await strapi.documents('api::trade.trade').findMany({
             populate: {
-                client: {},
+                client: {
+                    fields: ['name']
+                },
                 cartOrder: {
                     populate: {
-                        purchase: {}
+                        purchase: {},
+                        product: {
+                            fields: ['title']
+                        }
                     }
                 },
                 tradeStatus: {},
