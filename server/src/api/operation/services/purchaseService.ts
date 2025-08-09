@@ -15,7 +15,13 @@ export class PurchaseService {
                             populate: {
                                 cards: {},
                                 addresses: {},
-                                cartOrders: {},
+                                cartOrders: {
+                                    populate: {
+                                        product: {
+                                            fields: ['title']
+                                        }
+                                    }
+                                },
                                 coupons: {}
                             }
                         }
