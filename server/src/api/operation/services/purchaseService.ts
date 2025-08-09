@@ -26,7 +26,11 @@ export class PurchaseService {
 
         const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
 
+        const hasCoupons = pendentPurchase.coupons.length > 0;
+        const totalPriceReduced = hasCoupons === true ? pendentPurchase.totalValue - pendentPurchase.coupons.reduce((acc, coupon) => {return acc + coupon.price}, 0) : pendentPurchase.totalValue
+
         return {
+            coupons: pendentPurchase?.coupons,
             addresses: pendentPurchase?.addresses,
             cards: pendentPurchase?.cards,
             orders: pendentPurchase?.cartOrders,
@@ -160,7 +164,7 @@ export class PurchaseService {
 
         const totalValue = user?.client?.cart?.cartOrders.reduce((acc, order) => acc + order.totalValue, 0) || 0
 
-        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
 
         if (!pendentPurchase) throw new ApplicationError("Erro ao encontrar compra");
 

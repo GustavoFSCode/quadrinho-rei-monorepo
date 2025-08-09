@@ -7,8 +7,11 @@ export class TradeService {
         const trades = await strapi.documents('api::trade.trade').findMany({
             populate: {
                 client: {},
-                cartOrder: {},
-                purchase: {},
+                cartOrder: {
+                    populate: {
+                        purchase: {}
+                    }
+                },
                 tradeStatus: {},
                 coupon: {}
             },
