@@ -47,7 +47,7 @@ export class TradeService {
     }
 
     public async editTradeStatus(ctx) {
-        const tradeId = ctx.request.param.tradeId
+        const tradeId = ctx.params.tradeId
         const body = ctx.request.body;
 
         const foundTrade = await strapi.documents('api::trade.trade').findOne({
@@ -70,6 +70,8 @@ export class TradeService {
                     updatedAt: new Date(),
                 }
             })
+
+            return "Status editado com sucesso!"
         } catch (e) {
             console.log(e);
             throw new ApplicationError("Erro ao modificar status da troca");

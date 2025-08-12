@@ -201,6 +201,7 @@ module.exports = {
       handler: "operation.getTradesStatuses",
     },
     {
+      method: "PUT",
       path: "/editTradeStatus/:tradeId",
       handler: "operation.editTradeStatus"
     },
