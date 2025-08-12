@@ -197,6 +197,10 @@ module.exports = {
     },
     {
       method: "GET",
+      path: "/getTradesStatuses",
+      handler: "operation.getTradesStatuses",
+    },
+    {
       path: "/editTradeStatus/:tradeId",
       handler: "operation.editTradeStatus"
     },
