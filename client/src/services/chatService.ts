@@ -130,7 +130,7 @@ class ChatService {
     conversationId?: number, 
     maxRetries = 2
   ): Promise<SendMessageResponse> {
-    let lastError: Error;
+    let lastError: Error = new Error('Falha ao enviar mensagem após múltiplas tentativas');
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
