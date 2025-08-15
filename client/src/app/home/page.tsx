@@ -19,11 +19,7 @@ import PaginationLink from '@/components/PaginationLink';
 import ModalEditarQuadrinho, { IComicForm } from '@/components/Modals/Estoque/EditarQuadrinho';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-import {
-  getProductsUser,
-  Product,
-} from '@/services/productService';
+import { getProductsUser, Product } from '@/services/productService';
 
 export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,14 +27,11 @@ export default function Home() {
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
-
   const [filter, setFilter] = useState('');
   const [debouncedFilter, setDebouncedFilter] = useState('');
-
   const [showModal, setShowModal] = useState(false);
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
 
-  // debounce do filtro
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedFilter(filter);
@@ -47,7 +40,6 @@ export default function Home() {
     return () => clearTimeout(handler);
   }, [filter]);
 
-  // busca sempre que página ou filtro alterarem
   useEffect(() => {
     fetchProducts();
   }, [currentPage, debouncedFilter]);
@@ -64,14 +56,13 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Erro ao buscar quadrinhos:', err);
+      toast.error('Não foi possível carregar os quadrinhos.');
       setProducts([]);
       setTotalItems(0);
     }
   }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const handleView = (product: Product) => {
     setModalProduct(product);
@@ -83,7 +74,6 @@ export default function Home() {
     setModalProduct(null);
   };
 
-  // mapeia Product → IComicForm
   const mapProductToForm = (p: Product): IComicForm => ({
     title: p.title,
     author: p.author,
@@ -97,12 +87,7 @@ export default function Home() {
     isbn: p.isbn,
     pricingGroup: p.precificationType.documentId,
     barcode: p.barCode,
-    dimensions: {
-      height: p.height,
-      width: p.length,
-      weight: p.weight,
-      depth: p.depth,
-    },
+    dimensions: { height: p.height, width: p.length, weight: p.weight, depth: p.depth },
     price: p.priceSell,
     stock: p.stock,
     active: p.active,
@@ -134,10 +119,7 @@ export default function Home() {
         </Header>
 
         <Content>
-          <Tabela
-            products={products}
-            onView={handleView}
-          />
+          <Tabela products={products} onView={handleView} />
         </Content>
 
         <Footer>
@@ -155,7 +137,7 @@ export default function Home() {
           initialData={mapProductToForm(modalProduct)}
           readonly={true}
           onClose={handleCloseModal}
-          onComicSubmit={() => handleCloseModal()}
+          onComicSubmit={handleCloseModal}
         />
       )}
 
