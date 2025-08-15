@@ -32,7 +32,7 @@ class ChatService {
 
   async sendMessage(message: string, conversationId?: number): Promise<SendMessageResponse> {
     try {
-      const response = await api.post(`${this.baseURL}/chat/send`, {
+      const response = await api.post(`${this.baseURL}/sendChatMessage`, {
         message,
         conversationId
       });
@@ -61,8 +61,8 @@ class ChatService {
   async getChatHistory(conversationId?: number): Promise<ChatConversation[]> {
     try {
       const endpoint = conversationId 
-        ? `${this.baseURL}/chat/history/${conversationId}` 
-        : `${this.baseURL}/chat/history`;
+        ? `${this.baseURL}/getChatHistory/${conversationId}` 
+        : `${this.baseURL}/getChatHistory`;
         
       const response = await api.get(endpoint);
       return response.data;

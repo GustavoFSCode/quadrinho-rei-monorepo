@@ -29,7 +29,9 @@ export default factories.createCoreService("api::operation.operation", () => ({
       const recentMessages = await strapi.entityService.findMany('api::chat-message.chat-message', {
         filters: {
           conversation: {
-            client: clientId
+            client: {
+              id: clientId
+            }
           },
           createdAt: {
             $gte: new Date(Date.now() - 60000) // últimos 60 segundos
@@ -230,7 +232,7 @@ export default factories.createCoreService("api::operation.operation", () => ({
 
     // Buscar compras recentes do cliente (sem dados sensíveis)
     const recentPurchases = await strapi.entityService.findMany('api::purchase.purchase', {
-      filters: { client: clientId },
+      filters: { client: { id: clientId } },
       populate: ['purchaseSalesStatus'],
       limit: 5,
       sort: 'createdAt:desc'
@@ -250,7 +252,7 @@ export default factories.createCoreService("api::operation.operation", () => ({
         year: p.year,
         priceSell: p.priceSell,
         stock: p.stock,
-        categories: p.productCategories?.map(c => c.name) || []
+        categories: (p as any).productCategories?.map((c: any) => c.name) || []
       })),
       productCategories: productCategories.map(c => ({
         id: c.id,
@@ -258,7 +260,7 @@ export default factories.createCoreService("api::operation.operation", () => ({
       })),
       recentPurchases: recentPurchases.map(p => ({
         id: p.id,
-        status: p.purchaseSalesStatus?.name || 'Processando',
+        status: (p as any).purchaseSalesStatus?.name || 'Processando',
         createdAt: p.createdAt
       })),
       tradeStatuses: tradeStatuses.map(s => ({
@@ -326,9 +328,9 @@ export default factories.createCoreService("api::operation.operation", () => ({
       throw new Error(`Erro na API do Gemini: ${response.status}`);
     }
 
-    const data: GeminiResponse = await response.json();
+    const data: any = await response.json();
     
-    if (!data.candidates || data.candidates.length === 0) {
+    if (!data.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
       throw new Error('Nenhuma resposta gerada pela IA');
     }
 

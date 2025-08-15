@@ -644,6 +644,81 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiChatConversationChatConversation
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'chat_conversations';
+  info: {
+    description: 'Chat conversations between clients and AI';
+    displayName: 'Chat Conversation';
+    pluralName: 'chat-conversations';
+    singularName: 'chat-conversation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    client: Schema.Attribute.Relation<'manyToOne', 'api::client.client'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::chat-conversation.chat-conversation'
+    > &
+      Schema.Attribute.Private;
+    messages: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::chat-message.chat-message'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Nova Conversa'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiChatMessageChatMessage extends Struct.CollectionTypeSchema {
+  collectionName: 'chat_messages';
+  info: {
+    description: 'Individual messages in chat conversations';
+    displayName: 'Chat Message';
+    pluralName: 'chat-messages';
+    singularName: 'chat-message';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.Text & Schema.Attribute.Required;
+    conversation: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::chat-conversation.chat-conversation'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isError: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::chat-message.chat-message'
+    > &
+      Schema.Attribute.Private;
+    messageType: Schema.Attribute.Enumeration<['text', 'audio']> &
+      Schema.Attribute.DefaultTo<'text'>;
+    publishedAt: Schema.Attribute.DateTime;
+    sender: Schema.Attribute.Enumeration<['user', 'ai']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiClientClient extends Struct.CollectionTypeSchema {
   collectionName: 'clients';
   info: {
@@ -660,6 +735,10 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     birthDate: Schema.Attribute.Date;
     cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'>;
     cart: Schema.Attribute.Relation<'oneToOne', 'api::cart.cart'>;
+    chatConversations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::chat-conversation.chat-conversation'
+    >;
     coupon: Schema.Attribute.Relation<'oneToOne', 'api::coupon.coupon'>;
     cpf: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
@@ -1561,6 +1640,8 @@ declare module '@strapi/strapi' {
       'api::card.card': ApiCardCard;
       'api::cart.cart': ApiCartCart;
       'api::category.category': ApiCategoryCategory;
+      'api::chat-conversation.chat-conversation': ApiChatConversationChatConversation;
+      'api::chat-message.chat-message': ApiChatMessageChatMessage;
       'api::client.client': ApiClientClient;
       'api::coupon.coupon': ApiCouponCoupon;
       'api::global.global': ApiGlobalGlobal;

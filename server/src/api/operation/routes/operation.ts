@@ -2,12 +2,7 @@
  * operation router
  */
 
-import { factories } from "@strapi/strapi";
-import { measureMemory } from "vm";
-
-export default factories.createCoreRouter("api::operation.operation");
-
-module.exports = {
+export default {
   routes: [
     {
       method: "GET",
@@ -224,13 +219,13 @@ module.exports = {
     /* Chat AI */
     {
       method: "POST",
-      path: "/chat/send",
+      path: "/sendChatMessage",
       handler: "operation.sendChatMessage"
     },
     {
       method: "GET",
-      path: "/chat/history/:conversationId?",
+      path: "/getChatHistory/:conversationId?",
       handler: "operation.getChatHistory"
     },
-  ],
+  ]
 };
