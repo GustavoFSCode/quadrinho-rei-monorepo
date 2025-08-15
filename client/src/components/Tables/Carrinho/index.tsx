@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   TableContainer,
   Table,
@@ -11,76 +11,130 @@ import {
 import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
 import ModalDescartation from '@/components/Modals/Carrinho/ExcluirProduto/Descartation';
 import Trash from '@/components/icons/Trash';
-import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import {
+  CartOrder,
+  getOrders,
+  updateQuantityOrder,
+  removeOrder,
+  OrdersData
+} from '@/services/cartService';
 
-// Define a interface para os quadrinhos
-interface Comic {
-  id: number;
-  title: string;
-  price: number;
-  stock: number;
-}
-
-// Define os tipos das props do componente
 interface TabelaProps {
-  onTotalChange: (total: number) => void;
+  page: number;
+  pageSize: number;
+  reloadSignal?: number;
+  onTotalChange: (total: number) => void; // recebe número, não função
+  onPaginationChange?: (meta: { totalOrders: number; totalPages: number }) => void;
 }
 
-const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
-  // Estado para armazenar o quadrinho cujo modal será aberto
-  const [selectedComic, setSelectedComic] = useState<Comic | null>(null);
+const Tabela: React.FC<TabelaProps> = ({
+  page,
+  pageSize,
+  reloadSignal = 0,
+  onTotalChange,
+  onPaginationChange
+}) => {
+  const [orders, setOrders] = useState<CartOrder[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Dados fake de quadrinhos
-  const comics: Comic[] = [
-    { id: 1, title: "Homem-Aranha: N°1", price: 25.0, stock: 10 },
-    { id: 2, title: "Homem-Aranha: N°2", price: 25.0, stock: 10 },
-    { id: 11, title: "Batman: Noite Sombria", price: 30.0, stock: 25 },
-    { id: 12, title: "Superman: O Último Herói", price: 20.0, stock: 15 },
-  ];
+  // loading por item
+  const [updating, setUpdating] = useState<Record<string, boolean>>({});
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
-  // Estado para controlar a quantidade selecionada para cada quadrinho
-  const [quantities, setQuantities] = useState<Record<number, number>>(() => {
-    const initial: Record<number, number> = {};
-    comics.forEach((comic) => {
-      // Inicia com 3 para Homem-Aranha: N°1 (id 1) e Batman: Noite Sombria (id 11); os demais iniciam com 1.
-      initial[comic.id] = (comic.id === 1 || comic.id === 11) ? 3 : 1;
-    });
-    return initial;
-  });
+  // item selecionado para o modal
+  const [selectedOrder, setSelectedOrder] = useState<CartOrder | null>(null);
 
-  // Sempre que as quantidades mudarem, recalcula o valor total do carrinho
+  // total local (usado como fallback)
+  const localTotal = useMemo(
+    () => orders.reduce((sum, o) => sum + (o.price * o.quantity), 0),
+    [orders]
+  );
+
+  // Busca pedidos do carrinho (paginado)
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const data: OrdersData = await getOrders(page, pageSize);
+
+      setOrders(data.orders);
+      onTotalChange(data.totalValue ?? localTotal); // informa total ao pai
+      onPaginationChange?.({
+        totalOrders: data.pagination.totalOrders,
+        totalPages: data.pagination.totalPages
+      });
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Erro ao carregar o carrinho.";
+      toast.error(msg);
+      setOrders([]);
+      onTotalChange(0);
+      onPaginationChange?.({ totalOrders: 0, totalPages: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // carrega ao montar / paginar / sinal externo
   useEffect(() => {
-    const total = comics.reduce(
-      (acc, comic) => acc + comic.price * (quantities[comic.id] || 0),
-      0
-    );
-    onTotalChange(total);
-  }, [quantities, comics, onTotalChange]);
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, reloadSignal]);
 
-  const handleQuantityChange = (id: number, newQuantity: number) => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: newQuantity,
-    }));
+  // abre/fecha modal de remoção
+  const handleOpenModal = (order: CartOrder) => setSelectedOrder(order);
+  const handleModalClose = () => setSelectedOrder(null);
+
+  // Confirma remoção do item selecionado
+  const handleDeletion = async () => {
+    if (!selectedOrder) return;
+    try {
+      setDeleting(prev => ({ ...prev, [selectedOrder.documentId]: true }));
+      await removeOrder(selectedOrder.documentId);
+      toast.success("Produto removido do carrinho!");
+      setSelectedOrder(null);
+      await fetchOrders(); // sincroniza total/página
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Não foi possível remover o produto.";
+      toast.error(msg);
+    } finally {
+      setDeleting(prev => ({ ...prev, [selectedOrder?.documentId ?? '']: false }));
+    }
   };
 
-  // Ao clicar no trash, salva o quadrinho selecionado
-  const handleOpenModal = (comic: Comic) => {
-    setSelectedComic(comic);
-  };
+  // Atualiza quantidade no backend com UI otimista
+  const handleQuantityChange = async (order: CartOrder, newQuantity: number) => {
+    // limita quantidade entre 1 e o estoque
+    const qty = Math.max(1, Math.min(newQuantity, order.stock));
+    if (qty === order.quantity) return;
 
-  // Callback passado para o modal para fechar o modal
-  const handleModalClose = (shouldCloseAll: boolean) => {
-    // Se necessário, com base no valor de shouldCloseAll você pode executar lógicas extras
-    setSelectedComic(null);
-  };
+    try {
+      setUpdating(prev => ({ ...prev, [order.documentId]: true }));
 
-  // Callback para quando o produto for "removido"
-  const handleDeletion = () => {
-    // Aqui você pode incluir a lógica de remoção do quadrinho do carrinho
-    toast.success("Produto removido do carrinho!");
-    setSelectedComic(null);
+      // 1) Total atual antes de mudar localmente
+      const currentTotal = orders.reduce((sum, o) => sum + o.price * o.quantity, 0);
+      // 2) Total otimista já com a nova quantidade do item
+      const optimisticTotal = currentTotal - order.price * order.quantity + order.price * qty;
+      onTotalChange(optimisticTotal); // envia NÚMERO (corrige o erro do TS)
+
+      // 3) Atualiza localmente o item (UI otimista)
+      setOrders(prev =>
+        prev.map(o => (o.documentId === order.documentId ? { ...o, quantity: qty } : o))
+      );
+
+      // 4) Persiste no backend
+      await updateQuantityOrder({ order: order.documentId, quantity: qty });
+
+      // 5) Refaz o fetch para garantir consistência (total do backend prevalece)
+      await fetchOrders();
+      toast.success("Quantidade atualizada!");
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Não foi possível atualizar a quantidade.";
+      toast.error(msg);
+      // Reverte via refetch
+      fetchOrders();
+    } finally {
+      setUpdating(prev => ({ ...prev, [order.documentId]: false }));
+    }
   };
 
   return (
@@ -96,37 +150,66 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
             </tr>
           </thead>
           <tbody>
-            {comics.map(comic => (
-              <TableRow key={comic.id}>
-                <TableBodyCell>{comic.title}</TableBodyCell>
-                <TableBodyCell>
-                  {comic.price.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
-                </TableBodyCell>
-                {/* Exibe o estoque restante */}
-                <TableBodyCell>{comic.stock - (quantities[comic.id] || 0)}</TableBodyCell>
-                <ActionCell>
-                  <InputNumber
-                    value={quantities[comic.id]}
-                    setValue={(value: number) => handleQuantityChange(comic.id, value)}
-                    max={comic.stock}
-                  />
-                  {/* Ao clicar na lixeira, abre o modal de descarte */}
-                  <Trash onClick={() => handleOpenModal(comic)} />
-                </ActionCell>
-              </TableRow>
-            ))}
+            {!loading && orders.length === 0 && (
+              <tr>
+
+              </tr>
+            )}
+
+            {orders.map(order => {
+              const isUpdating = !!updating[order.documentId];
+              const isDeleting = !!deleting[order.documentId];
+
+              return (
+                <TableRow key={order.documentId}>
+                  <TableBodyCell>{order.title}</TableBodyCell>
+
+                  <TableBodyCell>
+                    {order.price.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })}
+                  </TableBodyCell>
+
+                  {/* estoque disponível informado pelo backend */}
+                  <TableBodyCell>{order.stock}</TableBodyCell>
+
+                  <ActionCell>
+                    <InputNumber
+                      value={order.quantity}
+                      setValue={(value: number) => handleQuantityChange(order, value)}
+                      max={order.stock}
+                      disabled={isUpdating || isDeleting}
+                    />
+
+                    {/* lixeira abre modal de confirmação */}
+                    <span
+                      role="button"
+                      aria-label="Remover do carrinho"
+                      title="Remover do carrinho"
+                      onClick={() => handleOpenModal(order)}
+                      style={{
+                        display: 'inline-flex',
+                        cursor: isDeleting ? 'not-allowed' : 'pointer',
+                        opacity: isDeleting ? 0.6 : 1,
+                        marginLeft: 8
+                      }}
+                    >
+                      <Trash />
+                    </span>
+                  </ActionCell>
+                </TableRow>
+              );
+            })}
           </tbody>
         </Table>
       </TableContainer>
-      <ToastContainer />
-      {/* Renderiza o modal se um quadrinho estiver selecionado */}
-      {selectedComic && (
+
+      {/* Modal de confirmação de remoção */}
+      {selectedOrder && (
         <ModalDescartation
           onClose={handleModalClose}
-          userDocumentId={selectedComic.id.toString()}
+          userDocumentId={selectedOrder.documentId}
           onDeleted={handleDeletion}
         />
       )}
