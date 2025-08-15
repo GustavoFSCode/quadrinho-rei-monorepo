@@ -221,5 +221,16 @@ module.exports = {
       path: "/getProductCategories",
       handler: "operation.getProductCategories"
     },
+    /* Chat AI */
+    {
+      method: "POST",
+      path: "/chat/send",
+      handler: "operation.sendChatMessage"
+    },
+    {
+      method: "GET",
+      path: "/chat/history/:conversationId?",
+      handler: "operation.getChatHistory"
+    },
   ],
 };

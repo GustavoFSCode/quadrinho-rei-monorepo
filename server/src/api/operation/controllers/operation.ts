@@ -186,5 +186,46 @@ export default factories.createCoreController(
       const dashboardService = new DashboardService();
       return dashboardService.getProductCategories(ctx);
     },
+    /* Chat AI */
+    async sendChatMessage(ctx) {
+      try {
+        const { message, conversationId } = ctx.request.body;
+        const clientId = ctx.state.user?.client?.id;
+
+        if (!clientId) {
+          return ctx.badRequest('Cliente não autenticado');
+        }
+
+        if (!message || message.trim().length === 0) {
+          return ctx.badRequest('Mensagem não pode estar vazia');
+        }
+
+        const chatService = strapi.service('api::operation.operation');
+        const result = await chatService.sendChatMessage(clientId, message.trim(), conversationId);
+
+        return ctx.send(result);
+      } catch (error) {
+        console.error('Error in sendChatMessage:', error);
+        return ctx.internalServerError(error.message || 'Erro interno do servidor');
+      }
+    },
+    async getChatHistory(ctx) {
+      try {
+        const clientId = ctx.state.user?.client?.id;
+        const { conversationId } = ctx.params;
+
+        if (!clientId) {
+          return ctx.badRequest('Cliente não autenticado');
+        }
+
+        const chatService = strapi.service('api::operation.operation');
+        const result = await chatService.getConversationHistory(clientId, conversationId ? parseInt(conversationId) : undefined);
+
+        return ctx.send(result);
+      } catch (error) {
+        console.error('Error in getChatHistory:', error);
+        return ctx.internalServerError(error.message || 'Erro interno do servidor');
+      }
+    },
   })
 );

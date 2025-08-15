@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
+import React from 'react';
 import {
   TableContainer,
   Table,
@@ -10,113 +9,73 @@ import {
   TableBodyCell,
 } from './styled';
 import { Flex } from '@/styles/global';
+import { Trade } from '@/services/purchaseService';
 
-interface Product {
-  id: number;
-  title: string;
-  qtd: number;
-  date: string;
-  status: string;
-  qtd_refund: number;
-  cupom?: string;
+interface MinhasTrocasTableProps {
+  trades: Trade[];
+  loading?: boolean;
 }
 
-const Tabela: React.FC = () => {
-  const products: Product[] = [
-    {
-      id: 1,
-      title: 'Homem-Aranha: N°1',
-      qtd: 3,
-      date: '21/03/2025',
-      status: 'Troca realizada',
-      qtd_refund: 3,
-      cupom: 'CUPOM1349',
-    },
-    {
-      id: 2,
-      title: 'Homem-Aranha: N°2',
-      qtd: 1,
-      date: '21/03/2025',
-      status: 'Troca realizada',
-      qtd_refund: 1,
-      cupom: 'CUPOM1350',
-    },
-    {
-      id: 3,
-      title: 'Homem-Aranha: N°3',
-      qtd: 4,
-      date: '21/03/2025',
-      status: 'Troca realizada',
-      qtd_refund: 1,
-      cupom: 'CUPOM1351',
-    },
-    {
-      id: 11,
-      title: 'Batman: Noite Sombria',
-      qtd: 2,
-      date: '21/03/2025',
-      status: 'Troca recusada',
-      qtd_refund: 2,
-      cupom: '',
-    },
-    {
-      id: 12,
-      title: 'Superman: O Último Herói',
-      qtd: 3,
-      date: '21/03/2025',
-      status: 'Em troca',
-      qtd_refund: 3,
-    },
-  ];
+const Tabela: React.FC<MinhasTrocasTableProps> = ({ 
+  trades = [], 
+  loading = false 
+}) => {
 
-  // State para quantidade de reembolso, iniciando com 1 para cada produto
-  const [refundQuantities, setRefundQuantities] = useState<
-    Record<number, number>
-  >(() => {
-    const initial: Record<number, number> = {};
-    products.forEach(product => {
-      initial[product.id] = 1;
-    });
-    return initial;
-  });
 
-  // Controle dos checkboxes para reembolso
-  const [refundChecks, setRefundChecks] = useState<Record<number, boolean>>({});
+  if (loading) {
+    return (
+      <Flex $direction="column">
+        <h2>Trocas</h2>
+        <p>Carregando suas trocas...</p>
+      </Flex>
+    );
+  }
 
-  const handleRefundQuantityChange = (id: number, newQuantity: number) => {
-    setRefundQuantities(prev => ({
-      ...prev,
-      [id]: newQuantity,
-    }));
-  };
-
-  const handleRefund = (id: number) => {
-    toast.success('Pedido de reembolso realizada com sucesso!');
-    // Outras ações de reembolso podem ser implementadas aqui
-  };
+  if (trades.length === 0) {
+    return (
+      <Flex $direction="column">
+        <h2>Trocas</h2>
+        <p>Nenhuma troca encontrada.</p>
+      </Flex>
+    );
+  }
 
   return (
     <Flex $direction="column">
       <h2>Trocas</h2>
       <TableContainer>
-        <Table aria-label="Tabela de Produtos">
+        <Table aria-label="Tabela de Trocas">
           <TableHead>
             <TableRow>
-              <TableHeadCell>Produtos</TableHeadCell>
+              <TableHeadCell>Produto</TableHeadCell>
               <TableHeadCell center>Quantidade</TableHeadCell>
+              <TableHeadCell center>Valor Total</TableHeadCell>
               <TableHeadCell center>Status</TableHeadCell>
+              <TableHeadCell center>Data</TableHeadCell>
               <TableHeadCell center>Cupom</TableHeadCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map(product => (
-              <TableRow key={product.id}>
-                <TableBodyCell productTitle>{product.title}</TableBodyCell>
-                <TableBodyCell center>{product.qtd_refund}</TableBodyCell>
-                <TableBodyCell center>{product.status}</TableBodyCell>
+            {trades.map(trade => (
+              <TableRow key={trade.documentId}>
+                <TableBodyCell productTitle>
+                  {trade.cartOrder.product.title}
+                </TableBodyCell>
                 <TableBodyCell center>
-                  {product.cupom && product.cupom.trim() !== ''
-                    ? product.cupom
+                  {trade.cartOrder.quantity}
+                </TableBodyCell>
+                <TableBodyCell center>
+                  R$ {trade.totalValue.toFixed(2).replace('.', ',')}
+                </TableBodyCell>
+                <TableBodyCell center>
+                  {trade.tradeStatus.name}
+                </TableBodyCell>
+                <TableBodyCell center>
+                  {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
+                </TableBodyCell>
+                <TableBodyCell center>
+                  {trade.coupon && trade.coupon.code
+                    ? trade.coupon.code
                     : 'Ainda não gerado'}
                 </TableBodyCell>
               </TableRow>

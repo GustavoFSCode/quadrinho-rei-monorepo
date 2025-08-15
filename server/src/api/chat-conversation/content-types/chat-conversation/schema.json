@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "chat_conversations",
+  "info": {
+    "singularName": "chat-conversation",
+    "pluralName": "chat-conversations",
+    "displayName": "Chat Conversation",
+    "description": "Chat conversations between clients and AI"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "client": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::client.client",
+      "inversedBy": "chatConversations"
+    },
+    "messages": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::chat-message.chat-message",
+      "mappedBy": "conversation"
+    },
+    "title": {
+      "type": "string",
+      "default": "Nova Conversa"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

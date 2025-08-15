@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "chat_messages",
+  "info": {
+    "singularName": "chat-message",
+    "pluralName": "chat-messages",
+    "displayName": "Chat Message",
+    "description": "Individual messages in chat conversations"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "conversation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::chat-conversation.chat-conversation",
+      "inversedBy": "messages"
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "sender": {
+      "type": "enumeration",
+      "enum": ["user", "ai"],
+      "required": true
+    },
+    "messageType": {
+      "type": "enumeration",
+      "enum": ["text", "audio"],
+      "default": "text"
+    },
+    "isError": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

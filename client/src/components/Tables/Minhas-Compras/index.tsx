@@ -15,87 +15,97 @@ import {
 import { Flex } from '@/styles/global';
 import Button from '@/components/Button';
 import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
+import { Purchase, requestTrade, CartOrder } from '@/services/purchaseService';
 
-interface Product {
-  id: number;
-  title: string;
-  qtd: number;
-  qtd_refund: number;
+interface MinhasComprasTableProps {
+  purchases: Purchase[];
+  loading?: boolean;
+  onRefresh?: () => void;
 }
 
-interface Order {
-  id: number;
-  date: string;
-  status: string;
-  products: Product[];
-}
+const Tabela: React.FC<MinhasComprasTableProps> = ({ 
+  purchases = [], 
+  loading = false,
+  onRefresh 
+}) => {
 
-const Tabela: React.FC = () => {
-  const orders: Order[] = [
-    {
-      id: 1,
-      date: '21/03/2025',
-      status: 'Entregue',
-      products: [
-        { id: 1, title: 'Homem-Aranha: N°1', qtd: 3, qtd_refund: 3 },
-        { id: 2, title: 'Homem-Aranha: N°2', qtd: 1, qtd_refund: 1 },
-        { id: 3, title: 'Homem-Aranha: N°3', qtd: 4, qtd_refund: 0 },
-        { id: 11, title: 'Batman: Noite Sombria', qtd: 2, qtd_refund: 1 },
-        { id: 12, title: 'Superman: O Último Herói', qtd: 3, qtd_refund: 1 },
-      ],
-    },
-    {
-      id: 2,
-      date: '22/03/2025',
-      status: 'Em processamento',
-      products: [
-        { id: 4, title: 'Homem-Aranha: N°10', qtd: 5, qtd_refund: 5 },
-        { id: 5, title: 'Homem-Aranha: N°11', qtd: 2, qtd_refund: 2 },
-      ],
-    },
-    {
-      id: 3,
-      date: '23/03/2025',
-      status: 'Pagamento recusado',
-      products: [{ id: 6, title: 'Homem-Aranha: N°20', qtd: 1, qtd_refund: 1 }],
-    },
-  ];
-
-  // Inicializa estados apenas para orders com status "Entregue"
-  const initialRefundQuantities: Record<number, number> = {};
-  orders.forEach(order => {
-    if (order.status === 'Entregue') {
-      order.products.forEach(product => {
-        initialRefundQuantities[product.id] = 1;
+  const initialRefundQuantities: Record<string, number> = {};
+  purchases.forEach(purchase => {
+    if (purchase.canRefund) {
+      purchase.orders.forEach(order => {
+        initialRefundQuantities[order.documentId] = 1;
       });
     }
   });
   const [refundQuantities, setRefundQuantities] = useState<
-    Record<number, number>
+    Record<string, number>
   >(initialRefundQuantities);
-  const [refundChecks, setRefundChecks] = useState<Record<number, boolean>>({});
+  const [refundChecks, setRefundChecks] = useState<Record<string, boolean>>({});
+  const [requestingRefund, setRequestingRefund] = useState<Record<string, boolean>>({});
 
-  const handleRefundQuantityChange = (id: number, newQuantity: number) => {
+  const handleRefundQuantityChange = (orderDocumentId: string, newQuantity: number) => {
     setRefundQuantities(prev => ({
       ...prev,
-      [id]: newQuantity,
+      [orderDocumentId]: newQuantity,
     }));
   };
 
-  const handleRefund = (id: number) => {
-    toast.success('Pedido de reembolso realizado com sucesso!');
-    // Outras ações de reembolso podem ser implementadas aqui
+  const handleRefund = async (purchase: Purchase, order: CartOrder) => {
+    const quantity = refundQuantities[order.documentId] || 1;
+    
+    if (quantity > order.availableRefundQuantity) {
+      toast.error('Quantidade solicitada excede o disponível para reembolso');
+      return;
+    }
+
+    try {
+      setRequestingRefund(prev => ({ ...prev, [order.documentId]: true }));
+      
+      await requestTrade({
+        purchase: purchase.documentId,
+        order: order.documentId,
+        quantity: quantity
+      });
+      
+      toast.success('Pedido de reembolso realizado com sucesso!');
+      setRefundChecks(prev => ({ ...prev, [order.documentId]: false }));
+      
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error('Erro ao solicitar reembolso:', error);
+      toast.error(error?.response?.data?.message || 'Erro ao solicitar reembolso');
+    } finally {
+      setRequestingRefund(prev => ({ ...prev, [order.documentId]: false }));
+    }
   };
+
+  if (loading) {
+    return (
+      <Flex $direction="column" $gap="2rem">
+        <p>Carregando suas compras...</p>
+      </Flex>
+    );
+  }
+
+  if (purchases.length === 0) {
+    return (
+      <Flex $direction="column" $gap="2rem">
+        <p>Nenhuma compra encontrada.</p>
+      </Flex>
+    );
+  }
 
   return (
     <Flex $direction="column" $gap="4rem">
-      {orders.map(order => (
-        <React.Fragment key={order.id}>
+      {purchases.map(purchase => (
+        <React.Fragment key={purchase.documentId}>
           <Flex $direction="column">
             <OrderHeader>
-              <OrderText>Pedido - #{order.id}</OrderText>
-              <OrderText>Data da compra: {order.date}</OrderText>
-              <OrderText>Status: {order.status}</OrderText>
+              <OrderText>Pedido - #{purchase.id}</OrderText>
+              <OrderText>Data da compra: {purchase.date ? new Date(purchase.date).toLocaleDateString('pt-BR') : 'N/A'}</OrderText>
+              <OrderText>Status: {purchase.status?.name || 'N/A'}</OrderText>
             </OrderHeader>
             <TableContainer>
               <Table aria-label="Tabela de Produtos">
@@ -114,34 +124,35 @@ const Tabela: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {order.products.map(product => (
-                    <TableRow key={product.id}>
+                  {purchase.orders.map(order => (
+                    <TableRow key={order.documentId}>
                       <TableBodyCell productTitle>
-                        {product.title}
+                        {order.product.title}
                       </TableBodyCell>
-                      <TableBodyCell center>{product.qtd}</TableBodyCell>
-                      <TableBodyCell center>{product.qtd_refund}</TableBodyCell>
-                      {order.status === 'Entregue' ? (
-                        product.qtd_refund > 0 ? (
+                      <TableBodyCell center>{order.quantity}</TableBodyCell>
+                      <TableBodyCell center>{order.availableRefundQuantity}</TableBodyCell>
+                      {purchase.canRefund ? (
+                        order.availableRefundQuantity > 0 ? (
                           <>
                             <TableBodyCell center>
                               <Checkbox
-                                checked={refundChecks[product.id] || false}
+                                checked={refundChecks[order.documentId] || false}
                                 onChange={e =>
                                   setRefundChecks(prev => ({
                                     ...prev,
-                                    [product.id]: e.target.checked,
+                                    [order.documentId]: e.target.checked,
                                   }))
                                 }
                               />
                             </TableBodyCell>
                             <TableBodyCell center>
                               <InputNumber
-                                value={refundQuantities[product.id]}
+                                value={refundQuantities[order.documentId] || 1}
                                 setValue={value =>
-                                  handleRefundQuantityChange(product.id, value)
+                                  handleRefundQuantityChange(order.documentId, value)
                                 }
-                                max={product.qtd_refund}
+                                max={order.availableRefundQuantity}
+                                min={1}
                               />
                             </TableBodyCell>
                             <TableBodyCell center>
@@ -151,8 +162,8 @@ const Tabela: React.FC = () => {
                                 variant="purple"
                                 width="140px"
                                 height="30px"
-                                onClick={() => handleRefund(product.id)}
-                                disabled={!refundChecks[product.id]}
+                                onClick={() => handleRefund(purchase, order)}
+                                disabled={!refundChecks[order.documentId] || requestingRefund[order.documentId]}
                               />
                             </TableBodyCell>
                           </>

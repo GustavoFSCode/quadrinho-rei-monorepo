@@ -13,79 +13,40 @@ import {
   Content,
   Footer,
 } from './styled';
-import Plus from '@/components/icons/Plus';
 import Button from '@/components/Button';
-import Input from '@/components/Inputs/Input/Input';
 import Navbar from '@/components/Navbar';
-import Barra from '@/components/icons/Barra';
 import Tabela from '@/components/Tables/Minhas-Trocas';
-import ModalCadastrarClientes from '@/components/Modals/Clientes/CadastrarCliente';
-import FilterModal from '@/components/Modals/Clientes/Filter';
-import { getClient } from '@/services/clientService';
-import { Client } from '@/services/clientService';
-import PaginationLink from '@/components/PaginationLink';
+import { getMyTrades, Trade } from '@/services/purchaseService';
+import { toast } from 'react-toastify';
 
 export default function MinhasTrocas() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [filter, setFilter] = useState('');
-  const [debouncedFilter, setDebouncedFilter] = useState(filter);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Debounce para evitar chamar a API a cada tecla
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedFilter(filter);
-      setCurrentPage(1); // Reseta a página ao aplicar um novo filtro
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [filter]);
-
-  const fetchClients = async () => {
+  const fetchTrades = async () => {
     try {
-      const response = await getClient(
-        undefined,
-        currentPage,
-        itemsPerPage,
-        debouncedFilter,
-      );
-
-      // Verifica se a resposta já é um array ou se está encapsulada no objeto (com propriedade "data")
-      const clientsArray = Array.isArray(response)
-        ? response
-        : response.data ?? [];
-
-      setClients(clientsArray);
-
-      // Se houver totalCount na resposta, usa-o; caso contrário, usa o tamanho do array
-      const total =
-        response.totalCount !== undefined
-          ? response.totalCount
-          : clientsArray.length;
-      setTotalItems(total);
-    } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
-      setClients([]);
-      setTotalItems(0);
+      setLoading(true);
+      setError(null);
+      const response = await getMyTrades();
+      setTrades(response);
+    } catch (error: any) {
+      console.error('Erro ao buscar trocas:', error);
+      setError('Erro ao carregar suas trocas. Tente novamente.');
+      toast.error('Erro ao carregar suas trocas');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClients();
-  }, [currentPage, debouncedFilter]);
+    fetchTrades();
+  }, []);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleRefresh = () => {
+    fetchTrades();
   };
-
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleCloseFilterModal = () => setIsFilterModalOpen(false);
 
   return (
     <>
@@ -100,18 +61,23 @@ export default function MinhasTrocas() {
           </HeaderBottom>
         </Header>
         <Content>
-          <Tabela />
+          {error ? (
+            <div>
+              <p>{error}</p>
+              <Button
+                text={<>Tentar novamente</>}
+                type="button"
+                variant="purple"
+                width="150px"
+                height="39px"
+                onClick={handleRefresh}
+              />
+            </div>
+          ) : (
+            <Tabela trades={trades} loading={loading} />
+          )}
         </Content>
       </ContentContainer>
-
-      {isModalOpen && (
-        <ModalCadastrarClientes
-          onClose={handleCloseModal}
-          onClientCreated={fetchClients}
-        />
-      )}
-
-      {isFilterModalOpen && <FilterModal onClose={handleCloseFilterModal} />}
     </>
   );
 }

@@ -81,6 +81,12 @@
       "relation": "oneToMany",
       "target": "api::trade.trade",
       "mappedBy": "client"
+    },
+    "chatConversations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::chat-conversation.chat-conversation",
+      "mappedBy": "client"
     }
   }
 }
