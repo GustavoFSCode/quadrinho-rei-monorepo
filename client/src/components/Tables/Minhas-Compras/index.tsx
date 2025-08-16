@@ -24,10 +24,10 @@ interface MinhasComprasTableProps {
   onRefresh?: () => void;
 }
 
-const Tabela: React.FC<MinhasComprasTableProps> = ({ 
-  purchases = [], 
+const Tabela: React.FC<MinhasComprasTableProps> = ({
+  purchases = [],
   loading = false,
-  onRefresh 
+  onRefresh
 }) => {
 
   const initialRefundQuantities: Record<string, number> = {};
@@ -53,7 +53,7 @@ const Tabela: React.FC<MinhasComprasTableProps> = ({
 
   const handleRefund = async (purchase: Purchase, order: CartOrder) => {
     const quantity = refundQuantities[order.documentId] || 1;
-    
+
     if (quantity > order.availableRefundQuantity) {
       toast.error('Quantidade solicitada excede o disponível para reembolso');
       return;
@@ -61,16 +61,16 @@ const Tabela: React.FC<MinhasComprasTableProps> = ({
 
     try {
       setRequestingRefund(prev => ({ ...prev, [order.documentId]: true }));
-      
+
       await requestTrade({
         purchase: purchase.documentId,
         order: order.documentId,
         quantity: quantity
       });
-      
+
       toast.success('Pedido de reembolso realizado com sucesso!');
       setRefundChecks(prev => ({ ...prev, [order.documentId]: false }));
-      
+
       if (onRefresh) {
         onRefresh();
       }

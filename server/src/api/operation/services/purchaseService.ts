@@ -1,5 +1,6 @@
 const utils = require('@strapi/utils')
 const { ApplicationError } = utils.errors;
+import { getBrazilDate } from '../../../utils/dateUtils';
 
 export class PurchaseService {
 
@@ -102,8 +103,8 @@ export class PurchaseService {
                     },
                     purchaseStatus: "Pendente",
                     purchaseSalesStatus: purchaseSalesStatus[0].documentId,
-                    createdAt: new Date(),
-                    publishedAt: new Date()
+                    createdAt: getBrazilDate(),
+                    publishedAt: getBrazilDate()
                 }
             });
 
@@ -123,7 +124,7 @@ export class PurchaseService {
                 cartOrders: {
                     connect: [...user?.client?.cart?.cartOrders.map((order) => order?.documentId)]
                 },
-                updatedAt: new Date(),
+                updatedAt: getBrazilDate(),
             }
         });
 
@@ -297,7 +298,7 @@ export class PurchaseService {
             data: {
                 purchaseStatus: "Finalizado",
                 purchaseSalesStatus: paymentStatus[0].documentId,
-                date: new Date()
+                date: getBrazilDate()
             },
             populate: {
                 client: {
@@ -343,7 +344,7 @@ export class PurchaseService {
                 documentId: coupon.documentId,
                 data: {
                     couponStatus: "Usado",
-                    updatedAt: new Date(),
+                    updatedAt: getBrazilDate(),
                 }
             })
         }

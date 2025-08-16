@@ -1,5 +1,6 @@
 const utils = require('@strapi/utils');
 const { ApplicationError } = utils.errors;
+import { getBrazilDate } from '../../../utils/dateUtils';
 export class MyPurchase {
     public async getMyPurchases(ctx) {
         const me = ctx.state.user.documentId;
@@ -116,8 +117,8 @@ export class MyPurchase {
                     quantity: body.quantity,
                     client: user.client.documentId,
                     tradeStatus: tradeStatus[0].documentId,
-                    createdAt: new Date(),
-                    publishedAt: new Date()
+                    createdAt: getBrazilDate(),
+                    publishedAt: getBrazilDate()
                 }
             })
 
@@ -125,7 +126,7 @@ export class MyPurchase {
                 documentId: order.documentId,
                 data: {
                     quantityRefund: order.quantityRefund + (body.quantity | 0),
-                    updatedAt: new Date(),
+                    updatedAt: getBrazilDate(),
                 }
             })
 
