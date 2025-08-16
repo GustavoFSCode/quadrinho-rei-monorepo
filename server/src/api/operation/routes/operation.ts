@@ -227,5 +227,16 @@ export default {
       path: "/getChatHistory/:conversationId?",
       handler: "operation.getChatHistory"
     },
+    /* Database Cleanup */
+    {
+      method: "POST",
+      path: "/cleanupDatabase",
+      handler: "operation.cleanupDatabase"
+    },
+    {
+      method: "GET",
+      path: "/getDataSummary",
+      handler: "operation.getDataSummary"
+    },
   ]
 };

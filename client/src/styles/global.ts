@@ -28,7 +28,7 @@ export const GlobalStyle = createGlobalStyle`
   }
   body {
     text-rendering: optimizeLegibility;
-    background: ${({ theme }) => theme.colors.grayf5};
+    background: #ffffff;
     color: ${({ theme }) => theme.colors.black};
   }
   button {

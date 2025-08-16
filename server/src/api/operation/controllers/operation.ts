@@ -14,6 +14,7 @@ import { SalesManagement } from "../services/salesManagement";
 import { MyPurchase } from "../services/myPurchaseService";
 import { TradeService } from "../services/tradesService";
 import { DashboardService } from "../services/dashboardService";
+import { DatabaseCleanupService } from "../services/databaseCleanupService";
 
 export default factories.createCoreController(
   "api::operation.operation",
@@ -248,6 +249,15 @@ export default factories.createCoreController(
         console.error('Error in getChatHistory:', error);
         return ctx.internalServerError(error.message || 'Erro interno do servidor');
       }
+    },
+    /* Database Cleanup */
+    async cleanupDatabase(ctx) {
+      const cleanupService = new DatabaseCleanupService();
+      return cleanupService.cleanupDatabase(ctx);
+    },
+    async getDataSummary(ctx) {
+      const cleanupService = new DatabaseCleanupService();
+      return cleanupService.getDataSummary(ctx);
     },
   })
 );
