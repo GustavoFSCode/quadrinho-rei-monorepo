@@ -20,7 +20,8 @@ import PaginationLink from '@/components/PaginationLink';
 import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from 'next/navigation';
 import 'react-toastify/dist/ReactToastify.css';
-import { removeAllOrders, createOrUpdatePurchase } from '@/services/cartService';
+import { createOrUpdatePurchase } from '@/services/cartService';
+import { useRemoveAllOrdersMutation } from '@/hooks/useCartQuery';
 
 const Carrinho: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -31,26 +32,17 @@ const Carrinho: React.FC = () => {
   const [totalItems, setTotalItems] = useState<number>(0);
   const itemsPerPage = 12;
 
-  // gatilho para forçar o reload da tabela após esvaziar carrinho
-  const [reloadSignal, setReloadSignal] = useState<number>(0);
-
   // loading do botão "Realizar compra"
   const [creatingPurchase, setCreatingPurchase] = useState<boolean>(false);
 
   const router = useRouter();
+  const removeAllOrdersMutation = useRemoveAllOrdersMutation();
 
-  // Esvazia o carrinho no backend e força recarregar a tabela
-  const handleEmptyCart = async (): Promise<void> => {
-    try {
-      await removeAllOrders();
-      toast.success("Carrinho esvaziado com sucesso!");
-      setTotalValue(0);
-      setCurrentPage(1);
-      setReloadSignal(s => s + 1); // força refetch na Tabela
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Não foi possível esvaziar o carrinho.";
-      toast.error(msg);
-    }
+  // Esvazia o carrinho no backend
+  const handleEmptyCart = (): void => {
+    setTotalValue(0);
+    setCurrentPage(1);
+    removeAllOrdersMutation.mutate();
   };
 
   // Inicia a compra: chama o endpoint e redireciona para a próxima página
@@ -120,7 +112,6 @@ const Carrinho: React.FC = () => {
           <Tabela
             page={currentPage}
             pageSize={itemsPerPage}
-            reloadSignal={reloadSignal}
             onTotalChange={setTotalValue}
             onPaginationChange={({ totalOrders }) => setTotalItems(totalOrders)}
           />

@@ -19,18 +19,23 @@ import PaginationLink from '@/components/PaginationLink';
 import ModalEditarQuadrinho, { IComicForm } from '@/components/Modals/Estoque/EditarQuadrinho';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getProductsUser, Product } from '@/services/productService';
+import { Product } from '@/services/productService';
+import { useProductsUser } from '@/hooks/useProductsQuery';
 
 export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   const [filter, setFilter] = useState('');
   const [debouncedFilter, setDebouncedFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
+
+  // React Query for products
+  const { data: productsData, isLoading, error } = useProductsUser(currentPage, itemsPerPage, debouncedFilter);
+
+  const products = Array.isArray(productsData) ? productsData : productsData?.data || [];
+  const totalItems = Array.isArray(productsData) ? productsData.length : productsData?.totalCount || 0;
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -41,26 +46,11 @@ export default function Home() {
   }, [filter]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [currentPage, debouncedFilter]);
-
-  async function fetchProducts() {
-    try {
-      const res = await getProductsUser(currentPage, itemsPerPage, debouncedFilter);
-      if (Array.isArray(res)) {
-        setProducts(res);
-        setTotalItems(res.length);
-      } else {
-        setProducts(res.data);
-        setTotalItems(res.totalCount);
-      }
-    } catch (err) {
-      console.error('Erro ao buscar quadrinhos:', err);
+    if (error) {
+      console.error('Erro ao buscar quadrinhos:', error);
       toast.error('Não foi possível carregar os quadrinhos.');
-      setProducts([]);
-      setTotalItems(0);
     }
-  }
+  }, [error]);
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 

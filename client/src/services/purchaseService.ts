@@ -52,6 +52,7 @@ export interface Coupon {
   documentId: string;
   code: string;
   price: number;
+  couponStatus: 'NaoUsado' | 'EmUso' | 'Usado';
 }
 
 export interface Trade {

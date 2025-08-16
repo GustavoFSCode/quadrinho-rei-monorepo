@@ -14,7 +14,7 @@ import { FiShoppingCart } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Product } from '@/services/productService';
-import { createOrder } from '@/services/cartService';
+import { useCreateOrderMutation } from '@/hooks/useCartQuery';
 
 interface TabelaProps {
   products: Product[];
@@ -23,7 +23,7 @@ interface TabelaProps {
 
 const Tabela: React.FC<TabelaProps> = ({ products, onView }) => {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [adding, setAdding] = useState<Record<string, boolean>>({});
+  const createOrderMutation = useCreateOrderMutation();
 
   useEffect(() => {
     setQuantities(prev => {
@@ -43,26 +43,15 @@ const Tabela: React.FC<TabelaProps> = ({ products, onView }) => {
     setQuantities(prev => ({ ...prev, [id]: newQty }));
   };
 
-  const handleAddToCart = async (product: Product) => {
-    try {
-      if (product.stock <= 0) {
-        toast.warn('Produto sem estoque.');
-        return;
-      }
-      const desired = quantities[product.documentId] ?? 1;
-      const qty = Math.max(1, Math.min(desired, product.stock));
-      setAdding(prev => ({ ...prev, [product.documentId]: true }));
-      const res = await createOrder({ product: product.documentId, quantity: qty });
-      toast.success(res?.message || 'Produto adicionado ao carrinho!');
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        'Não foi possível adicionar ao carrinho.';
-      toast.error(msg);
-    } finally {
-      setAdding(prev => ({ ...prev, [product.documentId]: false }));
+  const handleAddToCart = (product: Product) => {
+    if (product.stock <= 0) {
+      toast.warn('Produto sem estoque.');
+      return;
     }
+    const desired = quantities[product.documentId] ?? 1;
+    const qty = Math.max(1, Math.min(desired, product.stock));
+    
+    createOrderMutation.mutate({ product: product.documentId, quantity: qty });
   };
 
   return (
@@ -79,7 +68,7 @@ const Tabela: React.FC<TabelaProps> = ({ products, onView }) => {
         <tbody>
           {products.map(product => {
             const qty = quantities[product.documentId] ?? 1;
-            const isAdding = !!adding[product.documentId];
+            const isAdding = createOrderMutation.isPending;
             const disabled = isAdding || product.stock <= 0 || qty <= 0;
             return (
               <TableRow key={product.documentId}>

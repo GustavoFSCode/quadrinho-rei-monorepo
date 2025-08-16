@@ -32,6 +32,7 @@ export class ProductService {
       const products = await strapi.documents('api::product.product').findMany({
         filters: { active: true },
         populate: ['precificationType', 'productCategories'],
+        sort: { createdAt: 'desc' },
       });
   
       if (filter) {
@@ -70,6 +71,8 @@ export class ProductService {
           }
         }
   
+        // Ordena os resultados filtrados por data de criação (mais recente primeiro)
+        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return result;
       }
   

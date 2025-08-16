@@ -1,9 +1,9 @@
-const utils = require('@strapi/utils');
+import utils from '@strapi/utils';
 const { ApplicationError } = utils.errors;
 
 export class CartService {
 
-    public async createOrder(ctx) {
+    public async createOrder(ctx: any) {
 
         const body = ctx.request.body;
         const me = ctx.state.user.documentId
@@ -74,6 +74,13 @@ export class CartService {
                     updatedAt: new Date()
                 }
             })
+
+            await strapi.documents('api::product.product').update({
+                documentId: product.documentId,
+                data: {
+                    stock: product.stock - body.quantity
+                }
+            })
         } else {
             const order = await strapi.documents('api::card-order.card-order').create({
                 data: {
@@ -86,13 +93,20 @@ export class CartService {
                 }
             })
             console.log('D');
-            const cartUpdate = await strapi.documents('api::cart.cart').update({
+            await strapi.documents('api::cart.cart').update({
                 documentId: user.client.cart.documentId,
                 data: {
                     cartOrders: {
                         connect: [{ documentId: order.documentId }]
                     },
                     updatedAt: new Date()
+                }
+            })
+
+            await strapi.documents('api::product.product').update({
+                documentId: product.documentId,
+                data: {
+                    stock: product.stock - body.quantity
                 }
             })
 
@@ -104,10 +118,9 @@ export class CartService {
 
     }
 
-    public async updateQuantityOrder(ctx) {
+    public async updateQuantityOrder(ctx: any) {
 
         const body = ctx.request.body;
-        const me = ctx.state.user.documentId
 
         const order = await strapi.documents('api::card-order.card-order').findOne({
             documentId: body.order,
@@ -118,17 +131,34 @@ export class CartService {
 
         if (!body?.order || !order) throw new ApplicationError("Erro ao encontrar pedido")
 
-        if (body?.quantity < 1 || body?.quantity > order.product.stock) throw new ApplicationError("Quantidade inválida");
+        const currentStock = order.product.stock;
+        const oldQuantity = order.quantity;
+        const newQuantity = body.quantity;
+        const stockDifference = oldQuantity - newQuantity;
+        const newStock = currentStock + stockDifference;
+
+        if (newQuantity < 1) throw new ApplicationError("Quantidade deve ser maior que zero");
+        
+        if (newQuantity > oldQuantity && newStock < 0) {
+            throw new ApplicationError("Quantidade solicitada excede o estoque disponível");
+        }
 
         try {
 
-            const totalValue = body.quantity * order.product.priceSell
+            const totalValue = newQuantity * order.product.priceSell
 
             const cartUpdated = await strapi.documents('api::card-order.card-order').update({
                 documentId: order.documentId,
                 data: {
-                    quantity: body.quantity,
+                    quantity: newQuantity,
                     totalValue: totalValue
+                }
+            })
+
+            await strapi.documents('api::product.product').update({
+                documentId: order.product.documentId,
+                data: {
+                    stock: newStock
                 }
             })
 
@@ -142,7 +172,7 @@ export class CartService {
         }
     }
 
-    public async getOrders(ctx) {
+    public async getOrders(ctx: any) {
         const me = ctx.state.user.documentId;
         const query = ctx.request.query;
 
@@ -218,7 +248,7 @@ export class CartService {
     }
 
 
-    public async removeAllOrders(ctx) {
+    public async removeAllOrders(ctx: any) {
         const me = ctx.state.user.documentId
 
         const user = await strapi.documents('plugin::users-permissions.user').findOne({
@@ -228,7 +258,12 @@ export class CartService {
                     populate: {
                         cart: {
                             populate: {
-                                cartOrders: { populate: { purchase: {} } }
+                                cartOrders: { 
+                                    populate: { 
+                                        purchase: {},
+                                        product: {}
+                                    } 
+                                }
                             }
                         }
                     }
@@ -241,6 +276,15 @@ export class CartService {
         if (!user?.client?.cart?.cartOrders || user.client.cart.cartOrders.length === 0) return "Carrinho limpo com sucesso!"
 
         for (const order of user.client.cart.cartOrders) {
+            if (order.product) {
+                await strapi.documents('api::product.product').update({
+                    documentId: order.product.documentId,
+                    data: {
+                        stock: order.product.stock + order.quantity
+                    }
+                })
+            }
+
             await strapi.documents('api::card-order.card-order').delete({
                 documentId: order.documentId
             })
@@ -249,13 +293,28 @@ export class CartService {
         return "Carrinho limpo com sucesso!";
     }
 
-    public async removeOrder(ctx) {
-        const me = ctx.state.user.documentId
+    public async removeOrder(ctx: any) {
         const order = ctx.params.orderId
 
         if (!order) throw new ApplicationError("Erro ao encontrar pedido");
 
         try {
+
+            const orderData = await strapi.documents('api::card-order.card-order').findOne({
+                documentId: order,
+                populate: {
+                    product: {}
+                }
+            })
+
+            if (orderData) {
+                await strapi.documents('api::product.product').update({
+                    documentId: orderData.product.documentId,
+                    data: {
+                        stock: orderData.product.stock + orderData.quantity
+                    }
+                })
+            }
 
             await strapi.documents('api::card-order.card-order').delete({
                 documentId: order

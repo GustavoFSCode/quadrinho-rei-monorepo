@@ -17,9 +17,9 @@ interface MinhasTrocasTableProps {
   loading?: boolean;
 }
 
-const Tabela: React.FC<MinhasTrocasTableProps> = ({ 
-  trades = [], 
-  loading = false 
+const Tabela: React.FC<MinhasTrocasTableProps> = ({
+  trades = [],
+  loading = false
 }) => {
 
 
@@ -54,6 +54,7 @@ const Tabela: React.FC<MinhasTrocasTableProps> = ({
               <TableHeadCell center>Status</TableHeadCell>
               <TableHeadCell center>Data</TableHeadCell>
               <TableHeadCell center>Cupom</TableHeadCell>
+              <TableHeadCell center>Cupom já utilizado</TableHeadCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -78,6 +79,11 @@ const Tabela: React.FC<MinhasTrocasTableProps> = ({
                   {trade.coupon && trade.coupon.code
                     ? trade.coupon.code
                     : 'Ainda não gerado'}
+                </TableBodyCell>
+                <TableBodyCell center>
+                  {trade.coupon && trade.coupon.couponStatus
+                    ? (trade.coupon.couponStatus === 'Usado' ? 'Sim' : 'Não')
+                    : ''}
                 </TableBodyCell>
               </TableRow>
             ))}

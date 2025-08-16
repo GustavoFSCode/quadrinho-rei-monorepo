@@ -17,6 +17,7 @@ import Button from '@/components/Button';
 import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
 import { Purchase, requestTrade, CartOrder } from '@/services/purchaseService';
 import { formatDateToBrazil } from '@/utils/dateFormatter';
+import { useRouter } from 'next/navigation';
 
 interface MinhasComprasTableProps {
   purchases: Purchase[];
@@ -43,6 +44,8 @@ const Tabela: React.FC<MinhasComprasTableProps> = ({
   >(initialRefundQuantities);
   const [refundChecks, setRefundChecks] = useState<Record<string, boolean>>({});
   const [requestingRefund, setRequestingRefund] = useState<Record<string, boolean>>({});
+  const router = useRouter();
+
 
   const handleRefundQuantityChange = (orderDocumentId: string, newQuantity: number) => {
     setRefundQuantities(prev => ({
@@ -70,6 +73,7 @@ const Tabela: React.FC<MinhasComprasTableProps> = ({
 
       toast.success('Pedido de reembolso realizado com sucesso!');
       setRefundChecks(prev => ({ ...prev, [order.documentId]: false }));
+      router.push('/minhas-compras/minhas-trocas');
 
       if (onRefresh) {
         onRefresh();

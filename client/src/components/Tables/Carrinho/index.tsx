@@ -12,18 +12,12 @@ import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
 import ModalDescartation from '@/components/Modals/Carrinho/ExcluirProduto/Descartation';
 import Trash from '@/components/icons/Trash';
 import { toast } from "react-toastify";
-import {
-  CartOrder,
-  getOrders,
-  updateQuantityOrder,
-  removeOrder,
-  OrdersData
-} from '@/services/cartService';
+import { CartOrder } from '@/services/cartService';
+import { useCartOrders, useUpdateQuantityOrderMutation, useRemoveOrderMutation } from '@/hooks/useCartQuery';
 
 interface TabelaProps {
   page: number;
   pageSize: number;
-  reloadSignal?: number;
   onTotalChange: (total: number) => void; // recebe número, não função
   onPaginationChange?: (meta: { totalOrders: number; totalPages: number }) => void;
 }
@@ -31,19 +25,21 @@ interface TabelaProps {
 const Tabela: React.FC<TabelaProps> = ({
   page,
   pageSize,
-  reloadSignal = 0,
   onTotalChange,
   onPaginationChange
 }) => {
-  const [orders, setOrders] = useState<CartOrder[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { data, isLoading, error } = useCartOrders(page, pageSize);
+  const updateQuantityMutation = useUpdateQuantityOrderMutation();
+  const removeOrderMutation = useRemoveOrderMutation();
 
   // loading por item
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
-  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
   // item selecionado para o modal
   const [selectedOrder, setSelectedOrder] = useState<CartOrder | null>(null);
+
+  const orders = data?.orders || [];
+  const totalValue = data?.totalValue || 0;
 
   // total local (usado como fallback)
   const localTotal = useMemo(
@@ -51,34 +47,19 @@ const Tabela: React.FC<TabelaProps> = ({
     [orders]
   );
 
-  // Busca pedidos do carrinho (paginado)
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data: OrdersData = await getOrders(page, pageSize);
-
-      setOrders(data.orders);
-      onTotalChange(data.totalValue ?? localTotal); // informa total ao pai
+  // Atualiza total e paginação quando dados mudam
+  useEffect(() => {
+    if (data) {
+      onTotalChange(data.totalValue ?? localTotal);
       onPaginationChange?.({
         totalOrders: data.pagination.totalOrders,
         totalPages: data.pagination.totalPages
       });
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Erro ao carregar o carrinho.";
-      toast.error(msg);
-      setOrders([]);
+    } else if (error) {
       onTotalChange(0);
       onPaginationChange?.({ totalOrders: 0, totalPages: 0 });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // carrega ao montar / paginar / sinal externo
-  useEffect(() => {
-    fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, reloadSignal]);
+  }, [data, localTotal, onTotalChange, onPaginationChange, error]);
 
   // abre/fecha modal de remoção
   const handleOpenModal = (order: CartOrder) => setSelectedOrder(order);
@@ -87,51 +68,23 @@ const Tabela: React.FC<TabelaProps> = ({
   // Confirma remoção do item selecionado
   const handleDeletion = async () => {
     if (!selectedOrder) return;
-    try {
-      setDeleting(prev => ({ ...prev, [selectedOrder.documentId]: true }));
-      await removeOrder(selectedOrder.documentId);
-      toast.success("Produto removido do carrinho!");
-      setSelectedOrder(null);
-      await fetchOrders(); // sincroniza total/página
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Não foi possível remover o produto.";
-      toast.error(msg);
-    } finally {
-      setDeleting(prev => ({ ...prev, [selectedOrder?.documentId ?? '']: false }));
-    }
+    setSelectedOrder(null);
+    removeOrderMutation.mutate(selectedOrder.documentId);
   };
 
-  // Atualiza quantidade no backend com UI otimista
+  // Atualiza quantidade no backend
   const handleQuantityChange = async (order: CartOrder, newQuantity: number) => {
     // limita quantidade entre 1 e o estoque
     const qty = Math.max(1, Math.min(newQuantity, order.stock));
     if (qty === order.quantity) return;
 
+    setUpdating(prev => ({ ...prev, [order.documentId]: true }));
+    
     try {
-      setUpdating(prev => ({ ...prev, [order.documentId]: true }));
-
-      // 1) Total atual antes de mudar localmente
-      const currentTotal = orders.reduce((sum, o) => sum + o.price * o.quantity, 0);
-      // 2) Total otimista já com a nova quantidade do item
-      const optimisticTotal = currentTotal - order.price * order.quantity + order.price * qty;
-      onTotalChange(optimisticTotal); // envia NÚMERO (corrige o erro do TS)
-
-      // 3) Atualiza localmente o item (UI otimista)
-      setOrders(prev =>
-        prev.map(o => (o.documentId === order.documentId ? { ...o, quantity: qty } : o))
-      );
-
-      // 4) Persiste no backend
-      await updateQuantityOrder({ order: order.documentId, quantity: qty });
-
-      // 5) Refaz o fetch para garantir consistência (total do backend prevalece)
-      await fetchOrders();
-      toast.success("Quantidade atualizada!");
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Não foi possível atualizar a quantidade.";
-      toast.error(msg);
-      // Reverte via refetch
-      fetchOrders();
+      await updateQuantityMutation.mutateAsync({ 
+        order: order.documentId, 
+        quantity: qty 
+      });
     } finally {
       setUpdating(prev => ({ ...prev, [order.documentId]: false }));
     }
@@ -150,15 +103,15 @@ const Tabela: React.FC<TabelaProps> = ({
             </tr>
           </thead>
           <tbody>
-            {!loading && orders.length === 0 && (
+            {!isLoading && orders.length === 0 && (
               <tr>
-
+                <TableBodyCell colSpan={4}>Carrinho vazio</TableBodyCell>
               </tr>
             )}
 
             {orders.map(order => {
               const isUpdating = !!updating[order.documentId];
-              const isDeleting = !!deleting[order.documentId];
+              const isDeleting = removeOrderMutation.isPending;
 
               return (
                 <TableRow key={order.documentId}>
