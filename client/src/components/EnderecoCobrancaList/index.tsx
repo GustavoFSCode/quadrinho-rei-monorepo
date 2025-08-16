@@ -17,10 +17,19 @@ import { Address } from '@/services/clientService';
 
 interface Props {
   addresses: Address[];
+  onSelectionChange?: (selectedId: string | null) => void;
 }
 
-const EnderecoCobrancaList: React.FC<Props> = ({ addresses }) => {
+const EnderecoCobrancaList: React.FC<Props> = ({ addresses, onSelectionChange }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handleSelectionChange = (id: string) => {
+    const newSelection = selectedId === id ? null : id;
+    setSelectedId(newSelection);
+    if (onSelectionChange) {
+      onSelectionChange(newSelection);
+    }
+  };
 
   return (
     <Container>
@@ -43,7 +52,7 @@ const EnderecoCobrancaList: React.FC<Props> = ({ addresses }) => {
           <CheckboxContainer>
             <CustomCheckbox
               checked={selectedId === addr.documentId}
-              onChange={() => setSelectedId(addr.documentId)}
+              onChange={() => handleSelectionChange(addr.documentId)}
             />
             <CustomLabel>Selecionar</CustomLabel>
           </CheckboxContainer>

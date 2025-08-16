@@ -10,6 +10,7 @@ import {
 } from './styled';
 import { Flex } from '@/styles/global';
 import { Trade } from '@/services/purchaseService';
+import { formatDateToBrazil } from '@/utils/dateFormatter';
 
 interface MinhasTrocasTableProps {
   trades: Trade[];
@@ -62,7 +63,7 @@ const Tabela: React.FC<MinhasTrocasTableProps> = ({
                   {trade.cartOrder.product.title}
                 </TableBodyCell>
                 <TableBodyCell center>
-                  {trade.cartOrder.quantity}
+                  {trade.quantity}
                 </TableBodyCell>
                 <TableBodyCell center>
                   R$ {trade.totalValue.toFixed(2).replace('.', ',')}
@@ -71,7 +72,7 @@ const Tabela: React.FC<MinhasTrocasTableProps> = ({
                   {trade.tradeStatus.name}
                 </TableBodyCell>
                 <TableBodyCell center>
-                  {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
+                  {formatDateToBrazil(trade.createdAt)}
                 </TableBodyCell>
                 <TableBodyCell center>
                   {trade.coupon && trade.coupon.code

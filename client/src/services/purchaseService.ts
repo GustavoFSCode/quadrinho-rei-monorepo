@@ -58,6 +58,7 @@ export interface Trade {
   id: number;
   documentId: string;
   totalValue: number;
+  quantity: number;
   createdAt: string;
   tradeStatus: TradeStatus;
   coupon?: Coupon;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   TableContainer,
   Table,
@@ -9,42 +10,52 @@ import {
   TableBodyCell,
 } from './styled';
 import { Flex } from '@/styles/global';
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  stock: number;
-}
+import { getPurchase, CartOrder, Coupon } from '@/services/checkoutService';
 
 interface TabelaProps {
   onTotalChange: (total: number) => void;
 }
 
 const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
-  const products: Product[] = [
-    { id: 1, title: 'Homem-Aranha: N°1', price: 25.0, stock: 10 },
-    { id: 2, title: 'Homem-Aranha: N°2', price: 25.0, stock: 10 },
-    { id: 11, title: 'Batman: Noite Sombria', price: 30.0, stock: 25 },
-    { id: 12, title: 'Superman: O Último Herói', price: 20.0, stock: 15 },
-  ];
-
-  const [quantities, setQuantities] = useState<Record<number, number>>(() => {
-    const initial: Record<number, number> = {};
-    products.forEach(product => {
-      // Alguns produtos iniciam com quantidade 3; os demais, 1
-      initial[product.id] = product.id === 1 || product.id === 11 ? 3 : 1;
-    });
-    return initial;
+  const { data: purchase, isLoading, error } = useQuery({
+    queryKey: ['purchase'],
+    queryFn: getPurchase,
+    retry: 1,
   });
 
   useEffect(() => {
-    const total = products.reduce(
-      (acc, product) => acc + product.price * (quantities[product.id] || 0),
-      0,
+    if (purchase) {
+      // Usar totalPrice que já inclui desconto dos cupons
+      onTotalChange(purchase.totalPrice || 0);
+    }
+  }, [purchase, onTotalChange]);
+
+  if (isLoading) {
+    return (
+      <Flex $direction="column">
+        <h2>Pedido</h2>
+        <div>Carregando itens do carrinho...</div>
+      </Flex>
     );
-    onTotalChange(total);
-  }, [quantities, products, onTotalChange]);
+  }
+
+  if (error) {
+    return (
+      <Flex $direction="column">
+        <h2>Pedido</h2>
+        <div>Erro ao carregar itens do carrinho.</div>
+      </Flex>
+    );
+  }
+
+  if (!purchase?.orders || purchase.orders.length === 0) {
+    return (
+      <Flex $direction="column">
+        <h2>Pedido</h2>
+        <div>Carrinho vazio.</div>
+      </Flex>
+    );
+  }
 
   return (
     <Flex $direction="column">
@@ -54,28 +65,63 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
           <TableHead>
             <TableRow>
               <TableHeadCell>Produtos</TableHeadCell>
-              <TableHeadCell>Preço</TableHeadCell>
-              {/* Note o 'center' aqui */}
+              <TableHeadCell>Preço Unitário</TableHeadCell>
               <TableHeadCell center>Quantidade</TableHeadCell>
+              <TableHeadCell>Total</TableHeadCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map(product => (
-              <TableRow key={product.id}>
-                <TableBodyCell productTitle>{product.title}</TableBodyCell>
+            {purchase.orders.map((order: CartOrder) => (
+              <TableRow key={order.id}>
+                <TableBodyCell productTitle>{order.product?.title || 'N/A'}</TableBodyCell>
                 <TableBodyCell>
-                  {product.price.toLocaleString('pt-BR', {
+                  {order.totalValue && order.quantity ? 
+                    (order.totalValue / order.quantity).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }) : 'N/A'}
+                </TableBodyCell>
+                <TableBodyCell center>{order.quantity}</TableBodyCell>
+                <TableBodyCell>
+                  {order.totalValue.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
                   })}
                 </TableBodyCell>
-                {/* E aqui também para centralizar */}
-                <TableBodyCell center>{quantities[product.id]}</TableBodyCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      
+      {purchase.coupons && purchase.coupons.length > 0 && (
+        <div style={{ marginTop: '20px' }}>
+          <h3>Cupons Aplicados</h3>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Código do Cupom</TableHeadCell>
+                  <TableHeadCell>Desconto</TableHeadCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {purchase.coupons.map((coupon: Coupon) => (
+                  <TableRow key={coupon.id}>
+                    <TableBodyCell>{coupon.code}</TableBodyCell>
+                    <TableBodyCell>
+                      -{coupon.price.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </TableBodyCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+      )}
     </Flex>
   );
 };

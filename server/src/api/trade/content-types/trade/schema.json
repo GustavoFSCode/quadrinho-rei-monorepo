@@ -39,6 +39,10 @@
       "default": 0,
       "type": "decimal"
     },
+    "quantity": {
+      "type": "integer",
+      "default": 0
+    },
     "purchases": {
       "type": "relation",
       "relation": "oneToMany",

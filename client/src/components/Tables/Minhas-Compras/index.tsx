@@ -16,6 +16,7 @@ import { Flex } from '@/styles/global';
 import Button from '@/components/Button';
 import InputNumber from '@/components/Inputs/InputNumber/InputNumber';
 import { Purchase, requestTrade, CartOrder } from '@/services/purchaseService';
+import { formatDateToBrazil } from '@/utils/dateFormatter';
 
 interface MinhasComprasTableProps {
   purchases: Purchase[];
@@ -104,7 +105,7 @@ const Tabela: React.FC<MinhasComprasTableProps> = ({
           <Flex $direction="column">
             <OrderHeader>
               <OrderText>Pedido - #{purchase.id}</OrderText>
-              <OrderText>Data da compra: {purchase.date ? new Date(purchase.date).toLocaleDateString('pt-BR') : 'N/A'}</OrderText>
+              <OrderText>Data da compra: {purchase.date ? formatDateToBrazil(purchase.date) : 'N/A'}</OrderText>
               <OrderText>Status: {purchase.status?.name || 'N/A'}</OrderText>
             </OrderHeader>
             <TableContainer>

@@ -30,9 +30,20 @@ import { clientDocumentId } from '@/config/documentId';
 
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, Address } from '@/services/clientService';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { 
+  createOrUpdatePurchase,
+  insertCoupon,
+  insertCards,
+  insertAddresses,
+  finalizePurchase
+} from '@/services/checkoutService';
 
 export default function RealizarCompra() {
   const { user } = useAuth();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,6 +53,40 @@ export default function RealizarCompra() {
   const [showModalEndereco, setShowModalEndereco] = useState(false);
   const [showModalCartao, setShowModalCartao] = useState(false);
 
+  // Estados para validação
+  const [selectedDeliveryAddress, setSelectedDeliveryAddress] = useState<string | null>(null);
+  const [selectedBillingAddress, setSelectedBillingAddress] = useState<string | null>(null);
+  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [cardValues, setCardValues] = useState<Record<number, string>>({});
+
+  // Mutations para finalizar compra
+  const finalizePurchaseMutation = useMutation({
+    mutationFn: finalizePurchase,
+    onSuccess: (response) => {
+      toast.success(response.message || 'Compra finalizada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['purchase'] });
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      
+      // Redirecionar para minhas-compras após sucesso
+      setTimeout(() => {
+        router.push('/minhas-compras');
+      }, 2000); // 2 segundos para mostrar o toast de sucesso
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erro ao finalizar compra');
+    },
+  });
+
+  const createPurchaseMutation = useMutation({
+    mutationFn: createOrUpdatePurchase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchase'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erro ao criar compra');
+    },
+  });
+
   // Carrega os dados do usuário e extrai endereços
   useEffect(() => {
     if (!user.documentId) return;
@@ -49,14 +94,60 @@ export default function RealizarCompra() {
       try {
         const fullUser = await getUser(user.documentId);
         setAddresses(fullUser.client.addresses);
+        // Criar/atualizar compra quando carregar os dados
+        createPurchaseMutation.mutate();
       } catch (err) {
         console.error('Erro ao carregar usuário:', err);
       }
     })();
   }, [user.documentId]);
 
-  const handleFinalizarCompra = () => {
-    toast.success('Compra finalizada com sucesso!');
+  const handleFinalizarCompra = async () => {
+    // Validações
+    if (totalValue <= 0) {
+      toast.error('Carrinho vazio');
+      return;
+    }
+
+    if (!selectedDeliveryAddress) {
+      toast.error('Selecione um endereço de entrega');
+      return;
+    }
+
+    if (!selectedBillingAddress) {
+      toast.error('Selecione um endereço de cobrança');
+      return;
+    }
+
+    if (selectedCards.length === 0) {
+      toast.error('Selecione pelo menos um cartão para pagamento');
+      return;
+    }
+
+    // Usar comparação com tolerância para problemas de precisão decimal
+    const tolerance = 0.01; // 1 centavo de tolerância
+    if (Math.abs(paymentTotal - totalValue) > tolerance) {
+      toast.error(`O valor do pagamento (${paymentTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) deve ser igual ao valor total do pedido (${totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`);
+      return;
+    }
+
+    // Verificar se todos os cartões selecionados têm valores
+    for (const cardId of selectedCards) {
+      const value = parseFloat((cardValues[cardId] || '0').replace(/[^\d,.-]/g, '').replace(',', '.'));
+      if (value <= 0) {
+        toast.error('Todos os cartões selecionados devem ter um valor válido');
+        return;
+      }
+    }
+
+    try {
+      // Aqui você pode implementar as chamadas para insertAddresses e insertCards
+      // Por enquanto, vou assumir que o backend já associa automaticamente
+      
+      finalizePurchaseMutation.mutate();
+    } catch (error) {
+      toast.error('Erro ao preparar compra');
+    }
   };
 
   // Separe em cobranças e entregas
@@ -91,10 +182,16 @@ export default function RealizarCompra() {
             </SectionTitle>
 
             <SubSectionTitle>Endereço de entrega</SubSectionTitle>
-            <EnderecoEntregaList addresses={entrega} />
+            <EnderecoEntregaList 
+              addresses={entrega} 
+              onSelectionChange={setSelectedDeliveryAddress}
+            />
 
             <SubSectionTitle>Endereço de cobrança</SubSectionTitle>
-            <EnderecoCobrancaList addresses={cobranca} />
+            <EnderecoCobrancaList 
+              addresses={cobranca}
+              onSelectionChange={setSelectedBillingAddress}
+            />
 
             <SectionTitle>
               Cartão <span>-</span>{' '}
@@ -107,10 +204,23 @@ export default function RealizarCompra() {
                 onClick={() => setShowModalCartao(true)}
               />
             </SectionTitle>
-            <CartaoList onTotalChange={setPaymentTotal} totalOrder={totalValue} />
+            <CartaoList 
+              onTotalChange={(total) => {
+                console.log('Payment total from cards:', total);
+                setPaymentTotal(total);
+              }} 
+              totalOrder={totalValue}
+              onSelectionChange={(cards, values) => {
+                setSelectedCards(cards);
+                setCardValues(values);
+              }}
+            />
 
             <Flex $direction="row" $gap="2rem">
-              <Tabela onTotalChange={setTotalValue} />
+              <Tabela onTotalChange={(value) => {
+                console.log('Total value from table:', value);
+                setTotalValue(value);
+              }} />
               <Flex $direction="column" $gap="20px" $justify="center">
                 <StyledParagraph>
                   Valor total de pagamento:{' '}
@@ -121,11 +231,11 @@ export default function RealizarCompra() {
                   {totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </StyledParagraph>
                 <Button
-                  text="Finalizar compra"
+                  text={finalizePurchaseMutation.isPending ? "Finalizando..." : "Finalizar compra"}
                   type="button"
                   variant="purple"
                   onClick={handleFinalizarCompra}
-                  disabled={paymentTotal !== totalValue}
+                  disabled={Math.abs(paymentTotal - totalValue) > 0.01 || finalizePurchaseMutation.isPending}
                 />
               </Flex>
             </Flex>

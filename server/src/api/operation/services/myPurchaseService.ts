@@ -113,6 +113,7 @@ export class MyPurchase {
                     cartOrder: body.order,
                     purchase: body.purchase,
                     totalValue: totalRefundValue,
+                    quantity: body.quantity,
                     client: user.client.documentId,
                     tradeStatus: tradeStatus[0].documentId,
                     createdAt: new Date(),

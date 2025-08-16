@@ -16,6 +16,7 @@ import {
 import { Flex } from '@/styles/global';
 import CustomSelect from '@/components/Select';
 import { getSales, getSalesStatus, updateSaleStatus, Sale, SalesStatus } from '@/services/salesService';
+import { formatDateToBrazil } from '@/utils/dateFormatter';
 
 const Tabela: React.FC = () => {
   const queryClient = useQueryClient();
@@ -46,9 +47,6 @@ const Tabela: React.FC = () => {
     updateStatusMutation.mutate({ saleId, statusId });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
 
   if (salesLoading || statusLoading) {
     return <div>Carregando vendas...</div>;
@@ -71,7 +69,7 @@ const Tabela: React.FC = () => {
           <OrderHeader>
             <OrderText>Pedido - #{sale.id}</OrderText>
             <OrderText>Nome do cliente: {sale.client?.name || 'N/A'}</OrderText>
-            <OrderText>Data da compra: {formatDate(sale.date)}</OrderText>
+            <OrderText>Data da compra: {formatDateToBrazil(sale.date)}</OrderText>
             <OrderText>
               <Flex $direction="row" $gap="1rem" $align="center">
                 Status:{' '}

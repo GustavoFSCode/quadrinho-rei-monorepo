@@ -110,7 +110,7 @@ const Tabela: React.FC = () => {
               <TableRow key={trade.id}>
                 <TableBodyCell align="left">{trade.client?.name || 'N/A'}</TableBodyCell>
                 <TableBodyCell align="left">{trade.cartOrder?.product?.title || 'N/A'}</TableBodyCell>
-                <TableBodyCell align="center">{trade.cartOrder?.quantity || 0}</TableBodyCell>
+                <TableBodyCell align="center">{trade.quantity || 0}</TableBodyCell>
                 <TableBodyCell align="left">
                   <CustomSelect
                     name={`status-${trade.id}`}

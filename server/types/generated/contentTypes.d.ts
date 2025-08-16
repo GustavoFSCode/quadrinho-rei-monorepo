@@ -1112,6 +1112,7 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
+    quantity: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalValue: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     tradeStatus: Schema.Attribute.Relation<
       'manyToOne',

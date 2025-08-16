@@ -32,15 +32,18 @@ export class PurchaseService {
 
         const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
 
-        const hasCoupons = pendentPurchase.coupons.length > 0;
-        const totalPriceReduced = hasCoupons === true ? pendentPurchase.totalValue - pendentPurchase.coupons.reduce((acc, coupon) => {return acc + coupon.price}, 0) : pendentPurchase.totalValue
+        const totalOriginal = pendentPurchase?.cartOrders?.reduce((acc, order) => acc + order.totalValue, 0) || 0;
+        const totalCoupons = pendentPurchase?.coupons?.reduce((acc, coupon) => acc + coupon.price, 0) || 0;
+        const totalFinal = totalOriginal - totalCoupons;
 
         return {
             coupons: pendentPurchase?.coupons,
             addresses: pendentPurchase?.addresses,
             cards: pendentPurchase?.cards,
             orders: pendentPurchase?.cartOrders,
-            totalPrice: pendentPurchase?.totalValue
+            totalPrice: totalFinal,
+            totalValue: totalOriginal,
+            totalCoupons: totalCoupons
         }
     }
 

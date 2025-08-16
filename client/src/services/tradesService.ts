@@ -36,6 +36,7 @@ export interface Trade {
   id: number;
   documentId: string;
   totalValue: number;
+  quantity: number;
   createdAt: string;
   client: Client;
   cartOrder: CartOrder;

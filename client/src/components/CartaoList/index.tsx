@@ -14,50 +14,46 @@ import {
 import Input from '@/components/Inputs/Input/Input';
 import { currencyMask } from '@/utils/masks';
 import ToggleButton from '@/components/Button/ToggleButton';
-
-interface CardData {
-  id: number;
-  holderName: string;
-  numberCard: string;
-  flagCard: string;
-  safeNumber: string;
-}
+import { useAuth } from '@/hooks/useAuth';
+import { getUser, Card as CardData } from '@/services/clientService';
 
 interface CartaoListProps {
   onTotalChange?: (total: number) => void;
   totalOrder: number;
+  onSelectionChange?: (selectedCards: number[], cardValues: Record<number, string>) => void;
 }
 
 const CartaoList: React.FC<CartaoListProps> = ({
   onTotalChange,
   totalOrder,
+  onSelectionChange,
 }) => {
-  const mockCards: CardData[] = [
-    {
-      id: 1,
-      holderName: 'João Silva',
-      numberCard: '1111222233334444',
-      flagCard: 'Visa',
-      safeNumber: '123',
-    },
-    {
-      id: 2,
-      holderName: 'Maria Souza',
-      numberCard: '5555666677778888',
-      flagCard: 'MasterCard',
-      safeNumber: '456',
-    },
-    {
-      id: 3,
-      holderName: 'Carlos Pereira',
-      numberCard: '9999000011112222',
-      flagCard: 'Elo',
-      safeNumber: '789',
-    },
-  ];
+  const { user } = useAuth();
+  const [userCards, setUserCards] = useState<CardData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [cardValues, setCardValues] = useState<Record<number, string>>({});
+
+  // Carregar cartões do usuário
+  useEffect(() => {
+    if (!user.documentId) return;
+    
+    const loadUserCards = async () => {
+      try {
+        setIsLoading(true);
+        const fullUser = await getUser(user.documentId);
+        setUserCards(fullUser.client.cards || []);
+      } catch (error) {
+        console.error('Erro ao carregar cartões:', error);
+        setUserCards([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserCards();
+  }, [user.documentId]);
 
   const handleCheckboxChange = (id: number) => {
     if (selectedCards.includes(id)) {
@@ -108,20 +104,37 @@ const CartaoList: React.FC<CartaoListProps> = ({
       total += numericValue;
     });
     if (onTotalChange) onTotalChange(total);
-  }, [selectedCards, cardValues, onTotalChange]);
+    if (onSelectionChange) onSelectionChange(selectedCards, cardValues);
+  }, [selectedCards, cardValues, onTotalChange, onSelectionChange]);
+
+  if (isLoading) {
+    return (
+      <Container>
+        <div>Carregando cartões...</div>
+      </Container>
+    );
+  }
+
+  if (userCards.length === 0) {
+    return (
+      <Container>
+        <div>Nenhum cartão cadastrado. Adicione um cartão para continuar.</div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
-      {mockCards.map((card, index) => (
+      {userCards.map((card, index) => (
         <Card key={card.id}>
           <CardInfo>
             <Title>{card.holderName}</Title>
-            <Text>Número: {card.numberCard}</Text>
+            <Text>Número: ****-****-****-{card.numberCard.slice(-4)}</Text>
             <Text>Bandeira: {card.flagCard}</Text>
-            <Text>Código de Segurança: {card.safeNumber}</Text>
+            <Text>Código de Segurança: ***</Text>
           </CardInfo>
           <ToggleBox>
-            <ToggleButton isActive={index === 0} onToggle={() => {}} />
+            <ToggleButton isActive={card.isFavorite} onToggle={() => {}} />
           </ToggleBox>
           <CheckboxContainer>
             <CustomCheckbox
@@ -135,10 +148,10 @@ const CartaoList: React.FC<CartaoListProps> = ({
             <ValueInputContainer>
               <Input
                 id={`card-value-${card.id}`}
-                label="Preço (R$)"
+                label="Valor (R$)"
                 type="text"
                 maskFunction={currencyMask}
-                placeholder="Preço"
+                placeholder="Valor a ser pago neste cartão"
                 value={cardValues[card.id] || ''}
                 onChange={e => handleValueChange(card.id, e.target.value)}
               />
