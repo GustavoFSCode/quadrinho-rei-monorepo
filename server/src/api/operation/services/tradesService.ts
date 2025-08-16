@@ -4,7 +4,7 @@ export class TradeService {
     public async getTrades(ctx) {
         const query = ctx.request.query;
 
-        const trades = await strapi.documents('api::trade.trade').findMany({
+        const trades: any = await strapi.documents('api::trade.trade').findMany({
             populate: {
                 client: {
                     fields: ['name']
@@ -23,21 +23,31 @@ export class TradeService {
             sort: 'id:desc'
         })
 
+        // Tratar trocas com clientes excluídos
+        const tradesWithClientInfo = trades.map((trade: any) => ({
+            ...trade,
+            client: trade.client ? trade.client : {
+                id: null,
+                documentId: null,
+                name: "Cliente excluído"
+            }
+        }));
+
         if (query.page && query.pageSize) {
             return {
                 data: {
-                    trades: trades,
+                    trades: tradesWithClientInfo,
                     pagination: {
                         page: query.page || 1,
                         pageSize: query.pageSize || 10,
-                        totalOrders: trades.length,
-                        totalPages: Math.ceil(trades.length / (query.pageSize || 10)),
+                        totalOrders: tradesWithClientInfo.length,
+                        totalPages: Math.ceil(tradesWithClientInfo.length / (query.pageSize || 10)),
                     }
                 }
             };
         }
 
-        return trades;
+        return tradesWithClientInfo;
     }
 
     public async getTradesStatuses(ctx) {

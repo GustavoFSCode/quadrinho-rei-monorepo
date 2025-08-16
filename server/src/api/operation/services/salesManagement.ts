@@ -2,24 +2,45 @@ const utils = require('@strapi/utils')
 const { ApplicationError } = utils.errors
 export class SalesManagement {
     public async getSales(ctx) {
-        const sales = await strapi.documents('api::purchase.purchase').findMany({
-            populate: {
-                client: {},
-                purchaseSalesStatus: {},
-                cartOrders: {
-                    populate: {
-                        product: {
-                            fields: ['title']
+        try {
+            const sales: any = await strapi.entityService.findMany('api::purchase.purchase', {
+                populate: {
+                    client: {
+                        fields: ['name', 'cpf', 'phone']
+                    },
+                    purchaseSalesStatus: {},
+                    cartOrders: {
+                        populate: {
+                            product: {
+                                fields: ['title']
+                            }
                         }
                     }
-                }
-            },
-            sort: "id:desc"
-        })
+                },
+                sort: { id: 'desc' }
+            });
 
-        return {
-            data: sales
-        };
+            console.log('Sales fetched:', sales?.length || 0);
+
+            // Tratar vendas com clientes excluídos
+            const salesWithClientInfo = sales.map((sale: any) => ({
+                ...sale,
+                client: sale.client ? sale.client : {
+                    id: null,
+                    documentId: null,
+                    name: "Cliente excluído",
+                    cpf: "N/A",
+                    phone: "N/A"
+                }
+            }));
+
+            return {
+                data: salesWithClientInfo || []
+            };
+        } catch (error) {
+            console.error('Error fetching sales:', error);
+            throw new ApplicationError("Erro ao buscar vendas");
+        }
     }
 
     public async getSalesStatus(ctx) {

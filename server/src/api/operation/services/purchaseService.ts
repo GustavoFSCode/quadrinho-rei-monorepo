@@ -297,6 +297,9 @@ export class PurchaseService {
                 date: new Date()
             },
             populate: {
+                client: {
+                    fields: ['name', 'cpf', 'phone']
+                },
                 coupons: {},
                 cartOrders: { populate: { product: {} } }
             }
