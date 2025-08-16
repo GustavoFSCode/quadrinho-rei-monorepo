@@ -11,11 +11,17 @@ import {
 } from './styled';
 import Navbar from '@/components/Navbar';
 import Tabela from '@/components/Tables/Trocas';
-import PaginationLink from '@/components/Pagination';
+import PaginationLink from '@/components/PaginationLink';
 
 export default function Trocas() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [itemsPerPage] = useState(12);
+    const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+    const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <>
@@ -27,10 +33,19 @@ export default function Trocas() {
           </HeaderTop>
         </Header>
         <Content>
-          <Tabela />
+          <Tabela 
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onTotalChange={setTotalItems}
+          />
         </Content>
         <Footer>
-          <PaginationLink itemsPerPage={itemsPerPage} />
+          <PaginationLink
+            itemsPerPage={itemsPerPage}
+            currentPage={currentPage}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+          />
         </Footer>
       </ContentContainer>
     </>

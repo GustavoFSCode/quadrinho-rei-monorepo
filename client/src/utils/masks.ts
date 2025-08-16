@@ -121,25 +121,38 @@ export const maskOnlyNumbers = (value: string) => {
   return maskedValue;
 };
 export const currencyMask = (value: string) => {
-  const valueFormatted = unformatCurrency(value);
-
+  if (!value) return '';
+  
+  // Remove tudo exceto dígitos
+  const onlyDigits = value.replace(/\D/g, '');
+  
+  // Se não há dígitos, retorna string vazia
+  if (!onlyDigits) return '';
+  
+  // Converte para número (em centavos) e depois para reais
+  const numberValue = Number(onlyDigits) / 100;
+  
+  // Formatar como moeda brasileira
   const masked = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
-  }).format(valueFormatted);
+    maximumFractionDigits: 2,
+  }).format(numberValue);
+  
   return masked;
 };
-export const unformatCurrency = (value: string | undefined) => {
-  if (value !== undefined) {
-    const valueFormatted = value
-      ?.replace(',', '')
-      ?.replace('.', '')
-      ?.replace(/\D/g, '');
 
-    return Number(valueFormatted) / 100;
-  }
-  return 0;
+export const unformatCurrency = (value: string | undefined) => {
+  if (!value) return 0;
+  
+  // Remove todos os caracteres exceto dígitos e vírgula decimal
+  const cleanValue = value
+    .replace(/[^\d,]/g, '') // Remove tudo exceto dígitos e vírgula
+    .replace(',', '.'); // Substitui vírgula por ponto para conversão
+    
+  const numberValue = parseFloat(cleanValue) || 0;
+  return numberValue;
 };
 
 // formated to dd/mm/yyyy

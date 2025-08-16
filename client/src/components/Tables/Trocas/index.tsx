@@ -18,17 +18,40 @@ import {
   updateTradeStatus, 
   generateCoupon,
   Trade,
-  TradeStatus 
+  TradeStatus,
+  TradesResponse,
+  PaginationMeta
 } from '@/services/tradesService';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Tabela: React.FC = () => {
+interface TabelaProps {
+  currentPage?: number;
+  itemsPerPage?: number;
+  onTotalChange?: (total: number) => void;
+}
+
+const Tabela: React.FC<TabelaProps> = ({ 
+  currentPage = 1, 
+  itemsPerPage = 12, 
+  onTotalChange 
+}) => {
   const queryClient = useQueryClient();
   
-  const { data: trades, isLoading: tradesLoading, error: tradesError } = useQuery({
-    queryKey: ['trades'],
-    queryFn: getTrades,
+  const { data: tradesResponse, isLoading: tradesLoading, error: tradesError } = useQuery({
+    queryKey: ['trades', currentPage, itemsPerPage],
+    queryFn: () => getTrades(currentPage, itemsPerPage),
   });
+
+  // Extrair dados e paginação da resposta
+  const trades = Array.isArray(tradesResponse) ? tradesResponse : tradesResponse?.data || [];
+  const pagination = !Array.isArray(tradesResponse) ? tradesResponse?.pagination : null;
+
+  // Notificar sobre total de itens quando a paginação mudar
+  React.useEffect(() => {
+    if (pagination && onTotalChange) {
+      onTotalChange(pagination.total);
+    }
+  }, [pagination, onTotalChange]);
 
   const { data: statusOptions, isLoading: statusLoading } = useQuery({
     queryKey: ['tradesStatuses'],

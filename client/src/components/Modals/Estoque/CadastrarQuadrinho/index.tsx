@@ -10,7 +10,7 @@ import Input from '@/components/Inputs/Input/Input';
 import { Flex } from '@/styles/global';
 import ToggleButton from '@/components/Button/ToggleTable';
 import CustomSelect from '@/components/Select';
-import { unformatCurrency } from '@/utils/masks';
+import { unformatCurrency, currencyMask } from '@/utils/masks';
 import Checkbox from '@/components/Inputs/Checkbox/Checkbox';
 
 import {
@@ -120,12 +120,35 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
     onClose();
   };
 
-  // Formata número para "R$ 29,90"
-  const formatBRL = (value: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  // Estado para armazenar valores formatados como string (similar ao CartaoList)
+  const [priceValue, setPriceValue] = useState('');
+
+  // Função para tratar mudança de valor de preço (similar ao CartaoList)
+  const handlePriceChange = (value: string, onChange: (value: number) => void) => {
+    let numericValue = unformatCurrency(value);
+    if (isNaN(numericValue)) numericValue = 0;
+    
+    // Armazenar como string formatada para display
+    const formattedValue = numericValue.toLocaleString('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    });
+    setPriceValue(formattedValue);
+    
+    // Atualizar o valor numérico no formulário
+    onChange(numericValue);
+  };
+
+  // Sincronizar valor inicial
+  useEffect(() => {
+    if (initialData.price) {
+      const formattedValue = initialData.price.toLocaleString('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      });
+      setPriceValue(formattedValue);
+    }
+  }, [initialData.price]);
 
   return (
     <ModalOverlay>
@@ -332,11 +355,11 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   <Input
                     id="price"
                     label="Preço (R$)"
-                    value={formatBRL(field.value)}
-                    onChange={e => {
-                      const numeric = unformatCurrency(e.target.value);
-                      field.onChange(numeric);
-                    }}
+                    type="text"
+                    maskFunction={currencyMask}
+                    placeholder="R$ 0,00"
+                    value={priceValue}
+                    onChange={e => handlePriceChange(e.target.value, field.onChange)}
                     error={errors.price?.message}
                     disabled={isRead}
                   />

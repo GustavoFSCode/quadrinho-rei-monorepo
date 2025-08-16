@@ -12,6 +12,9 @@ export class MyPurchase {
                 client: {
                     populate: {
                         purchases: {
+                            filters: {
+                                purchaseStatus: { $eq: 'Finalizado' }  // Só buscar compras realmente finalizadas
+                            },
                             populate: {
                                 cartOrders: {
                                     populate: {

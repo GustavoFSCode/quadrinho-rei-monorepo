@@ -27,6 +27,7 @@ import CartaoList from '@/components/CartaoList';
 import ModalEndereco from '@/components/Modals/RealizarCompra/ModalEndereco';
 import ModalCartao from '@/components/Modals/RealizarCompra/ModalCartao';
 import { clientDocumentId } from '@/config/documentId';
+import { unformatCurrency } from '@/utils/masks';
 
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, Address } from '@/services/clientService';
@@ -49,6 +50,7 @@ export default function RealizarCompra() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [totalValue, setTotalValue] = useState(0);
   const [paymentTotal, setPaymentTotal] = useState(0);
+  const [cartSubtotal, setCartSubtotal] = useState(0);
 
   const [showModalEndereco, setShowModalEndereco] = useState(false);
   const [showModalCartao, setShowModalCartao] = useState(false);
@@ -58,6 +60,9 @@ export default function RealizarCompra() {
   const [selectedBillingAddress, setSelectedBillingAddress] = useState<string | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [cardValues, setCardValues] = useState<Record<number, string>>({});
+  
+  // Constante do frete
+  const FRETE_VALOR = 20.00;
 
   // Mutations para finalizar compra
   const finalizePurchaseMutation = useMutation({
@@ -94,13 +99,18 @@ export default function RealizarCompra() {
       try {
         const fullUser = await getUser(user.documentId);
         setAddresses(fullUser.client.addresses);
-        // Criar/atualizar compra quando carregar os dados
-        createPurchaseMutation.mutate();
+        // Compra só será criada quando finalizar, não ao carregar a página
       } catch (err) {
         console.error('Erro ao carregar usuário:', err);
       }
     })();
   }, [user.documentId]);
+
+  // Efeito para calcular o total com frete automaticamente
+  useEffect(() => {
+    const novoTotal = selectedDeliveryAddress ? cartSubtotal + FRETE_VALOR : cartSubtotal;
+    setTotalValue(novoTotal);
+  }, [cartSubtotal, selectedDeliveryAddress, FRETE_VALOR]);
 
   const handleFinalizarCompra = async () => {
     // Validações
@@ -133,7 +143,7 @@ export default function RealizarCompra() {
 
     // Verificar se todos os cartões selecionados têm valores
     for (const cardId of selectedCards) {
-      const value = parseFloat((cardValues[cardId] || '0').replace(/[^\d,.-]/g, '').replace(',', '.'));
+      const value = unformatCurrency(cardValues[cardId] || '0');
       if (value <= 0) {
         toast.error('Todos os cartões selecionados devem ter um valor válido');
         return;
@@ -141,6 +151,9 @@ export default function RealizarCompra() {
     }
 
     try {
+      // Criar a compra antes de finalizar
+      await createPurchaseMutation.mutateAsync();
+      
       // Aqui você pode implementar as chamadas para insertAddresses e insertCards
       // Por enquanto, vou assumir que o backend já associa automaticamente
       
@@ -218,17 +231,29 @@ export default function RealizarCompra() {
 
             <Flex $direction="row" $gap="2rem">
               <Tabela onTotalChange={(value) => {
-                console.log('Total value from table:', value);
-                setTotalValue(value);
+                console.log('Cart subtotal from table:', value);
+                setCartSubtotal(value);
               }} />
               <Flex $direction="column" $gap="20px" $justify="center">
                 <StyledParagraph>
-                  Valor total de pagamento:{' '}
-                  {paymentTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  Subtotal do carrinho:{' '}
+                  {cartSubtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </StyledParagraph>
                 <StyledParagraph>
-                  Valor total do pedido:{' '}
-                  {totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  Frete:{' '}
+                  {selectedDeliveryAddress 
+                    ? FRETE_VALOR.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                    : 'R$ 0,00'}
+                </StyledParagraph>
+                <StyledParagraph>
+                  <strong>
+                    Valor total do pedido:{' '}
+                    {totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </strong>
+                </StyledParagraph>
+                <StyledParagraph>
+                  Valor total de pagamento:{' '}
+                  {paymentTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </StyledParagraph>
                 <Button
                   text={finalizePurchaseMutation.isPending ? "Finalizando..." : "Finalizar compra"}

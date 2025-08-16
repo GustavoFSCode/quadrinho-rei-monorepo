@@ -4,6 +4,9 @@ export class SalesManagement {
     public async getSales(ctx) {
         try {
             const sales: any = await strapi.entityService.findMany('api::purchase.purchase', {
+                filters: {
+                    purchaseStatus: { $eq: 'Finalizado' }  // Só retornar compras realmente finalizadas
+                },
                 populate: {
                     client: {
                         fields: ['name', 'cpf', 'phone']

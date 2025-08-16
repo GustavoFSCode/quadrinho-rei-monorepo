@@ -12,7 +12,7 @@ import {
   ToggleBox,
 } from './styled';
 import Input from '@/components/Inputs/Input/Input';
-import { currencyMask } from '@/utils/masks';
+import { currencyMask, unformatCurrency } from '@/utils/masks';
 import ToggleButton from '@/components/Button/ToggleButton';
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, Card as CardData } from '@/services/clientService';
@@ -69,18 +69,14 @@ const CartaoList: React.FC<CartaoListProps> = ({
   };
 
   const handleValueChange = (id: number, value: string) => {
-    const numericString = value.replace(/[^\d,.-]/g, '').replace(',', '.');
-    let numericValue = parseFloat(numericString);
+    // Usar unformatCurrency para extrair o valor numérico corretamente
+    let numericValue = unformatCurrency(value);
     if (isNaN(numericValue)) numericValue = 0;
 
+    // Calcular a soma dos outros cartões usando unformatCurrency
     const sumOthers = selectedCards.reduce((acc, cardId) => {
       if (cardId !== id) {
-        const val =
-          parseFloat(
-            (cardValues[cardId] || '0')
-              .replace(/[^\d,.-]/g, '')
-              .replace(',', '.'),
-          ) || 0;
+        const val = unformatCurrency(cardValues[cardId] || '0');
         return acc + val;
       }
       return acc;
@@ -89,9 +85,10 @@ const CartaoList: React.FC<CartaoListProps> = ({
     const maxForCard = totalOrder - sumOthers;
     if (numericValue > maxForCard) numericValue = maxForCard;
 
+    // Armazenar como string formatada para display
     setCardValues(prev => ({
       ...prev,
-      [id]: numericValue.toFixed(2),
+      [id]: numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
     }));
   };
 
@@ -99,8 +96,7 @@ const CartaoList: React.FC<CartaoListProps> = ({
     let total = 0;
     selectedCards.forEach(id => {
       const valueStr = cardValues[id] || '0';
-      const numericValue =
-        parseFloat(valueStr.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+      const numericValue = unformatCurrency(valueStr);
       total += numericValue;
     });
     if (onTotalChange) onTotalChange(total);

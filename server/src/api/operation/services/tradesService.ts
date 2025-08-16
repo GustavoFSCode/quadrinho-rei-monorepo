@@ -3,7 +3,14 @@ const { ApplicationError } = utils.errors;
 export class TradeService {
     public async getTrades(ctx) {
         const query = ctx.request.query;
+        const page = parseInt(query.page) || 1;
+        const pageSize = parseInt(query.pageSize) || 12;
+        const start = (page - 1) * pageSize;
 
+        // Primeiro, contar o total de registros
+        const totalCount = await strapi.documents('api::trade.trade').count({});
+
+        // Buscar os dados com paginação
         const trades: any = await strapi.documents('api::trade.trade').findMany({
             populate: {
                 client: {
@@ -20,8 +27,10 @@ export class TradeService {
                 tradeStatus: {},
                 coupon: {}
             },
-            sort: 'id:desc'
-        })
+            sort: 'id:desc',
+            start: start,
+            limit: pageSize
+        });
 
         // Tratar trocas com clientes excluídos
         const tradesWithClientInfo = trades.map((trade: any) => ({
@@ -33,20 +42,20 @@ export class TradeService {
             }
         }));
 
-        if (query.page && query.pageSize) {
+        // Se foi solicitada paginação, retornar com metadados
+        if (query.page || query.pageSize) {
             return {
-                data: {
-                    trades: tradesWithClientInfo,
-                    pagination: {
-                        page: query.page || 1,
-                        pageSize: query.pageSize || 10,
-                        totalOrders: tradesWithClientInfo.length,
-                        totalPages: Math.ceil(tradesWithClientInfo.length / (query.pageSize || 10)),
-                    }
+                data: tradesWithClientInfo,
+                pagination: {
+                    page: page,
+                    pageSize: pageSize,
+                    total: totalCount,
+                    pageCount: Math.ceil(totalCount / pageSize)
                 }
             };
         }
 
+        // Retornar apenas os dados se não foi solicitada paginação
         return tradesWithClientInfo;
     }
 

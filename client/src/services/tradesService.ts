@@ -55,9 +55,25 @@ export interface GenerateCouponResponse {
   };
 }
 
-export async function getTrades(): Promise<Trade[]> {
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+}
+
+export interface TradesResponse {
+  data: Trade[];
+  pagination: PaginationMeta;
+}
+
+export async function getTrades(page?: number, pageSize?: number): Promise<Trade[] | TradesResponse> {
   try {
-    const { data } = await api.get<Trade[]>('/getTrades');
+    const params: any = {};
+    if (page !== undefined) params.page = page;
+    if (pageSize !== undefined) params.pageSize = pageSize;
+    
+    const { data } = await api.get<Trade[] | TradesResponse>('/getTrades', { params });
     return data;
   } catch (error: any) {
     console.error('Error fetching trades:', error);
