@@ -188,9 +188,21 @@ export default factories.createCoreController(
     },
     /* Chat AI */
     async sendChatMessage(ctx) {
+      console.log('sendChatMessage controller called');
       try {
         const { message, conversationId } = ctx.request.body;
-        const clientId = ctx.state.user?.client?.id;
+        
+        // Buscar o client associado ao user
+        const user = ctx.state.user;
+        const client = await strapi.entityService.findMany('api::client.client', {
+          filters: {
+            user: {
+              id: user.id
+            }
+          }
+        });
+        
+        const clientId = client?.[0]?.id;
 
         if (!clientId) {
           return ctx.badRequest('Cliente não autenticado');
@@ -200,8 +212,8 @@ export default factories.createCoreController(
           return ctx.badRequest('Mensagem não pode estar vazia');
         }
 
-        const chatService = strapi.service('api::operation.operation');
-        const result = await chatService.sendChatMessage(clientId, message.trim(), conversationId);
+        const operationService = strapi.service('api::operation.operation');
+        const result = await operationService.sendChatMessage(clientId, message.trim(), conversationId);
 
         return ctx.send(result);
       } catch (error) {
@@ -211,15 +223,25 @@ export default factories.createCoreController(
     },
     async getChatHistory(ctx) {
       try {
-        const clientId = ctx.state.user?.client?.id;
+        // Buscar o client associado ao user
+        const user = ctx.state.user;
+        const client = await strapi.entityService.findMany('api::client.client', {
+          filters: {
+            user: {
+              id: user.id
+            }
+          }
+        });
+        
+        const clientId = client?.[0]?.id;
         const { conversationId } = ctx.params;
 
         if (!clientId) {
           return ctx.badRequest('Cliente não autenticado');
         }
 
-        const chatService = strapi.service('api::operation.operation');
-        const result = await chatService.getConversationHistory(clientId, conversationId ? parseInt(conversationId) : undefined);
+        const operationService = strapi.service('api::operation.operation');
+        const result = await operationService.getConversationHistory(clientId, conversationId ? parseInt(conversationId) : undefined);
 
         return ctx.send(result);
       } catch (error) {

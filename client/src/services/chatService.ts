@@ -28,11 +28,11 @@ export interface SendMessageResponse {
 }
 
 class ChatService {
-  private baseURL = '/operation';
+  private baseURL = '';
 
   async sendMessage(message: string, conversationId?: number): Promise<SendMessageResponse> {
     try {
-      const response = await api.post(`${this.baseURL}/sendChatMessage`, {
+      const response = await api.post(`/sendChatMessage`, {
         message,
         conversationId
       });
@@ -61,11 +61,12 @@ class ChatService {
   async getChatHistory(conversationId?: number): Promise<ChatConversation[]> {
     try {
       const endpoint = conversationId 
-        ? `${this.baseURL}/getChatHistory/${conversationId}` 
-        : `${this.baseURL}/getChatHistory`;
+        ? `/getChatHistory/${conversationId}` 
+        : `/getChatHistory`;
         
       const response = await api.get(endpoint);
-      return response.data;
+      // Format the conversations to ensure correct message types
+      return this.formatConversations(response.data);
     } catch (error: any) {
       console.error('Error getting chat history:', error);
       
