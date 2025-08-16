@@ -32,7 +32,7 @@ export default function ChatIA() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const title = "Assistente IA - Quadrinho Rei";
+  const title = "Alfred";
 
   // Verificar autenticação ao carregar
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function ChatIA() {
     try {
       const isAuth = await chatService.checkAuthStatus();
       setIsAuthenticated(isAuth);
-      
+
       if (!isAuth) {
         toast.error("Você precisa estar logado para usar o chat");
         router.push("/login");
@@ -70,7 +70,7 @@ export default function ChatIA() {
     try {
       setIsLoading(true);
       const conversations = await chatService.getChatHistory();
-      
+
       if (conversations.length > 0) {
         const latestConversation = conversations[0];
         setCurrentConversation(latestConversation.id);
@@ -146,7 +146,7 @@ export default function ChatIA() {
       setMessages(prev => {
         // Remover a mensagem temporária do usuário
         const filteredPrev = prev.filter(msg => msg.id !== userMessage.id);
-        
+
         return [
           ...filteredPrev,
           {
@@ -171,10 +171,10 @@ export default function ChatIA() {
 
     } catch (error: any) {
       console.error("Error sending message:", error);
-      
+
       // Remover mensagem temporária e mostrar erro
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
-      
+
       // Adicionar mensagem de erro
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
@@ -184,7 +184,7 @@ export default function ChatIA() {
         isError: true,
         createdAt: new Date().toISOString()
       };
-      
+
       setMessages(prev => [...prev, errorMessage]);
       toast.error(error.message || "Erro ao enviar mensagem");
     } finally {
@@ -257,7 +257,7 @@ export default function ChatIA() {
                 </MessageBubble>
               ))
             )}
-            
+
             {isTyping && (
               <MessageBubble sender="received">
                 <ReceivedMessage>
@@ -267,7 +267,7 @@ export default function ChatIA() {
                 </ReceivedMessage>
               </MessageBubble>
             )}
-            
+
             <div ref={chatEndRef} />
           </ChatArea>
         </Content>

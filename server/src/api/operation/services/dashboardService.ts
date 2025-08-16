@@ -64,7 +64,6 @@ export class DashboardService {
     }
 
     public async getProductCategories(ctx) {
-
         const categories = await strapi.documents('api::product-category.product-category').findMany({
             fields: ['name']
         })
