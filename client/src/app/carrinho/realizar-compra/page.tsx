@@ -31,7 +31,7 @@ import { unformatCurrency } from '@/utils/masks';
 
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, Address } from '@/services/clientService';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { 
   createOrUpdatePurchase,
@@ -45,8 +45,6 @@ export default function RealizarCompra() {
   const { user } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [addresses, setAddresses] = useState<Address[]>([]);
-
   const [isExpanded, setIsExpanded] = useState(false);
   const [totalValue, setTotalValue] = useState(0);
   const [paymentTotal, setPaymentTotal] = useState(0);
@@ -92,19 +90,14 @@ export default function RealizarCompra() {
     },
   });
 
-  // Carrega os dados do usuário e extrai endereços
-  useEffect(() => {
-    if (!user.documentId) return;
-    (async () => {
-      try {
-        const fullUser = await getUser(user.documentId);
-        setAddresses(fullUser.client.addresses);
-        // Compra só será criada quando finalizar, não ao carregar a página
-      } catch (err) {
-        console.error('Erro ao carregar usuário:', err);
-      }
-    })();
-  }, [user.documentId]);
+  // Query para buscar dados do usuário com React Query
+  const { data: userData } = useQuery({
+    queryKey: ['user', user.documentId],
+    queryFn: () => getUser(user.documentId),
+    enabled: !!user.documentId,
+  });
+
+  const addresses = userData?.client?.addresses || [];
 
   // Efeito para calcular o total com frete automaticamente
   useEffect(() => {
@@ -272,7 +265,8 @@ export default function RealizarCompra() {
         <ModalEndereco
         onClose={() => setShowModalEndereco(false)}
         onAddressRefresh={async () => {
-          // Lógica para atualizar a lista de enderecos (caso necessário)
+          // Invalida a query do usuário para recarregar endereços
+          queryClient.invalidateQueries({ queryKey: ['user', user.documentId] });
         }}
         clientDocumentId={clientDocumentId}
       />
@@ -282,7 +276,8 @@ export default function RealizarCompra() {
         <ModalCartao
         onClose={() => setShowModalCartao(false)}
         onCardsRefresh={async () => {
-          // Lógica para atualizar a lista de cartões (caso necessário)
+          // Invalida a query do usuário para recarregar cartões
+          queryClient.invalidateQueries({ queryKey: ['user', user.documentId] });
         }}
         clientDocumentId={clientDocumentId}
       />

@@ -94,7 +94,9 @@ const NewAddressForm: React.FC<NewAddressFormProps> = ({
       });
       toast.success('Novo endereço cadastrado com sucesso!');
       reset();
-      if (onAddressRefresh) onAddressRefresh();
+      if (onAddressRefresh) {
+        await onAddressRefresh();
+      }
     } catch (error) {
       console.error('Erro ao cadastrar novo endereço:', error);
       toast.error('Erro ao cadastrar novo endereço.');

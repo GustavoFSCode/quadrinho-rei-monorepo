@@ -65,7 +65,9 @@ const NewCardForm: React.FC<NewCardFormProps> = ({
       await createCard(clientDocumentId, { card: data });
       toast.success('Novo cartão cadastrado com sucesso!');
       reset();
-      if (onCardsRefresh) onCardsRefresh();
+      if (onCardsRefresh) {
+        await onCardsRefresh();
+      }
     } catch (error) {
       console.error('Erro ao cadastrar novo cartão:', error);
       toast.error('Erro ao cadastrar novo cartão.');

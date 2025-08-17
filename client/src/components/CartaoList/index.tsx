@@ -16,6 +16,7 @@ import { currencyMask, unformatCurrency } from '@/utils/masks';
 import ToggleButton from '@/components/Button/ToggleButton';
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, Card as CardData } from '@/services/clientService';
+import { useQuery } from '@tanstack/react-query';
 
 interface CartaoListProps {
   onTotalChange?: (total: number) => void;
@@ -29,31 +30,18 @@ const CartaoList: React.FC<CartaoListProps> = ({
   onSelectionChange,
 }) => {
   const { user } = useAuth();
-  const [userCards, setUserCards] = useState<CardData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [cardValues, setCardValues] = useState<Record<number, string>>({});
 
-  // Carregar cartões do usuário
-  useEffect(() => {
-    if (!user.documentId) return;
-    
-    const loadUserCards = async () => {
-      try {
-        setIsLoading(true);
-        const fullUser = await getUser(user.documentId);
-        setUserCards(fullUser.client.cards || []);
-      } catch (error) {
-        console.error('Erro ao carregar cartões:', error);
-        setUserCards([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Query para buscar dados do usuário com React Query
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['user', user.documentId],
+    queryFn: () => getUser(user.documentId),
+    enabled: !!user.documentId,
+  });
 
-    loadUserCards();
-  }, [user.documentId]);
+  const userCards = userData?.client?.cards || [];
 
   const handleCheckboxChange = (id: number) => {
     if (selectedCards.includes(id)) {
