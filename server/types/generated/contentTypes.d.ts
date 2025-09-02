@@ -481,6 +481,46 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAuditLogAuditLog extends Struct.CollectionTypeSchema {
+  collectionName: 'audit_logs';
+  info: {
+    description: 'Sistema de auditoria para rastrear todas as opera\u00E7\u00F5es de escrita';
+    displayName: 'Audit Log';
+    pluralName: 'audit-logs';
+    singularName: 'audit-log';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    changedFields: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    entityId: Schema.Attribute.String & Schema.Attribute.Required;
+    entityName: Schema.Attribute.String & Schema.Attribute.Required;
+    ipAddress: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::audit-log.audit-log'
+    > &
+      Schema.Attribute.Private;
+    newData: Schema.Attribute.JSON;
+    oldData: Schema.Attribute.JSON;
+    operation: Schema.Attribute.Enumeration<['CREATE', 'UPDATE', 'DELETE']> &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    timestamp: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userAgent: Schema.Attribute.Text;
+    userEmail: Schema.Attribute.String;
+    userId: Schema.Attribute.Integer;
+  };
+}
+
 export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   collectionName: 'authors';
   info: {
@@ -1026,6 +1066,7 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
   };
   attributes: {
     addresses: Schema.Attribute.Relation<'oneToMany', 'api::address.address'>;
+    cardPaymentData: Schema.Attribute.Text;
     cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'>;
     cartOrders: Schema.Attribute.Relation<
       'oneToMany',
@@ -1037,6 +1078,9 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     date: Schema.Attribute.Date;
+    fretePrazo: Schema.Attribute.Integer;
+    freteRegiao: Schema.Attribute.String;
+    freteValue: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1048,7 +1092,16 @@ export interface ApiPurchasePurchase extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::purchase-sales-status.purchase-sales-status'
     >;
-    purchaseStatus: Schema.Attribute.Enumeration<['Pendente', 'Finalizado']>;
+    purchaseStatus: Schema.Attribute.Enumeration<
+      [
+        'EM_PROCESSAMENTO',
+        'APROVADA',
+        'REPROVADA',
+        'EM_TRANSITO',
+        'ENTREGUE',
+        'CANCELADA',
+      ]
+    >;
     totalValue: Schema.Attribute.Decimal;
     trade: Schema.Attribute.Relation<'manyToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
@@ -1636,6 +1689,7 @@ declare module '@strapi/strapi' {
       'api::about.about': ApiAboutAbout;
       'api::address.address': ApiAddressAddress;
       'api::article.article': ApiArticleArticle;
+      'api::audit-log.audit-log': ApiAuditLogAuditLog;
       'api::author.author': ApiAuthorAuthor;
       'api::card-order.card-order': ApiCardOrderCardOrder;
       'api::card.card': ApiCardCard;

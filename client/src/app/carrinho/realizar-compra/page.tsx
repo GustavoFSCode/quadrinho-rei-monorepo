@@ -147,8 +147,33 @@ export default function RealizarCompra() {
       // Criar a compra antes de finalizar
       await createPurchaseMutation.mutateAsync();
       
-      // Aqui você pode implementar as chamadas para insertAddresses e insertCards
-      // Por enquanto, vou assumir que o backend já associa automaticamente
+      // Inserir endereços selecionados
+      const addressesToConnect = [];
+      if (selectedDeliveryAddress) addressesToConnect.push(selectedDeliveryAddress);
+      if (selectedBillingAddress) addressesToConnect.push(selectedBillingAddress);
+      
+      if (addressesToConnect.length > 0) {
+        await insertAddresses(addressesToConnect);
+      }
+      
+      // Inserir cartões selecionados com valores
+      const cardsToConnect = selectedCards.map(cardId => {
+        // Encontrar o cartão pelos dados do usuário
+        const card = userData?.client?.cards?.find(c => c.id === cardId);
+        const cardValue = unformatCurrency(cardValues[cardId] || '0');
+        
+        if (card?.documentId) {
+          return {
+            cardId: card.documentId,
+            value: cardValue
+          };
+        }
+        return null;
+      }).filter((card): card is { cardId: string; value: number } => card !== null);
+      
+      if (cardsToConnect.length > 0) {
+        await insertCards(cardsToConnect);
+      }
       
       finalizePurchaseMutation.mutate();
     } catch (error) {

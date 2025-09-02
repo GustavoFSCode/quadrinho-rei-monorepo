@@ -1,5 +1,6 @@
 const utils = require('@strapi/utils');
 const { ApplicationError } = utils.errors;
+import { StockService } from './stockService';
 export class TradeService {
     public async getTrades(ctx) {
         const query = ctx.request.query;
@@ -103,9 +104,24 @@ export class TradeService {
         const coupons = await strapi.documents('api::coupon.coupon').findMany({})
         const trade = await strapi.documents('api::trade.trade').findOne({
             documentId: tradeId,
-        })
+            populate: {
+                cartOrder: {
+                    populate: {
+                        product: {
+                            fields: ['title', 'stock']
+                        }
+                    }
+                },
+                coupon: {}
+            }
+        }) as any;
 
         if (!tradeId || !trade) throw new ApplicationError("Erro ao encontrar troca");
+
+        // Verificar se já foi gerado cupom para evitar duplicação
+        if (trade.coupon) {
+            throw new ApplicationError("Cupom já foi gerado para esta troca");
+        }
 
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -143,10 +159,32 @@ export class TradeService {
             }
         })
 
-        return {
-            data: {
-                coupon: newCoupon,
-                message: "Cupom criado com sucesso!"
+        // RF0054 - Reentrada de estoque quando troca é confirmada (cupom gerado)
+        try {
+            const stockService = new StockService();
+            const stockResult = await stockService.reentradaEstoquePorTroca(trade.id.toString());
+            
+            console.log(`[TRADE] Reentrada de estoque realizada para troca ${tradeId}:`, stockResult);
+            
+            return {
+                data: {
+                    coupon: newCoupon,
+                    stockUpdate: stockResult,
+                    message: "Cupom criado com sucesso e estoque atualizado!"
+                }
+            }
+        } catch (stockError) {
+            console.error(`[ERROR] Falha na reentrada de estoque para troca ${tradeId}:`, stockError);
+            
+            // Cupom já foi criado, mas falhou a reentrada de estoque
+            // Vamos reverter o cupom ou apenas registrar o erro?
+            // Por segurança, vou apenas logar o erro e continuar
+            return {
+                data: {
+                    coupon: newCoupon,
+                    stockError: stockError.message,
+                    message: "Cupom criado com sucesso, mas houve erro na reentrada de estoque. Verifique manualmente."
+                }
             }
         }
     }

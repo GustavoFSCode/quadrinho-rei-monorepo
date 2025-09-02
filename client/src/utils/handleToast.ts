@@ -39,6 +39,7 @@ const errorTranslations: Record<string, string> = {
     'Muitas requisições, por favor tente novamente mais tarde',
   'The provided current password is invalid': 'Senha antiga incorreta',
   'Username already taken': 'E-mail já esta sendo utilizado',
+  'Your account has been blocked by an administrator': 'Sua conta foi bloqueada por um administrador',
 };
 
 export const getErrorMessage = (err: any): string => {

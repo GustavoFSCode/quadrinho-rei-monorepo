@@ -1,6 +1,8 @@
 const utils = require('@strapi/utils')
 const { ApplicationError } = utils.errors;
 import { getBrazilDate } from '../../../utils/dateUtils';
+import { StockService } from './stockService';
+import { PaymentValidationService } from './paymentValidationService';
 
 export class PurchaseService {
 
@@ -31,7 +33,7 @@ export class PurchaseService {
             }
         })
 
-        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO')[0];
 
         const totalOriginal = pendentPurchase?.cartOrders?.reduce((acc, order) => acc + order.totalValue, 0) || 0;
         const totalCoupons = pendentPurchase?.coupons?.reduce((acc, coupon) => acc + coupon.price, 0) || 0;
@@ -69,7 +71,7 @@ export class PurchaseService {
 
         const totalValue = user?.client?.cart?.cartOrders.reduce((acc, order) => acc + order.totalValue, 0) || 0;
 
-        const pendentPurchase = user?.client?.purchases.find(purchase => purchase?.purchaseStatus === 'Pendente');
+        const pendentPurchase = user?.client?.purchases.find(purchase => purchase?.purchaseStatus === 'EM_PROCESSAMENTO');
 
         const purchaseSalesStatus = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
             filters: {
@@ -101,7 +103,7 @@ export class PurchaseService {
                     cartOrders: {
                         connect: cartOrders.length > 0 ? cartOrders : []
                     },
-                    purchaseStatus: "Pendente",
+                    purchaseStatus: "EM_PROCESSAMENTO",
                     purchaseSalesStatus: purchaseSalesStatus[0].documentId,
                     createdAt: getBrazilDate(),
                     publishedAt: getBrazilDate()
@@ -174,7 +176,7 @@ export class PurchaseService {
 
         const totalValue = user?.client?.cart?.cartOrders.reduce((acc, order) => acc + order.totalValue, 0) || 0
 
-        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO')[0];
 
         if (!pendentPurchase) throw new ApplicationError("Erro ao encontrar compra");
 
@@ -203,6 +205,8 @@ export class PurchaseService {
         const me = ctx.state.user.documentId
         const body = ctx.request.body
 
+        console.log('[PURCHASE] Inserindo cartões:', JSON.stringify(body.cards, null, 2));
+
         const user = await strapi.documents('plugin::users-permissions.user').findOne({
             documentId: me,
             populate: {
@@ -211,7 +215,9 @@ export class PurchaseService {
                         cart: {
                             populate: { cartOrders: {} }
                         },
-                        purchases: {}
+                        purchases: {
+                            sort: 'updatedAt:desc'
+                        }
                     }
                 }
             }
@@ -219,16 +225,70 @@ export class PurchaseService {
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
 
-        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO')[0];
 
-        await strapi.documents('api::purchase.purchase').update({
+        if (!pendentPurchase) {
+            throw new ApplicationError("Nenhuma compra em processamento encontrada");
+        }
+
+        console.log('[PURCHASE] ID da compra para inserir cartões:', pendentPurchase.documentId);
+
+        // Processar cartões com valores
+        let cardsToConnect = [];
+        let cardPaymentData = [];
+        
+        if (Array.isArray(body.cards)) {
+            body.cards.forEach(card => {
+                if (typeof card === 'string') {
+                    // Formato antigo - apenas documentId
+                    cardsToConnect.push(card);
+                } else if (card.cardId && typeof card.value === 'number') {
+                    // Novo formato - cartão com valor
+                    cardsToConnect.push(card.cardId);
+                    cardPaymentData.push({
+                        cardId: card.cardId,
+                        value: card.value
+                    });
+                } else if (card.documentId) {
+                    // Formato de objeto com documentId
+                    cardsToConnect.push(card.documentId);
+                }
+            });
+        } else if (typeof body.cards === 'string') {
+            // Cartão único como string
+            cardsToConnect = [body.cards];
+        } else if (body.cards.cardId) {
+            // Cartão único com valor
+            cardsToConnect = [body.cards.cardId];
+            cardPaymentData.push({
+                cardId: body.cards.cardId,
+                value: body.cards.value
+            });
+        }
+        
+        console.log('[PURCHASE] Cartões para conectar:', cardsToConnect);
+        console.log('[PURCHASE] Dados de pagamento:', cardPaymentData);
+
+        const updatedPurchase = await strapi.documents('api::purchase.purchase').update({
             documentId: pendentPurchase.documentId,
             data: {
                 cards: {
-                    connect: [body.cards]
-                }
+                    connect: cardsToConnect
+                },
+                // Armazenar dados de pagamento como metadata se necessário
+                ...(cardPaymentData.length > 0 && { cardPaymentData: JSON.stringify(cardPaymentData) })
             }
         })
+
+        console.log('[PURCHASE] Cartões conectados. Resultado:', JSON.stringify(updatedPurchase, null, 2));
+
+        // Verificar se os cartões foram realmente conectados
+        const purchaseCheck = await strapi.documents('api::purchase.purchase').findOne({
+            documentId: pendentPurchase.documentId,
+            populate: { cards: true }
+        });
+        
+        console.log('[PURCHASE] Verificação pós-inserção:', JSON.stringify(purchaseCheck.cards, null, 2));
 
         return "Cartões inseridos com sucesso!"
     }
@@ -242,7 +302,10 @@ export class PurchaseService {
             populate: {
                 client: {
                     populate: {
-                        purchases: { populate: { addresses: {} } }
+                        purchases: { 
+                            populate: { addresses: {} },
+                            sort: 'updatedAt:desc'
+                        }
                     }
                 }
             }
@@ -250,7 +313,7 @@ export class PurchaseService {
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
 
-        const pendentPurchase = user?.client?.purchases.filter(async (purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO')[0];
 
         await strapi.documents('api::purchase.purchase').update({
             documentId: pendentPurchase.documentId,
@@ -275,7 +338,9 @@ export class PurchaseService {
                         cart: {
                             populate: { cartOrders: {} }
                         },
-                        purchases: {}
+                        purchases: {
+                            sort: 'updatedAt:desc'
+                        }
                     }
                 }
             }
@@ -283,7 +348,41 @@ export class PurchaseService {
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
 
-        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'Pendente')[0];
+        const pendentPurchase = user?.client?.purchases.filter((purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO')[0];
+        
+        if (!pendentPurchase) {
+            throw new ApplicationError("Nenhuma compra em processamento encontrada");
+        }
+
+        console.log('[PURCHASE] ID da compra para finalizar:', pendentPurchase.documentId);
+
+        // Buscar produtos da compra para validar estoque
+        const purchaseWithProducts = await strapi.documents('api::purchase.purchase').findOne({
+            documentId: pendentPurchase.documentId,
+            populate: {
+                cartOrders: {
+                    populate: {
+                        product: true
+                    }
+                }
+            }
+        });
+
+        // Validar estoque antes de finalizar
+        const stockService = new StockService();
+        const validacaoEstoque = await stockService.validarEstoqueCarrinho(purchaseWithProducts.cartOrders);
+        
+        if (!validacaoEstoque.valido) {
+            throw new ApplicationError("Erro de estoque: " + validacaoEstoque.erros.join('; '));
+        }
+
+        // RN0033-RN0036 - Validar pagamento (cupons e cartões)
+        const paymentValidationService = new PaymentValidationService();
+        const paymentValidation = await paymentValidationService.applyPaymentValidation(pendentPurchase.documentId);
+        
+        if (!paymentValidation.success) {
+            throw new ApplicationError("Erro de validação de pagamento: " + paymentValidation.validation.errors.join('; '));
+        }
 
         const paymentStatus = await strapi.documents('api::purchase-sales-status.purchase-sales-status').findMany({
             filters: {
@@ -296,7 +395,7 @@ export class PurchaseService {
         const purchaseUpdate = await strapi.documents('api::purchase.purchase').update({
             documentId: pendentPurchase.documentId,
             data: {
-                purchaseStatus: "Finalizado",
+                purchaseStatus: "APROVADA",
                 purchaseSalesStatus: paymentStatus[0].documentId,
                 date: getBrazilDate()
             },
@@ -309,28 +408,14 @@ export class PurchaseService {
             }
         })
 
+        // Produtos já tiveram estoque baixado ao serem adicionados no carrinho
+        // Na finalização apenas limpamos o carrinho - estoque já está correto
         await strapi.documents('api::cart.cart').update({
             documentId: user.client.cart.documentId,
             data: {
                 cartOrders: { set: [] }
             }
         })
-
-        for (const order of purchaseUpdate.cartOrders) {
-            const findProduct = await strapi.documents('api::product.product').findOne({
-                documentId: order.product.documentId
-            })
-
-            const reduceQuantity = findProduct.stock - order.quantity > 0 ? findProduct.stock - order.quantity : 0
-
-            await strapi.documents('api::product.product').update({
-                documentId: order.product.documentId,
-                data: {
-                    stock: reduceQuantity,
-                    updatedAt: new Date()
-                }
-            })
-        }
 
         if (!purchaseUpdate?.coupons || purchaseUpdate.coupons.length === 0) {
             return {

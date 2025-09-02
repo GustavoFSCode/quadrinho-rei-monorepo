@@ -6,63 +6,78 @@ export class MyPurchase {
         const me = ctx.state.user.documentId;
         const query = ctx.request.query;
 
-        const user = await strapi.documents('plugin::users-permissions.user').findOne({
-            documentId: me,
-            populate: {
-                client: {
-                    populate: {
-                        purchases: {
-                            filters: {
-                                purchaseStatus: { $eq: 'Finalizado' }  // Só buscar compras realmente finalizadas
-                            },
-                            populate: {
-                                cartOrders: {
-                                    populate: {
-                                        product: {
-                                            fields: ['title']
-                                        }
-                                    }
-                                },
-                                purchaseSalesStatus: {}
+        try {
+            // Buscar cliente do usuário primeiro
+            const user = await strapi.documents('plugin::users-permissions.user').findOne({
+                documentId: me,
+                populate: {
+                    client: true
+                }
+            }) as any;
+
+            if (!user || !user.client) {
+                console.log('User or client not found:', { user: !!user, client: !!user?.client });
+                return [];
+            }
+
+            // Buscar compras do cliente diretamente
+            const purchases = await strapi.entityService.findMany('api::purchase.purchase', {
+                filters: {
+                    client: {
+                        id: user.client.id
+                    },
+                    purchaseStatus: { 
+                        $in: ['APROVADA', 'EM_TRANSITO', 'ENTREGUE']  // Buscar compras com status válidos
+                    }
+                },
+                populate: {
+                    cartOrders: {
+                        populate: {
+                            product: {
+                                fields: ['title']
                             }
                         }
+                    },
+                    purchaseSalesStatus: {
+                        fields: ['name']
                     }
-                }
-            },
-        })
+                },
+                sort: { createdAt: 'desc' }
+            });
 
-        try {
-            const purchases = user?.client?.purchases.map((purchase) => {
+            console.log(`Found ${purchases.length} purchases for client ${user.client.documentId || user.client.id}`);
+            
+            const formattedPurchases = purchases.map((purchase: any) => {
                 return {
                     id: purchase.id,
                     documentId: purchase.documentId,
                     date: purchase?.date,
+                    purchaseStatus: purchase?.purchaseStatus,
                     status: purchase?.purchaseSalesStatus,
-                    orders: purchase?.cartOrders.map((order) => {
+                    orders: purchase?.cartOrders ? purchase.cartOrders.map((order) => {
                         return {
                             ...order,
-                            availableRefundQuantity: order?.quantity - order?.quantityRefund
+                            availableRefundQuantity: (order?.quantity || 0) - (order?.quantityRefund || 0)
                         }
-                    }),
+                    }) : [],
                     canRefund: purchase?.purchaseSalesStatus?.name === "Entregue" ? true : false
-
                 }
-            })
+            });
             if (query.page && query.pageSize) {
                 return {
                     data: {
-                        purchases: purchases,
+                        purchases: formattedPurchases,
                         pagination: {
                             page: query.page || 1,
                             pageSize: query.pageSize || 10,
-                            totalOrders: purchases.length,
-                            totalPages: Math.ceil(purchases.length / (query.pageSize || 10)),
+                            totalOrders: formattedPurchases.length,
+                            totalPages: Math.ceil(formattedPurchases.length / (query.pageSize || 10)),
                         }
                     }
                 };
             }
 
-            return purchases;
+            return formattedPurchases;
 
         } catch (e) {
             console.log(e);

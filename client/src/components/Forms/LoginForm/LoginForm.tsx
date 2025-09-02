@@ -65,6 +65,7 @@ const LoginForm = () => {
       toast.success('Login realizado com sucesso!');
       router.push('/home');
     } catch (error) {
+
       handleError(error);
     } finally {
       setIsSubmitting(false);

@@ -94,7 +94,7 @@ export async function insertCoupon(coupon: string): Promise<ApiMessageResponse> 
 }
 
 // Inserir cartões na compra
-export async function insertCards(cards: string[]): Promise<ApiMessageResponse> {
+export async function insertCards(cards: string[] | Array<{cardId: string, value: number}>): Promise<ApiMessageResponse> {
   try {
     const { data } = await api.post<ApiMessageResponse>('/insertCards', {
       cards

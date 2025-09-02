@@ -44,11 +44,25 @@
     "totalValue": {
       "type": "decimal"
     },
+    "freteValue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "fretePrazo": {
+      "type": "integer"
+    },
+    "freteRegiao": {
+      "type": "string"
+    },
     "purchaseStatus": {
       "type": "enumeration",
       "enum": [
-        "Pendente",
-        "Finalizado"
+        "EM_PROCESSAMENTO",
+        "APROVADA", 
+        "REPROVADA",
+        "EM_TRANSITO",
+        "ENTREGUE",
+        "CANCELADA"
       ]
     },
     "purchaseSalesStatus": {
@@ -65,6 +79,10 @@
     },
     "date": {
       "type": "date"
+    },
+    "cardPaymentData": {
+      "type": "text",
+      "required": false
     }
   }
 }

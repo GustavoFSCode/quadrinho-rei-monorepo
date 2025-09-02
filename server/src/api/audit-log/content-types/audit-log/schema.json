@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "audit_logs",
+  "info": {
+    "singularName": "audit-log",
+    "pluralName": "audit-logs",
+    "displayName": "Audit Log",
+    "description": "Sistema de auditoria para rastrear todas as operações de escrita"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "operation": {
+      "type": "enumeration",
+      "enum": [
+        "CREATE",
+        "UPDATE", 
+        "DELETE"
+      ],
+      "required": true
+    },
+    "entityName": {
+      "type": "string",
+      "required": true
+    },
+    "entityId": {
+      "type": "string",
+      "required": true
+    },
+    "userId": {
+      "type": "integer"
+    },
+    "userEmail": {
+      "type": "string"
+    },
+    "oldData": {
+      "type": "json"
+    },
+    "newData": {
+      "type": "json"
+    },
+    "changedFields": {
+      "type": "json"
+    },
+    "timestamp": {
+      "type": "datetime",
+      "required": true
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "userAgent": {
+      "type": "text"
+    }
+  }
+}

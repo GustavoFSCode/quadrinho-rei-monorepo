@@ -120,6 +120,11 @@ export default {
       path: "/removeOrder/:orderId",
       handler: "operation.removeOrder",
     },
+    {
+      method: "POST",
+      path: "/consolidateDuplicateProducts",
+      handler: "operation.consolidateDuplicateProducts",
+    },
 
     /* Purchases */
     {
