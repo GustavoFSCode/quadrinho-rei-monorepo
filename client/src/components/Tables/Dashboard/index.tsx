@@ -1,12 +1,13 @@
 // src/components/Tables/Dashboard/index.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
@@ -23,7 +24,8 @@ import { getDashboardSales, getDashboardCategories, DashboardFilters } from '@/s
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
@@ -130,10 +132,14 @@ const Tabela: React.FC = () => {
       {
         label: 'Quantidade de Vendas',
         data: salesData?.map(item => item.totalValue) || [],
-        backgroundColor: 'rgba(147, 51, 234, 0.8)',
+        backgroundColor: 'rgba(147, 51, 234, 0.2)',
         borderColor: 'rgba(147, 51, 234, 1)',
-        borderWidth: 2,
-        borderRadius: 8,
+        borderWidth: 3,
+        pointBackgroundColor: 'rgba(147, 51, 234, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        fill: true,
       },
     ],
   };
@@ -142,7 +148,7 @@ const Tabela: React.FC = () => {
   const totalSales = salesData?.reduce((acc, item) => acc + item.totalValue, 0) || 0;
   const averagePerMonth = salesData?.length ? totalSales / salesData.length : 0;
 
-  const options: ChartOptions<'bar'> = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -286,7 +292,7 @@ const Tabela: React.FC = () => {
       {/* Gráfico */}
       {!salesLoading && (
         <ChartBox>
-          <Bar data={chartData} options={options} />
+          <Line data={chartData} options={options} />
         </ChartBox>
       )}
 
