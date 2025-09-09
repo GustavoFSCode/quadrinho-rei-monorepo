@@ -88,10 +88,18 @@ const getPeriodDates = (period: string): { date1: string; date2: string } | null
 
 const Tabela: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('last30days');
-  const [customStartDate, setCustomStartDate] = useState<string>('');
-  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [filters, setFilters] = useState<DashboardFilters>({});
+
+  // Inicializar com últimos 30 dias
+  useEffect(() => {
+    const periodDates = getPeriodDates('last30days');
+    if (periodDates) {
+      setStartDate(periodDates.date1);
+      setEndDate(periodDates.date2);
+    }
+  }, []);
 
   // Buscar categorias disponíveis
   const { data: categories, isLoading: categoriesLoading } = useQuery({
@@ -106,25 +114,32 @@ const Tabela: React.FC = () => {
     enabled: true,
   });
 
-  // Atualizar filtros quando período ou categoria mudar
+  // Atualizar filtros quando datas ou categoria mudar
   useEffect(() => {
-    const periodDates = selectedPeriod === 'custom' 
-      ? { date1: customStartDate, date2: customEndDate }
-      : getPeriodDates(selectedPeriod);
-    
-    const newFilters: DashboardFilters = {
-      category: selectedCategory || undefined,
-      ...periodDates,
-    };
-    
-    setFilters(newFilters);
-  }, [selectedCategory, selectedPeriod, customStartDate, customEndDate]);
+    if (startDate && endDate) {
+      const newFilters: DashboardFilters = {
+        category: selectedCategory || undefined,
+        date1: startDate,
+        date2: endDate,
+      };
+      setFilters(newFilters);
+    }
+  }, [selectedCategory, startDate, endDate]);
+
+  // Função para aplicar período predefinido
+  const applyPeriod = (period: string) => {
+    const periodDates = getPeriodDates(period);
+    if (periodDates) {
+      setStartDate(periodDates.date1);
+      setEndDate(periodDates.date2);
+    }
+  };
 
   // Preparar dados para o gráfico
   const chartData = {
     labels: salesData?.map(item => {
       const [year, month] = item.yearMonth.split('-');
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                          'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       return `${monthNames[parseInt(month) - 1]} ${year}`;
     }) || [],
@@ -152,37 +167,37 @@ const Tabela: React.FC = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
+      legend: {
         position: 'top',
         labels: {
           font: { size: 14, weight: 'bold' }
         }
       },
-      title: { 
-        display: true, 
-        text: selectedCategory 
+      title: {
+        display: true,
+        text: selectedCategory
           ? `Vendas por Período - ${categories?.find(c => c.documentId === selectedCategory)?.name || 'Categoria Selecionada'}`
           : 'Vendas por Período - Todas as Categorias',
         font: { size: 18, weight: 'bold' }
       },
-      datalabels: { 
-        anchor: 'end', 
+      datalabels: {
+        anchor: 'end',
         align: 'end',
         font: { weight: 'bold' }
       },
     },
     scales: {
-      x: { 
-        title: { 
-          display: true, 
+      x: {
+        title: {
+          display: true,
           text: 'Período',
           font: { size: 14, weight: 'bold' }
         },
         grid: { display: false }
       },
       y: {
-        title: { 
-          display: true, 
+        title: {
+          display: true,
           text: 'Quantidade de Vendas',
           font: { size: 14, weight: 'bold' }
         },
@@ -242,37 +257,22 @@ const Tabela: React.FC = () => {
           </FilterGroup>
 
           <FilterGroup>
-            <FilterLabel>Período:</FilterLabel>
-            <CustomSelect
-              name="period"
-              options={periodOptions}
-              value={selectedPeriod}
-              placeholder="Selecione o período"
-              width="200px"
-              onChange={opt => setSelectedPeriod(opt?.value || 'last30days')}
+            <FilterLabel>Data início:</FilterLabel>
+            <DateInput
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
             />
           </FilterGroup>
 
-          {selectedPeriod === 'custom' && (
-            <>
-              <FilterGroup>
-                <FilterLabel>Data início:</FilterLabel>
-                <DateInput
-                  type="date"
-                  value={customStartDate}
-                  onChange={e => setCustomStartDate(e.target.value)}
-                />
-              </FilterGroup>
-              <FilterGroup>
-                <FilterLabel>Data fim:</FilterLabel>
-                <DateInput
-                  type="date"
-                  value={customEndDate}
-                  onChange={e => setCustomEndDate(e.target.value)}
-                />
-              </FilterGroup>
-            </>
-          )}
+          <FilterGroup>
+            <FilterLabel>Data fim:</FilterLabel>
+            <DateInput
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+            />
+          </FilterGroup>
 
           <Button
             text="Atualizar"
@@ -423,14 +423,48 @@ const NoDataMessage = styled.div`
   text-align: center;
   padding: 40px;
   color: #6b7280;
-  
+
   p {
     margin: 8px 0;
     font-size: 16px;
-    
+
     &:first-child {
       font-weight: 600;
       color: #374151;
     }
+  }
+`;
+
+const QuickPeriodRow = styled(Flex)`
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+`;
+
+const QuickPeriodLabel = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-right: 8px;
+`;
+
+const QuickPeriodButton = styled.button`
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    border-color: #7c3aed;
+    color: #7c3aed;
+  }
+
+  &:active {
+    background: rgba(124, 58, 237, 0.1);
   }
 `;
