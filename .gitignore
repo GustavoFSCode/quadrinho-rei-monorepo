@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+CLAUDE.MD
 .yarn/install-state.gz
 
 # testing
