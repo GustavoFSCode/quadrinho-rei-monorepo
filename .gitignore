@@ -4,7 +4,12 @@
 /node_modules
 /.pnp
 .pnp.js
+# Claude Code files
+CLAUDE.md
 CLAUDE.MD
+.claude/
+claude-*
+*claude*
 .yarn/install-state.gz
 
 # testing
