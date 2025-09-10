@@ -9,6 +9,13 @@
 # testing
 /coverage
 
+# Claude Code files
+CLAUDE.md
+CLAUDE.MD
+.claude/
+claude-*
+*claude*
+
 # next.js
 /.next/
 /out/

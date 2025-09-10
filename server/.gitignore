@@ -118,6 +118,16 @@ yarn-error.log
 coverage
 
 ############################
+# Claude Code files
+############################
+
+CLAUDE.md
+CLAUDE.MD
+.claude/
+claude-*
+*claude*
+
+############################
 # Strapi
 ############################
 
