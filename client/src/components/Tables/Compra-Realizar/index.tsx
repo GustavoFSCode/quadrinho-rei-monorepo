@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   TableContainer,
   Table,
@@ -10,18 +10,37 @@ import {
   TableBodyCell,
 } from './styled';
 import { Flex } from '@/styles/global';
-import { getPurchase, CartOrder, Coupon } from '@/services/checkoutService';
+import { getPurchase, CartOrder, Coupon, removeCoupon } from '@/services/checkoutService';
+import Button from '@/components/Button';
+import { toast } from 'react-toastify';
 
 interface TabelaProps {
   onTotalChange: (total: number) => void;
 }
 
 const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
+  const queryClient = useQueryClient();
+
   const { data: purchase, isLoading, error } = useQuery({
     queryKey: ['purchase'],
     queryFn: getPurchase,
     retry: 1,
   });
+
+  const removeCouponMutation = useMutation({
+    mutationFn: (couponDocumentId: string) => removeCoupon(couponDocumentId),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Cupom removido com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['purchase'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erro ao remover cupom');
+    },
+  });
+
+  const handleRemoveCoupon = (couponDocumentId: string) => {
+    removeCouponMutation.mutate(couponDocumentId);
+  };
 
   useEffect(() => {
     if (purchase) {
@@ -75,7 +94,7 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
               <TableRow key={order.id}>
                 <TableBodyCell productTitle>{order.product?.title || 'N/A'}</TableBodyCell>
                 <TableBodyCell>
-                  {order.totalValue && order.quantity ? 
+                  {order.totalValue && order.quantity ?
                     (order.totalValue / order.quantity).toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -93,7 +112,7 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       {purchase.coupons && purchase.coupons.length > 0 && (
         <div style={{ marginTop: '20px' }}>
           <h3>Cupons Aplicados</h3>
@@ -103,6 +122,7 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
                 <TableRow>
                   <TableHeadCell>Código do Cupom</TableHeadCell>
                   <TableHeadCell>Desconto</TableHeadCell>
+                  <TableHeadCell center>Ações</TableHeadCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -114,6 +134,17 @@ const Tabela: React.FC<TabelaProps> = ({ onTotalChange }) => {
                         style: 'currency',
                         currency: 'BRL',
                       })}
+                    </TableBodyCell>
+                    <TableBodyCell center>
+                      <Button
+                        text={removeCouponMutation.isPending ? 'Removendo...' : 'Remover Cupom'}
+                        type="button"
+                        variant="red"
+                        width="150px"
+                        height="35px"
+                        onClick={() => handleRemoveCoupon(coupon.documentId)}
+                        disabled={removeCouponMutation.isPending}
+                      />
                     </TableBodyCell>
                   </TableRow>
                 ))}

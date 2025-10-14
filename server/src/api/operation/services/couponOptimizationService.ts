@@ -74,7 +74,12 @@ export class CouponOptimizationService {
         }
 
         // Validar status
-        if (couponData.couponStatus !== 'NaoUsado') {
+        // Cupons com status "EmUso" são válidos pois já foram aplicados à compra atual
+        // Rejeitar apenas cupons com status "Usado" (já utilizados em compras finalizadas)
+        const isValidStatus = couponData.couponStatus === 'NaoUsado' ||
+                              couponData.couponStatus === 'EmUso';
+
+        if (!isValidStatus) {
           console.warn(`[COUPON_OPT] Cupom inválido: ${couponData.code} - Status: ${couponData.couponStatus}`);
           continue;
         }
@@ -111,7 +116,9 @@ export class CouponOptimizationService {
     const troca: CouponData[] = [];
 
     for (const coupon of coupons) {
-      if (coupon.couponType === 'Promocional' || !coupon.tradeOrigin) {
+      // Apenas cupons explicitamente marcados como "Promocional" são promocionais
+      // Todos os outros (Troca, Troco, null) são cupons de troca/desconto
+      if (coupon.couponType === 'Promocional') {
         promocionais.push(coupon);
       } else {
         troca.push(coupon);
@@ -233,8 +240,8 @@ export class CouponOptimizationService {
         if (mask & (1 << i)) {
           combination.push(coupons[i]);
           totalValue += coupons[i].price;
-          
-          if (coupons[i].couponType === 'Promocional' || !coupons[i].tradeOrigin) {
+
+          if (coupons[i].couponType === 'Promocional') {
             promocionalCount++;
           }
         }
@@ -285,14 +292,14 @@ export class CouponOptimizationService {
 
     for (const coupon of coupons) {
       // Verificar regra de cupom promocional
-      const isPromocional = coupon.couponType === 'Promocional' || !coupon.tradeOrigin;
+      const isPromocional = coupon.couponType === 'Promocional';
       if (isPromocional && promocionalUsed) continue;
 
       // Se o cupom cabe no valor restante
       if (coupon.price <= remainingAmount) {
         selectedCoupons.push(coupon);
         remainingAmount -= coupon.price;
-        
+
         if (isPromocional) {
           promocionalUsed = true;
         }

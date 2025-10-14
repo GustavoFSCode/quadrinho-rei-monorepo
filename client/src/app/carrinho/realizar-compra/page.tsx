@@ -81,7 +81,8 @@ export default function RealizarCompra() {
   });
 
   const createPurchaseMutation = useMutation({
-    mutationFn: createOrUpdatePurchase,
+    mutationFn: ({ freteValue, freteRegiao }: { freteValue?: number; freteRegiao?: string }) =>
+      createOrUpdatePurchase(freteValue, freteRegiao),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchase'] });
     },
@@ -144,9 +145,12 @@ export default function RealizarCompra() {
     }
 
     try {
-      // Criar a compra antes de finalizar
-      await createPurchaseMutation.mutateAsync();
-      
+      // Criar a compra antes de finalizar, passando o valor do frete
+      await createPurchaseMutation.mutateAsync({
+        freteValue: selectedDeliveryAddress ? FRETE_VALOR : 0,
+        freteRegiao: selectedDeliveryAddress ? 'São Paulo' : undefined
+      });
+
       // Inserir endereços selecionados
       const addressesToConnect = [];
       if (selectedDeliveryAddress) addressesToConnect.push(selectedDeliveryAddress);

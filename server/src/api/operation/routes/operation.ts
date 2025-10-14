@@ -144,6 +144,14 @@ export default {
     },
     {
       method: "POST",
+      path: "/removeCoupon",
+      handler: "operation.removeCoupon",
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: "POST",
       path: "/insertCards",
       handler: "operation.insertCards",
     },
@@ -206,10 +214,55 @@ export default {
       handler: "operation.editTradeStatus"
     },
     {
-
       method: "POST",
       path: "/generateCoupon/:tradeId",
       handler: "operation.generateCoupon"
+    },
+    /* Promotional Coupons Management */
+    {
+      method: "POST",
+      path: "/createPromotionalCoupon",
+      handler: "operation.createPromotionalCoupon",
+      config: {
+        policies: [],
+        auth: false,
+      }
+    },
+    {
+      method: "GET",
+      path: "/getPromotionalCoupons",
+      handler: "operation.getPromotionalCoupons",
+      config: {
+        policies: [],
+        auth: false,
+      }
+    },
+    {
+      method: "GET",
+      path: "/getCouponUsages/:code",
+      handler: "operation.getCouponUsages",
+      config: {
+        policies: [],
+        auth: false,
+      }
+    },
+    {
+      method: "PUT",
+      path: "/toggleCouponStatus/:id",
+      handler: "operation.toggleCouponStatus",
+      config: {
+        policies: [],
+        auth: false,
+      }
+    },
+    {
+      method: "DELETE",
+      path: "/deletePromotionalCoupon/:id",
+      handler: "operation.deletePromotionalCoupon",
+      config: {
+        policies: [],
+        auth: false,
+      }
     },
     {
       method: "GET",

@@ -70,9 +70,15 @@ export async function getPurchase(): Promise<Purchase> {
 }
 
 // Criar ou atualizar compra pendente
-export async function createOrUpdatePurchase(): Promise<ApiMessageResponse> {
+export async function createOrUpdatePurchase(
+  freteValue?: number,
+  freteRegiao?: string
+): Promise<ApiMessageResponse> {
   try {
-    const { data } = await api.post<ApiMessageResponse>('/createUpdatePurchase');
+    const { data } = await api.post<ApiMessageResponse>('/createUpdatePurchase', {
+      freteValue,
+      freteRegiao
+    });
     return data;
   } catch (error: any) {
     console.error('Error creating/updating purchase:', error);
@@ -89,6 +95,19 @@ export async function insertCoupon(coupon: string): Promise<ApiMessageResponse> 
     return data;
   } catch (error: any) {
     console.error('Error inserting coupon:', error);
+    throw error;
+  }
+}
+
+// Remover cupom da compra
+export async function removeCoupon(couponDocumentId: string): Promise<ApiMessageResponse> {
+  try {
+    const { data } = await api.post<ApiMessageResponse>('/removeCoupon', {
+      couponDocumentId
+    });
+    return data;
+  } catch (error: any) {
+    console.error('Error removing coupon:', error);
     throw error;
   }
 }

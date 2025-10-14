@@ -17,6 +17,35 @@
     "price": {
       "type": "decimal"
     },
+    "title": {
+      "type": "string"
+    },
+    "usageLimit": {
+      "type": "integer",
+      "default": 0
+    },
+    "usageCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "couponType": {
+      "type": "enumeration",
+      "enum": [
+        "Troca",
+        "Troco",
+        "Promocional"
+      ]
+    },
+    "originType": {
+      "type": "string"
+    },
+    "expiresAt": {
+      "type": "date"
+    },
     "client": {
       "type": "relation",
       "relation": "oneToOne",

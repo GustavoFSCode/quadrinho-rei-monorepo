@@ -491,12 +491,17 @@ export class CartService {
                     populate: {
                         cart: {
                             populate: {
-                                cartOrders: { 
-                                    populate: { 
+                                cartOrders: {
+                                    populate: {
                                         purchase: {},
                                         product: {}
-                                    } 
+                                    }
                                 }
+                            }
+                        },
+                        purchases: {
+                            populate: {
+                                coupons: true
                             }
                         }
                     }
@@ -507,6 +512,25 @@ export class CartService {
         if (!user || !user?.client) throw new ApplicationError("Erro ao encontrar usuário");
 
         if (!user?.client?.cart?.cartOrders || user.client.cart.cartOrders.length === 0) return "Carrinho limpo com sucesso!"
+
+        // Remover cupons da compra em processamento
+        const pendingPurchase = user?.client?.purchases?.find(
+            (purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO'
+        );
+
+        if (pendingPurchase && pendingPurchase.coupons && pendingPurchase.coupons.length > 0) {
+            console.log(`[CART] Removendo ${pendingPurchase.coupons.length} cupons da compra em processamento`);
+
+            await strapi.documents('api::purchase.purchase').update({
+                documentId: pendingPurchase.documentId,
+                data: {
+                    coupons: {
+                        disconnect: pendingPurchase.coupons.map(coupon => ({ documentId: coupon.documentId }))
+                    },
+                    updatedAt: new Date()
+                }
+            });
+        }
 
         for (const order of user.client.cart.cartOrders) {
             // Devolver estoque ao limpar carrinho

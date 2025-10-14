@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
   ContentContainer,
   Header,
@@ -13,23 +12,22 @@ import {
   Footer,
 } from './styled';
 import Navbar from '@/components/Navbar';
-import Tabela from '@/components/Tables/Trocas';
+import Tabela from '@/components/Tables/Cupons-Promocionais';
 import PaginationLink from '@/components/PaginationLink';
 import Button from '@/components/Button';
+import ModalCriarCupom from '@/components/Modals/Cupons/CriarCupom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-export default function Trocas() {
-  const router = useRouter();
+export default function CuponsPromocionais() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showModalCriarCupom, setShowModalCriarCupom] = useState(false);
   const itemsPerPage = 12;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  const handleNavigateToPromotionalCoupons = () => {
-    router.push('/trocas/promocionais');
   };
 
   return (
@@ -38,20 +36,16 @@ export default function Trocas() {
       <ContentContainer isExpanded={isExpanded}>
         <Header>
           <HeaderTop>
-            <HeaderTitle>Trocas</HeaderTitle>
+            <HeaderTitle>Cupons promocionais</HeaderTitle>
+            <Button
+              text="Gerar cupons"
+              type="button"
+              variant="purple"
+              width="160px"
+              height="39px"
+              onClick={() => setShowModalCriarCupom(true)}
+            />
           </HeaderTop>
-          <HeaderBottom>
-            <SearchAndActionsBox>
-              <Button
-                text="Cupons promocionais"
-                type="button"
-                variant="purple"
-                width="200px"
-                height="39px"
-                onClick={handleNavigateToPromotionalCoupons}
-              />
-            </SearchAndActionsBox>
-          </HeaderBottom>
         </Header>
         <Content>
           <Tabela
@@ -69,6 +63,12 @@ export default function Trocas() {
           />
         </Footer>
       </ContentContainer>
+
+      {showModalCriarCupom && (
+        <ModalCriarCupom onClose={() => setShowModalCriarCupom(false)} />
+      )}
+
+      <ToastContainer />
     </>
   );
 }

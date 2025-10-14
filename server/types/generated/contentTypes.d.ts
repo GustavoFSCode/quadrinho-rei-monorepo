@@ -823,22 +823,29 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     client: Schema.Attribute.Relation<'oneToOne', 'api::client.client'>;
     code: Schema.Attribute.String;
     couponStatus: Schema.Attribute.Enumeration<['NaoUsado', 'EmUso', 'Usado']>;
+    couponType: Schema.Attribute.Enumeration<['Troca', 'Troco', 'Promocional']>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    expiresAt: Schema.Attribute.Date;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::coupon.coupon'
     > &
       Schema.Attribute.Private;
+    originType: Schema.Attribute.String;
     price: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
     purchase: Schema.Attribute.Relation<'manyToOne', 'api::purchase.purchase'>;
+    title: Schema.Attribute.String;
     trade: Schema.Attribute.Relation<'oneToOne', 'api::trade.trade'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    usageCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    usageLimit: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
   };
 }
 

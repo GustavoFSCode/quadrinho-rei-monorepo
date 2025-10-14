@@ -29,6 +29,7 @@ import { AdvancedCategoryService } from "../services/advancedCategoryService";
 import { NotificationService } from "../services/notificationService";
 import { SupplierService } from "../services/supplierService";
 import { PromotionalCouponService } from "../services/promotionalCouponService";
+import { PromotionalCouponManagementService } from "../services/promotionalCouponManagementService";
 import { WishlistService } from "../services/wishlistService";
 import { ReviewService } from "../services/reviewService";
 import { StockValidationService } from "../services/stockValidationService";
@@ -147,6 +148,11 @@ export default factories.createCoreController(
       const purchaseService = new PurchaseService();
       return purchaseService.insertCouponPurchase(ctx);
     },
+    async removeCoupon(ctx) {
+      console.log('[CONTROLLER] removeCoupon called');
+      const purchaseService = new PurchaseService();
+      return await purchaseService.removeCoupon(ctx);
+    },
     async insertCards(ctx) {
       const purchaseService = new PurchaseService();
       return purchaseService.insertCards(ctx)
@@ -201,6 +207,39 @@ export default factories.createCoreController(
     async generateCoupon(ctx) {
       const tradesService = new TradeService();
       return tradesService.generateCoupon(ctx);
+    },
+    /* Promotional Coupons Management */
+    async createPromotionalCoupon(ctx) {
+      try {
+        console.log('[CONTROLLER] createPromotionalCoupon called by user:', ctx.state.user?.email);
+        const couponManagementService = new PromotionalCouponManagementService();
+        return couponManagementService.createPromotionalCoupon(ctx);
+      } catch (error) {
+        console.error('[CONTROLLER] Error in createPromotionalCoupon:', error);
+        throw error;
+      }
+    },
+    async getPromotionalCoupons(ctx) {
+      try {
+        console.log('[CONTROLLER] getPromotionalCoupons called by user:', ctx.state.user?.email);
+        const couponManagementService = new PromotionalCouponManagementService();
+        return couponManagementService.getPromotionalCoupons(ctx);
+      } catch (error) {
+        console.error('[CONTROLLER] Error in getPromotionalCoupons:', error);
+        throw error;
+      }
+    },
+    async getCouponUsages(ctx) {
+      const couponManagementService = new PromotionalCouponManagementService();
+      return couponManagementService.getCouponUsages(ctx);
+    },
+    async toggleCouponStatus(ctx) {
+      const couponManagementService = new PromotionalCouponManagementService();
+      return couponManagementService.toggleCouponStatus(ctx);
+    },
+    async deletePromotionalCoupon(ctx) {
+      const couponManagementService = new PromotionalCouponManagementService();
+      return couponManagementService.deletePromotionalCoupon(ctx);
     },
     async getDashboard(ctx) {
       const dashboardService = new DashboardService();
@@ -1131,74 +1170,6 @@ export default factories.createCoreController(
       
       try {
         const result = await supplierService.getSupplierStats();
-        return ctx.send(result);
-      } catch (error) {
-        return ctx.badRequest(error.message);
-      }
-    },
-    /* Promotional Coupon Service - RF0036 Expansion */
-    async createPromotionalCoupon(ctx) {
-      const couponService = new PromotionalCouponService();
-      const couponData = ctx.request.body;
-      
-      try {
-        const result = await couponService.createCoupon(couponData);
-        return ctx.send(result);
-      } catch (error) {
-        return ctx.badRequest(error.message);
-      }
-    },
-    async validatePromotionalCoupon(ctx) {
-      const couponService = new PromotionalCouponService();
-      const { couponCode, userId, cartData } = ctx.request.body;
-      
-      if (!couponCode || !userId || !cartData) {
-        return ctx.badRequest('couponCode, userId e cartData são obrigatórios');
-      }
-      
-      try {
-        const result = await couponService.validateCoupon(couponCode, userId, cartData);
-        return ctx.send(result);
-      } catch (error) {
-        return ctx.badRequest(error.message);
-      }
-    },
-    async getActiveCoupons(ctx) {
-      const couponService = new PromotionalCouponService();
-      
-      try {
-        const result = await couponService.getActiveCoupons();
-        return ctx.send({ success: true, data: result });
-      } catch (error) {
-        return ctx.badRequest(error.message);
-      }
-    },
-    async getCouponPerformance(ctx) {
-      const couponService = new PromotionalCouponService();
-      const { couponId } = ctx.params;
-      
-      if (!couponId) {
-        return ctx.badRequest('couponId é obrigatório');
-      }
-      
-      try {
-        const result = await couponService.getCouponPerformance(couponId);
-        return ctx.send(result);
-      } catch (error) {
-        return ctx.badRequest(error.message);
-      }
-    },
-    async generateCouponReport(ctx) {
-      const couponService = new PromotionalCouponService();
-      const { startDate, endDate } = ctx.query;
-      
-      const period = startDate && endDate ? {
-        startDate: new Date(startDate as string),
-        endDate: new Date(endDate as string)
-      } : undefined;
-      
-      try {
-        const result = await couponService.generateCouponReport(period);
         return ctx.send(result);
       } catch (error) {
         return ctx.badRequest(error.message);

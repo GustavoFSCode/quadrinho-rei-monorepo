@@ -52,6 +52,7 @@ export class PurchaseService {
 
     public async createUpdatePurchase(ctx) {
         const me = ctx.state.user.documentId;
+        const { freteValue, freteRegiao } = ctx.request.body;
 
         const user = await strapi.documents('plugin::users-permissions.user').findOne({
             documentId: me,
@@ -100,6 +101,8 @@ export class PurchaseService {
                 data: {
                     client: user.client.documentId,
                     totalValue: totalValue,
+                    freteValue: freteValue || 0,
+                    freteRegiao: freteRegiao || null,
                     cartOrders: {
                         connect: cartOrders.length > 0 ? cartOrders : []
                     },
@@ -123,6 +126,8 @@ export class PurchaseService {
             documentId: pendentPurchase.documentId,
             data: {
                 totalValue: totalValue,
+                freteValue: freteValue || 0,
+                freteRegiao: freteRegiao || null,
                 cartOrders: {
                     connect: [...user?.client?.cart?.cartOrders.map((order) => order?.documentId)]
                 },
@@ -158,13 +163,28 @@ export class PurchaseService {
             }
         })
 
-        const couponsFound = await strapi.documents('api::coupon.coupon').findMany({
+        // Primeiro tenta buscar por título (cupons promocionais)
+        let couponsFound = await strapi.documents('api::coupon.coupon').findMany({
             filters: {
-                code: {
+                title: {
                     $eq: body.coupon
+                },
+                couponType: {
+                    $eq: 'Promocional'
                 }
             }
         })
+
+        // Se não encontrou por título, busca por código (cupons de troca/troco)
+        if (!couponsFound || couponsFound.length === 0) {
+            couponsFound = await strapi.documents('api::coupon.coupon').findMany({
+                filters: {
+                    code: {
+                        $eq: body.coupon
+                    }
+                }
+            })
+        }
 
         const coupon = couponsFound[0]
 
@@ -173,6 +193,23 @@ export class PurchaseService {
         if (coupon.couponStatus === "EmUso" || coupon.couponStatus === "Usado") throw new ApplicationError("Este cupom não pode ser utilizado")
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
+
+        // VALIDAÇÃO ADICIONAL: Se for cupom promocional, validar limite de uso por cliente
+        if (coupon.couponType === 'Promocional') {
+            const { PromotionalCouponManagementService } = require('./promotionalCouponManagementService');
+            const promoService = new PromotionalCouponManagementService();
+
+            const validation = await promoService.validateCouponUsageByClient(
+                coupon.title,
+                user.client.documentId
+            );
+
+            if (!validation.canUse) {
+                throw new ApplicationError(validation.message);
+            }
+
+            console.log('[PURCHASE] Cupom promocional validado:', validation.message);
+        }
 
         const totalValue = user?.client?.cart?.cartOrders.reduce((acc, order) => acc + order.totalValue, 0) || 0
 
@@ -437,6 +474,93 @@ export class PurchaseService {
         return {
             data: purchaseUpdate,
             message: "Pedido finalizado com sucesso!"
+        }
+    }
+
+    /**
+     * Remove cupom da compra em processamento
+     */
+    public async removeCoupon(ctx) {
+        try {
+            const me = ctx.state.user.documentId;
+            const { couponDocumentId } = ctx.request.body;
+
+            console.log(`[PURCHASE] Removendo cupom ${couponDocumentId} da compra`);
+
+            if (!couponDocumentId) {
+                throw new ApplicationError("ID do cupom é obrigatório");
+            }
+
+            // Buscar usuário e compra em processamento
+            const user = await strapi.documents('plugin::users-permissions.user').findOne({
+                documentId: me,
+                populate: {
+                    client: {
+                        populate: {
+                            purchases: {
+                                populate: {
+                                    coupons: true
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (!user?.client) {
+                throw new ApplicationError("Erro ao encontrar usuário");
+            }
+
+            const pendingPurchase = user.client.purchases?.find(
+                (purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO'
+            );
+
+            if (!pendingPurchase) {
+                throw new ApplicationError("Nenhuma compra em processamento encontrada");
+            }
+
+            // Verificar se o cupom está na compra
+            const couponInPurchase = pendingPurchase.coupons?.find(
+                (c) => c.documentId === couponDocumentId
+            );
+
+            if (!couponInPurchase) {
+                throw new ApplicationError("Cupom não encontrado nesta compra");
+            }
+
+            // Desconectar cupom da compra
+            await strapi.documents('api::purchase.purchase').update({
+                documentId: pendingPurchase.documentId,
+                data: {
+                    coupons: {
+                        disconnect: [{ documentId: couponDocumentId }]
+                    },
+                    updatedAt: new Date()
+                }
+            });
+
+            // Atualizar status do cupom de volta para "NaoUsado"
+            // (apenas para cupons de Troca/Troco, promocionais mantêm status)
+            if (couponInPurchase.couponType !== 'Promocional') {
+                await strapi.documents('api::coupon.coupon').update({
+                    documentId: couponDocumentId,
+                    data: {
+                        couponStatus: "NaoUsado",
+                        updatedAt: new Date()
+                    }
+                });
+            }
+
+            console.log(`[PURCHASE] Cupom ${couponInPurchase.code} removido com sucesso`);
+
+            return {
+                success: true,
+                message: "Cupom removido com sucesso!"
+            };
+
+        } catch (error) {
+            console.error('[PURCHASE] Erro ao remover cupom:', error);
+            throw error;
         }
     }
 }
