@@ -1,0 +1,13 @@
+{
+  "buildCommand": "yarn build",
+  "devCommand": "yarn dev",
+  "installCommand": "yarn install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://your-strapi-deployment.vercel.app/api/:path*"
+    }
+  ]
+}

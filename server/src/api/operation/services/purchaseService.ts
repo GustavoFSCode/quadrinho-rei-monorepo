@@ -540,16 +540,15 @@ export class PurchaseService {
             });
 
             // Atualizar status do cupom de volta para "NaoUsado"
-            // (apenas para cupons de Troca/Troco, promocionais mantêm status)
-            if (couponInPurchase.couponType !== 'Promocional') {
-                await strapi.documents('api::coupon.coupon').update({
-                    documentId: couponDocumentId,
-                    data: {
-                        couponStatus: "NaoUsado",
-                        updatedAt: new Date()
-                    }
-                });
-            }
+            // Resetar status para TODOS os tipos de cupons ao remover
+            await strapi.documents('api::coupon.coupon').update({
+                documentId: couponDocumentId,
+                data: {
+                    couponStatus: "NaoUsado",
+                    updatedAt: new Date()
+                }
+            });
+            console.log(`[PURCHASE] Status do cupom ${couponInPurchase.code || couponInPurchase.title} resetado para "NaoUsado"`);
 
             console.log(`[PURCHASE] Cupom ${couponInPurchase.code} removido com sucesso`);
 

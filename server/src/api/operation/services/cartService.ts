@@ -513,7 +513,7 @@ export class CartService {
 
         if (!user?.client?.cart?.cartOrders || user.client.cart.cartOrders.length === 0) return "Carrinho limpo com sucesso!"
 
-        // Remover cupons da compra em processamento
+        // Remover cupons da compra em processamento e resetar status
         const pendingPurchase = user?.client?.purchases?.find(
             (purchase) => purchase?.purchaseStatus === 'EM_PROCESSAMENTO'
         );
@@ -521,6 +521,19 @@ export class CartService {
         if (pendingPurchase && pendingPurchase.coupons && pendingPurchase.coupons.length > 0) {
             console.log(`[CART] Removendo ${pendingPurchase.coupons.length} cupons da compra em processamento`);
 
+            // Resetar status de cada cupom para "NaoUsado"
+            for (const coupon of pendingPurchase.coupons) {
+                await strapi.documents('api::coupon.coupon').update({
+                    documentId: coupon.documentId,
+                    data: {
+                        couponStatus: 'NaoUsado',
+                        updatedAt: new Date()
+                    }
+                });
+                console.log(`[CART] Status do cupom ${coupon.code || coupon.title} resetado para "NaoUsado"`);
+            }
+
+            // Desconectar cupons da compra
             await strapi.documents('api::purchase.purchase').update({
                 documentId: pendingPurchase.documentId,
                 data: {
