@@ -80,7 +80,14 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.log('===== PASSO 6: Aplicar cupom =====');
     cy.get('#coupon').type('NATAL30');
     cy.contains('Aplicar cupom').click();
+    cy.wait(3000); // Esperar processamento do cupom]
+
+      // PASSO 6: Aplicar cupom NOVO20
+    cy.log('===== PASSO 6: Aplicar cupom =====');
+    cy.get('#coupon').type('NOVO20');
+    cy.contains('Aplicar cupom').click();
     cy.wait(3000); // Esperar processamento do cupom
+
 
     // PASSO 7: Abrir e fechar modal de endereço
     cy.log('===== PASSO 7: Testar modal de adicionar endereço =====');
