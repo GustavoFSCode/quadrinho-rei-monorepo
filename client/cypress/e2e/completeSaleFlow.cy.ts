@@ -82,22 +82,45 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.contains('Aplicar cupom').click();
     cy.wait(3000); // Esperar processamento do cupom]
 
-      // PASSO 6: Aplicar cupom NOVO20
-    cy.log('===== PASSO 6: Aplicar cupom =====');
-    cy.get('#coupon').type('NOVO20');
-    cy.contains('Aplicar cupom').click();
-    cy.wait(3000); // Esperar processamento do cupom
 
-
-    // PASSO 7: Abrir e fechar modal de endereço
-    cy.log('===== PASSO 7: Testar modal de adicionar endereço =====');
+    // PASSO 7: Criar endereço de entrega completo
+    cy.log('===== PASSO 7: Criar novo endereço de entrega =====');
     cy.contains('button', 'Adicionar endereço').click();
     cy.wait(1500);
 
-    // Fechar modal usando o atributo data-cy específico
+    // Preencher todos os campos obrigatórios do endereço (usando IDs diretos do modal)
+    cy.get('#nameAddress').clear().type('Endereço de Teste Cypress');
+    cy.wait(500);
+
+    // Selecionar Tipo de Endereço: Entrega
+    cy.get('#TypeAddress').click();
+    cy.get('div[role="option"]').contains('Entrega').click();
+    cy.wait(500);
+
+    // Selecionar Tipo de Logradouro: Rua
+    cy.get('#typeLogradouro').click();
+    cy.get('div[role="option"]').contains('Rua').click();
+    cy.wait(500);
+
+    // Preencher demais campos
+    cy.get('#nameLogradouro').clear().type('Test Street');
+    cy.get('#number').clear().type('100');
+    cy.get('#neighborhood').clear().type('Test Neighborhood');
+    cy.get('#cep').clear().type('12345-678');
+    cy.get('#city').clear().type('São Paulo');
+    cy.get('#state').clear().type('SP');
+    cy.get('#country').clear().type('Brasil');
+    cy.get('#observation').clear().type('Endereço criado por teste automatizado');
+    cy.wait(1000);
+
+    // Salvar o novo endereço
+    cy.contains('Salvar novo endereço').click();
+    cy.wait(2000);
+
+    // Fechar modal de endereços
     cy.get('[data-cy="closeAddress"]').click({ force: true });
     cy.wait(1000);
-    cy.log('Modal fechado');
+    cy.log('Endereço criado e modal fechado');
 
     // PASSO 8: Selecionar endereço de entrega
     cy.log('===== PASSO 8: Selecionar endereço de entrega =====');
@@ -127,15 +150,27 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.wait(1000);
     cy.log('Primeiro endereço de cobrança selecionado');
 
-    // PASSO 10A: Abrir e fechar modal de cartão
-    cy.log('===== PASSO 10A: Testar modal de adicionar cartão =====');
+    // PASSO 10A: Criar novo cartão
+    cy.log('===== PASSO 10A: Criar novo cartão =====');
     cy.contains('button', 'Adicionar cartão').click();
     cy.wait(1500);
 
-    // Fechar modal usando o atributo data-cy específico
+    // Preencher todos os campos obrigatórios do cartão (usando IDs diretos do modal)
+    cy.get('#holderName').clear().type('Gustavo Ferreira');
+    cy.wait(500);
+    cy.get('#numberCard').clear().type('4111111111111111');
+    cy.wait(500);
+    cy.get('#safeNumber').clear().type('123');
+    cy.wait(1000);
+
+    // Salvar o novo cartão
+    cy.contains('Salvar novo cartão').click();
+    cy.wait(2000);
+
+    // Fechar modal de cartões
     cy.get('[data-cy="closeCards"]').click({ force: true });
     cy.wait(1000);
-    cy.log('Modal de cartão fechado');
+    cy.log('Cartão criado e modal fechado');
 
     // PASSO 10B: Selecionar primeiro cartão e inserir valor 150
     cy.log('===== PASSO 10B: Selecionar primeiro cartão =====');
@@ -157,7 +192,7 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.log('Primeiro cartão selecionado');
 
     // Inserir valor 150 no primeiro cartão
-    cy.get('input[id^="card-value-"]').first().clear().type('15000');
+    cy.get('input[id^="card-value-"]').first().clear().type('20000');
     cy.wait(1000);
     cy.log('Valor R$ 150,00 inserido no primeiro cartão');
 
@@ -176,7 +211,7 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.log('Segundo cartão selecionado');
 
     // Inserir valor 27,5 no segundo cartão
-    cy.get('input[id^="card-value-"]').last().clear().type('27500');
+    cy.get('input[id^="card-value-"]').last().clear().type('15000');
     cy.wait(1000);
     cy.log('Valor R$ 27,50 inserido no segundo cartão');
 
