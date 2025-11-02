@@ -18,7 +18,7 @@ O projeto será dividido em **2 projetos separados** na Vercel:
 1. **Frontend** (Next.js) - `/client`
 2. **Backend** (Strapi) - `/server`
 
-Ambos usarão o **Vercel Postgres** para o banco de dados.
+Ambos usarão **PostgreSQL** (via Neon) para o banco de dados.
 
 ---
 
@@ -36,28 +36,95 @@ git push origin main
 
 ---
 
-### **2. Configurar Vercel Postgres**
+### **2. Configurar PostgreSQL (Neon)**
 
-#### 2.1. Criar banco de dados
+A Vercel agora oferece bancos de dados através do **Marketplace**. Para este projeto, usaremos o **Neon** (Serverless Postgres).
+
+#### 2.1. Criar banco de dados no Neon
+
+**Opção A: Via Vercel Dashboard (Recomendado)**
 
 1. Acesse o dashboard da Vercel: https://vercel.com/dashboard
 2. Vá em **Storage** > **Create Database**
-3. Escolha **Postgres** (Vercel Postgres)
-4. Nomeie o banco: `quadrinhos-rei-db`
-5. Selecione a região mais próxima do Brasil (ex: `iad1` - Washington DC)
-6. Clique em **Create**
+3. Na lista do Marketplace, escolha **Neon** (Serverless Postgres)
+4. Clique em **Continue**
+5. Você será redirecionado para criar uma conta no Neon (se ainda não tiver)
+6. Após criar a conta Neon:
+   - Nome do projeto: `quadrinhos-rei`
+   - Região: Escolha a mais próxima do Brasil (ex: `US East (Ohio)` ou `AWS São Paulo` se disponível)
+7. Clique em **Create Project**
+8. O Neon será automaticamente integrado com a Vercel
+
+**Opção B: Direto no Neon**
+
+1. Acesse: https://neon.tech
+2. Crie uma conta gratuita
+3. Clique em **Create Project**
+4. Configure:
+   - Nome: `quadrinhos-rei`
+   - Região: `AWS São Paulo` (sa-east-1) ou `US East`
+   - PostgreSQL Version: 16 (latest)
+5. Clique em **Create**
 
 #### 2.2. Obter credenciais do banco
 
-Após criar, a Vercel fornecerá automaticamente:
-- `POSTGRES_URL`
-- `POSTGRES_URL_NON_POOLING`
-- `POSTGRES_USER`
-- `POSTGRES_HOST`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DATABASE`
+Após criar o banco no Neon, você verá a **Connection String**:
 
-**Anote essas credenciais** - você usará no backend.
+```
+postgresql://[user]:[password]@[host]/[database]?sslmode=require
+```
+
+**Exemplo:**
+```
+postgresql://neondb_owner:AbCd1234@ep-quiet-rain-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+**Anote essa connection string completa** - você usará no backend.
+
+Você também pode obter as credenciais individuais na aba **Connection Details**:
+- `Host`: ep-quiet-rain-123456.us-east-2.aws.neon.tech
+- `Database`: neondb
+- `User`: neondb_owner
+- `Password`: [sua senha]
+- `Port`: 5432
+
+#### 2.3. Conectar Neon à Vercel (se usou Opção B)
+
+Se você criou o banco diretamente no Neon (Opção B), conecte-o à Vercel:
+
+1. Na página do projeto Vercel, vá em **Settings** > **Integrations**
+2. Busque por **Neon** e clique em **Add Integration**
+3. Autorize a conexão
+4. Selecione o projeto `quadrinhos-rei`
+5. As variáveis de ambiente serão adicionadas automaticamente
+
+**Variáveis que serão adicionadas:**
+- `DATABASE_URL` ou `POSTGRES_URL`
+- `POSTGRES_PRISMA_URL` (opcional)
+- `POSTGRES_URL_NON_POOLING` (opcional)
+
+#### 2.4. Por que Neon? (e alternativas)
+
+**✅ Recomendamos Neon porque:**
+- Serverless (escala automaticamente, inclusive para zero)
+- Plano gratuito generoso (0.5GB)
+- Excelente integração com Vercel
+- PostgreSQL nativo (compatível 100% com o projeto)
+- Pooling de conexões integrado
+- Backups automáticos
+- Suporte a branches do banco (ideal para desenvolvimento)
+
+**Alternativas disponíveis no Marketplace da Vercel:**
+
+| Banco de Dados | Tipo | Plano Gratuito | Melhor Para |
+|---------------|------|----------------|-------------|
+| **Neon** ✅ | Postgres | 0.5GB | Produção, serverless, melhor custo-benefício |
+| **Supabase** | Postgres | 500MB + Auth/Storage | Se precisar de autenticação integrada |
+| **Prisma Postgres** | Postgres | 5GB grátis | Maior storage gratuito |
+| **Turso** | SQLite | 9GB + 1B rows | Alta performance, baixo custo |
+| **Railway** | Postgres (externo) | $5 crédito/mês | Deploy completo (backend + DB juntos) |
+
+**Nota**: Se escolher outra opção, basta usar a connection string fornecida na variável `DATABASE_URL`.
 
 ---
 
@@ -138,14 +205,14 @@ ADMIN_JWT_SECRET=seu_admin_jwt_secret
 TRANSFER_TOKEN_SALT=seu_transfer_token_salt
 JWT_SECRET=seu_jwt_secret
 
-# Database - Vercel Postgres (use as credenciais do passo 2)
+# Database - Neon (use as credenciais do passo 2)
 DATABASE_CLIENT=postgres
-DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:sua_senha@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
 # OU configure individualmente:
-DATABASE_HOST=seu_host.vercel-storage.com
+DATABASE_HOST=ep-xxx.us-east-2.aws.neon.tech
 DATABASE_PORT=5432
-DATABASE_NAME=verceldb
-DATABASE_USERNAME=default
+DATABASE_NAME=neondb
+DATABASE_USERNAME=neondb_owner
 DATABASE_PASSWORD=sua_senha
 DATABASE_SSL_REJECT_UNAUTHORIZED=false
 
@@ -162,12 +229,18 @@ CHAT_ENABLED=true
 FRONTEND_URL=https://seu-frontend.vercel.app
 ```
 
-#### 5.3. Conectar Vercel Postgres
+#### 5.3. Conectar Neon ao Projeto (se necessário)
 
-1. Na página do projeto, vá em **Storage**
-2. Clique em **Connect Store**
-3. Selecione o banco `quadrinhos-rei-db` criado no passo 2
-4. Isso adicionará automaticamente as variáveis `POSTGRES_*`
+Se você criou o banco via Vercel Dashboard (Opção A no passo 2), as variáveis já foram adicionadas automaticamente.
+
+Se criou direto no Neon (Opção B), adicione manualmente:
+
+1. Na página do projeto backend, vá em **Settings** > **Environment Variables**
+2. Adicione a variável `DATABASE_URL` com a connection string do Neon
+3. Ou use a integração:
+   - **Settings** > **Integrations** > **Browse Marketplace**
+   - Busque **Neon** > **Add Integration**
+   - Conecte seu projeto Neon
 
 #### 5.4. Fazer deploy
 
@@ -401,18 +474,25 @@ vercel logs quadrinhos-rei-frontend --follow
 ## 💰 Custos Estimados (Plano Gratuito)
 
 - **Vercel**: Grátis até 100GB bandwidth/mês
-- **Vercel Postgres**: Grátis até 256MB (depois ~$0.09/GB)
+- **Neon**: Grátis até 0.5GB (plano Free Tier) - depois a partir de $19/mês
 - **Cloudinary**: Grátis até 25GB storage + 25GB bandwidth/mês
 - **Google Gemini**: Grátis até 60 requests/minuto
 
-**Total**: ~$0/mês no plano gratuito (suficiente para testes) 💸
+**Total**: ~$0/mês no plano gratuito (suficiente para testes e projetos pequenos) 💸
+
+**Nota**: O plano gratuito do Neon é bem generoso e inclui:
+- 0.5 GB de storage
+- Branches ilimitadas
+- Pooling de conexões
+- Escala automática para zero (não paga quando não usa)
 
 ---
 
 ## 📚 Referências
 
 - [Vercel Docs](https://vercel.com/docs)
-- [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
+- [Neon Docs](https://neon.tech/docs/introduction)
+- [Neon + Vercel Integration](https://neon.tech/docs/guides/vercel)
 - [Strapi Deployment](https://docs.strapi.io/dev-docs/deployment)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
 - [Cloudinary Docs](https://cloudinary.com/documentation)
@@ -422,7 +502,7 @@ vercel logs quadrinhos-rei-frontend --follow
 ## ✅ Checklist de Deploy
 
 - [ ] Repositório Git configurado e atualizado
-- [ ] Vercel Postgres criado e credenciais anotadas
+- [ ] Neon PostgreSQL criado e credenciais anotadas
 - [ ] Secrets de produção gerados (APP_KEYS, JWT_SECRET, etc)
 - [ ] Conta Cloudinary criada e credenciais anotadas
 - [ ] Backend deployado na Vercel

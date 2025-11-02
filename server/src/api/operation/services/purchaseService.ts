@@ -190,7 +190,13 @@ export class PurchaseService {
 
         if (!coupon) throw new ApplicationError("Cupom não encontrado")
 
-        if (coupon.couponStatus === "EmUso" || coupon.couponStatus === "Usado") throw new ApplicationError("Este cupom não pode ser utilizado")
+        // Para cupons não-promocionais (Troca/Troco), verificar status
+        // Cupons promocionais podem ser reutilizados, então pulam esta verificação
+        if (coupon.couponType !== 'Promocional') {
+            if (coupon.couponStatus === "EmUso" || coupon.couponStatus === "Usado") {
+                throw new ApplicationError("Este cupom não pode ser utilizado")
+            }
+        }
 
         if (!user) throw new ApplicationError("Erro ao encontrar usuário")
 
@@ -462,6 +468,12 @@ export class PurchaseService {
         }
 
         for (const coupon of purchaseUpdate?.coupons) {
+            // Cupons promocionais não devem ser marcados como "Usado" pois podem ser reutilizados
+            // Apenas cupons de Troca/Troco são marcados como "Usado"
+            if (coupon.couponType === 'Promocional') {
+                continue;
+            }
+
             await strapi.documents('api::coupon.coupon').update({
                 documentId: coupon.documentId,
                 data: {
