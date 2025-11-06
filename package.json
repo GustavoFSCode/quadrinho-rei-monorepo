@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "start:backend": "cd server && yarn d",
+    "start:backend": "cd server && yarn --ignore-engines d",
     "start:frontend": "cd client && yarn dev",
     "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\"",
     "update": "cd server && yarn && cd .. && cd client && yarn"

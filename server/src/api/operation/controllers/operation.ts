@@ -245,10 +245,6 @@ export default factories.createCoreController(
       const dashboardService = new DashboardService();
       return dashboardService.getDashboard(ctx);
     },
-    async getProductCategories(ctx) {
-      const dashboardService = new DashboardService();
-      return dashboardService.getProductCategories(ctx);
-    },
     /* Chat AI */
     async sendChatMessage(ctx) {
       console.log('sendChatMessage controller called');
@@ -1510,10 +1506,62 @@ export default factories.createCoreController(
     async updateRankingConfig(ctx) {
       const rankingService = new ClientRankingService();
       const configUpdate = ctx.request.body;
-      
+
       try {
         const result = await rankingService.updateRankingConfig(configUpdate);
         return ctx.send({ success: true, config: result });
+      } catch (error) {
+        return ctx.badRequest(error.message);
+      }
+    },
+    async getProductCategories(ctx) {
+      try {
+        const categories = await strapi.documents('api::product-category.product-category').findMany({
+          sort: { name: 'asc' },
+        });
+        return ctx.send({
+          data: categories,
+          meta: {
+            pagination: {
+              page: 1,
+              pageSize: categories.length,
+              pageCount: 1,
+              total: categories.length
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao buscar categorias de produtos:', error);
+        return ctx.badRequest('Erro ao buscar categorias de produtos');
+      }
+    },
+    async getPrecificationTypes(ctx) {
+      try {
+        const types = await strapi.documents('api::precification-type.precification-type').findMany({
+          sort: { name: 'asc' },
+        });
+        return ctx.send({
+          data: types,
+          meta: {
+            pagination: {
+              page: 1,
+              pageSize: types.length,
+              pageCount: 1,
+              total: types.length
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao buscar tipos de precificação:', error);
+        return ctx.badRequest('Erro ao buscar tipos de precificação');
+      }
+    },
+    async recalculateOrdinalRanking(ctx) {
+      const rankingService = new ClientRankingService();
+
+      try {
+        const result = await rankingService.calculateOrdinalRanking();
+        return ctx.send({ success: true, result });
       } catch (error) {
         return ctx.badRequest(error.message);
       }

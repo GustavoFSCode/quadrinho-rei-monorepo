@@ -272,7 +272,20 @@ export default {
     {
       method: "GET",
       path: "/getProductCategories",
-      handler: "operation.getProductCategories"
+      handler: "operation.getProductCategories",
+      config: {
+        policies: [],
+        auth: false,
+      }
+    },
+    {
+      method: "GET",
+      path: "/getPrecificationTypes",
+      handler: "operation.getPrecificationTypes",
+      config: {
+        policies: [],
+        auth: false,
+      }
     },
     /* Chat AI */
     {

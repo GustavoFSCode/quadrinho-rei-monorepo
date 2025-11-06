@@ -85,11 +85,33 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
   });
 
   const active = watch('active');
+  const price = watch('price');
+  const pricingGroup = watch('pricingGroup');
   const isRead = readonly;
 
   // opções vindas da API
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
   const [pricingGroupOptions, setPricingGroupOptions] = useState<{ value: string; label: string }[]>([]);
+
+  // Mapeamento dos markups de preço (mesmos do backend)
+  const priceMarkups: Record<string, number> = {
+    'economic': 1.10,  // +10%
+    'standard': 1.25,  // +25%
+    'premium': 1.50,   // +50%
+  };
+
+  // Calcular preço de venda baseado no grupo de precificação
+  const calculateSalePrice = () => {
+    if (!price || !pricingGroup) return 0;
+    const selectedOption = pricingGroupOptions.find(opt => opt.value === pricingGroup);
+    if (!selectedOption) return 0;
+
+    const groupName = selectedOption.label.toLowerCase();
+    const markup = priceMarkups[groupName] || 1.25; // default standard
+    return parseFloat((price * markup).toFixed(2));
+  };
+
+  const calculatedSalePrice = calculateSalePrice();
 
   useEffect(() => {
     async function loadOptions() {
@@ -346,7 +368,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 />
               </Flex>
 
-              {/* Preço formatado */}
+              {/* Preço de Compra */}
               <Controller
                 control={control}
                 name="price"
@@ -354,7 +376,7 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                 render={({ field }) => (
                   <Input
                     id="price"
-                    label="Preço (R$)"
+                    label="Preço de Compra (R$)"
                     type="text"
                     maskFunction={currencyMask}
                     placeholder="R$ 0,00"
@@ -365,6 +387,21 @@ const ComicFormModal: React.FC<ComicFormModalProps> = ({
                   />
                 )}
               />
+
+              {/* Preço de Venda Calculado (readonly) */}
+              {calculatedSalePrice > 0 && (
+                <Input
+                  id="calculatedSalePrice"
+                  label="Preço de Venda (Calculado Automaticamente)"
+                  type="text"
+                  value={calculatedSalePrice.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  })}
+                  disabled={true}
+                  placeholder="R$ 0,00"
+                />
+              )}
 
               <Input
                 id="stock"

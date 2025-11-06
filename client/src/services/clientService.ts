@@ -62,7 +62,8 @@ export interface Client {
   cpf: string;
   phone: string;
   typePhone: string;
-  ranking: number;
+  rankingPosition: number | null;
+  lastRankingUpdate: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;

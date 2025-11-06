@@ -14,6 +14,7 @@ import ToggleButton from '@/components/Button/ToggleTable';
 import ModalDescartation from '@/components/Modals/Clientes/ExcluirCliente/Descartation';
 import ModalEditarCliente from '@/components/Modals/Clientes/EditarCliente';
 import { Client, blockUser } from '@/services/clientService';
+import RankingBadge from '@/components/RankingBadge';
 
 // Função para formatar a data "YYYY-MM-DD" para "DD/MM/YYYY"
 function formatDate(dateString: string): string {
@@ -71,6 +72,7 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
         <Table aria-label="tabela customizada">
           <thead>
             <tr>
+              <TableHeadCell>Ranking</TableHeadCell>
               <TableHeadCell>Nome</TableHeadCell>
               <TableHeadCell>E-mail</TableHeadCell>
               <TableHeadCell>Data de nascimento</TableHeadCell>
@@ -81,6 +83,12 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
             {clients && clients.length > 0 ? (
               clients.map((client) => (
                 <TableRow key={client.id}>
+                  <TableBodyCell>
+                    <RankingBadge
+                      position={client.rankingPosition}
+                      showMedals={true}
+                    />
+                  </TableBodyCell>
                   <TableBodyCell>{client.name}</TableBodyCell>
                   <TableBodyCell>{client.user.email}</TableBodyCell>
                   <TableBodyCell>{formatDate(client.birthDate)}</TableBodyCell>
@@ -96,7 +104,7 @@ function Tabela({ clients, onClientDeleted, onUserToggled, onClientEdited }: Tab
               ))
             ) : (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: '1rem' }}>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>
                   Nenhum cliente encontrado
                 </td>
               </tr>

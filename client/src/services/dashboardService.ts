@@ -1,8 +1,10 @@
 import api from './api';
 
 export interface DashboardSalesData {
-  totalValue: number;
   yearMonth: string; // formato 'YYYY-MM'
+  categories: {
+    [categoryName: string]: number; // nome da categoria -> quantidade vendida
+  };
 }
 
 export interface ProductCategory {
@@ -34,8 +36,8 @@ export async function getDashboardSales(filters?: DashboardFilters): Promise<Das
 
 export async function getDashboardCategories(): Promise<ProductCategory[]> {
   try {
-    const { data } = await api.get<ProductCategory[]>('/getProductCategories');
-    return data;
+    const response = await api.get<{ data: ProductCategory[] }>('/getProductCategories');
+    return response.data.data;
   } catch (error: any) {
     console.error('Error fetching dashboard categories:', error);
     throw error;

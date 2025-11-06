@@ -91,7 +91,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose, onClientCreated })
         cpf: data.cpf,
         phone: data.phone,
         typePhone: data.typePhone,
-        ranking: data.ranking,
         Address: formattedAddresses,
         Card: data.Cards ?? []
       };
@@ -219,14 +218,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose, onClientCreated })
             placeholder="Confirme a senha"
             {...register('confirm_password')}
             error={errors?.confirm_password?.message}
-          />
-          <Input
-            id="ranking"
-            type="number"
-            label="Ranking"
-            placeholder="Digite o ranking"
-            {...register('ranking', { valueAsNumber: true })}
-            error={errors?.ranking?.message}
           />
         </Flex>
 

@@ -20,7 +20,7 @@ import { formatDateToBrazil } from '@/utils/dateFormatter';
 
 const Tabela: React.FC = () => {
   const queryClient = useQueryClient();
-  
+
   const { data: salesData, isLoading: salesLoading, error: salesError } = useQuery({
     queryKey: ['sales'],
     queryFn: getSales,

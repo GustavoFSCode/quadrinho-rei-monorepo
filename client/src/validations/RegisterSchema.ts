@@ -23,7 +23,6 @@ export const RegisterSchema = yup.object({
   cpf: yup.string().required('CPF é obrigatório'),
   phone: yup.string().required('Telefone é obrigatório'),
   typePhone: yup.string().required('Tipo de telefone é obrigatório'),
-  ranking: yup.number().required('Ranking é obrigatório'),
 
   Address: yup
     .array()

@@ -37,8 +37,11 @@
         "Fixo"
       ]
     },
-    "ranking": {
+    "rankingPosition": {
       "type": "integer"
+    },
+    "lastRankingUpdate": {
+      "type": "datetime"
     },
     "user": {
       "type": "relation",

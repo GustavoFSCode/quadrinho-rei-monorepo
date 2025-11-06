@@ -785,6 +785,7 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     gender: Schema.Attribute.Enumeration<['Masculino', 'Feminino']>;
+    lastRankingUpdate: Schema.Attribute.DateTime;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -795,7 +796,7 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
     phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
-    ranking: Schema.Attribute.Integer;
+    rankingPosition: Schema.Attribute.Integer;
     trades: Schema.Attribute.Relation<'oneToMany', 'api::trade.trade'>;
     typePhone: Schema.Attribute.Enumeration<['Celular', 'Fixo']>;
     updatedAt: Schema.Attribute.DateTime;

@@ -42,8 +42,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
       cpf: clientData.cpf || '',
       phone: clientData.phone || '',
       typePhone: clientData.typePhone || '',
-      email: clientData.user.email || '',
-      ranking: clientData.ranking || 0
+      email: clientData.user.email || ''
     }
   });
 
@@ -74,8 +73,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
             gender: formData.gender,
             cpf: formData.cpf,
             phone: formData.phone,
-            typePhone: formData.typePhone,
-            ranking: formData.ranking
+            typePhone: formData.typePhone
           },
           user: {
             username: formData.email,
@@ -223,15 +221,6 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
               placeholder="Insira o e-mail"
               {...register('email')}
               error={errors?.email?.message}
-            />
-            <Input
-              id="ranking"
-              type="number"
-              label="Ranking"
-              placeholder="Digite o ranking"
-              maskFunction={onlyDigits}
-              {...register('ranking')}
-              error={errors?.ranking?.message}
             />
           </Flex>
 

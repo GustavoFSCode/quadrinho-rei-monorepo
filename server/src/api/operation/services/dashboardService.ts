@@ -20,16 +20,6 @@ export class DashboardService {
                 purchaseSalesStatus: {
                     name: { $eq: "Entregue" }
                 },
-                cartOrders: {
-                    product: {
-                        productCategories: (() => {
-                            if (query.category) {
-                                return { documentId: { $eq: query.category } }
-                            }
-                            return {}
-                        })()
-                    }
-                },
                 date: (() => {
                     if (query.date1 && query.date2) {
                         return {
@@ -43,22 +33,49 @@ export class DashboardService {
             }
         })
 
-        const sales = purchases
-            .map((purchase) => {
-                return {
-                    totalValue: purchase.cartOrders.reduce((acc, order) => acc + (order.quantity - order.quantityRefund), 0),
-                    yearMonth: new Date(purchase.date).toISOString().slice(0, 7)
+        // Estrutura: { yearMonth: { categoryName: totalValue } }
+        const salesByMonthAndCategory = {};
+
+        purchases.forEach((purchase) => {
+            const yearMonth = new Date(purchase.date).toISOString().slice(0, 7);
+
+            // Inicializar o mês se não existir
+            if (!salesByMonthAndCategory[yearMonth]) {
+                salesByMonthAndCategory[yearMonth] = {};
+            }
+
+            // Processar cada item do carrinho
+            purchase.cartOrders.forEach((order) => {
+                const quantity = order.quantity - order.quantityRefund;
+
+                if (order.product && order.product.productCategories) {
+                    // Para cada categoria do produto
+                    order.product.productCategories.forEach((category) => {
+                        const categoryName = category.name;
+                        const categoryId = category.documentId;
+
+                        // Se houver filtro de categoria, aplicar
+                        if (query.category && categoryId !== query.category) {
+                            return;
+                        }
+
+                        // Inicializar a categoria se não existir neste mês
+                        if (!salesByMonthAndCategory[yearMonth][categoryName]) {
+                            salesByMonthAndCategory[yearMonth][categoryName] = 0;
+                        }
+
+                        // Adicionar a quantidade vendida
+                        salesByMonthAndCategory[yearMonth][categoryName] += quantity;
+                    });
                 }
-            })
-            .reduce((acc, curr) => {
-                const existing = acc.find(item => item.yearMonth === curr.yearMonth);
-                if (existing) {
-                    existing.totalValue += curr.totalValue;
-                } else {
-                    acc.push(curr);
-                }
-                return acc;
-            }, [])
+            });
+        });
+
+        // Converter para array no formato esperado
+        const sales = Object.entries(salesByMonthAndCategory).map(([yearMonth, categories]) => ({
+            yearMonth,
+            categories
+        })).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
 
         return sales;
     }

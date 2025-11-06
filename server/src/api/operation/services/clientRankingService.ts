@@ -523,4 +523,158 @@ export class ClientRankingService {
       throw error;
     }
   }
+
+  /**
+   * Obter total gasto de um cliente (apenas compras APROVADAS ou ENTREGUE)
+   */
+  public async getClientTotalSpent(clientId: string): Promise<number> {
+    try {
+      const client = await strapi.entityService.findOne('api::client.client', clientId, {
+        populate: {
+          purchases: {
+            populate: {
+              purchaseSalesStatus: true
+            }
+          }
+        }
+      });
+
+      if (!client) {
+        return 0;
+      }
+
+      const clientData = client as any;
+      const purchases = clientData.purchases || [];
+
+      const validPurchases = purchases.filter((p: any) =>
+        p.purchaseSalesStatus?.name === 'APROVADA' ||
+        p.purchaseSalesStatus?.name === 'ENTREGUE'
+      );
+
+      const totalSpent = validPurchases.reduce((sum, p) => sum + (p.totalValue || 0), 0);
+
+      return totalSpent;
+
+    } catch (error) {
+      console.error('[RANKING] Erro ao calcular total gasto do cliente:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calcular ranking ordinal de todos os clientes baseado em total gasto
+   * Atualiza o campo rankingPosition de todos os clientes
+   */
+  public async calculateOrdinalRanking(): Promise<{
+    processed: number;
+    updated: number;
+    errors: number;
+  }> {
+    console.log('[RANKING ORDINAL] Iniciando cálculo de ranking ordinal baseado em total gasto...');
+
+    let processed = 0;
+    let updated = 0;
+    let errors = 0;
+
+    try {
+      // Buscar todos os clientes
+      const clients = await strapi.entityService.findMany('api::client.client', {
+        fields: ['id', 'documentId', 'name'] as any,
+        populate: {
+          purchases: {
+            fields: ['id', 'totalValue'] as any,
+            populate: {
+              purchaseSalesStatus: true
+            }
+          }
+        }
+      }) as any;
+
+      console.log(`[RANKING ORDINAL] Processando ${clients.length} clientes...`);
+
+      // Calcular total gasto de cada cliente
+      const clientsWithSpent = await Promise.all(
+        clients.map(async (client: any) => {
+          processed++;
+
+          try {
+            const purchases = client.purchases || [];
+
+            // Debug: log das purchases para verificar
+            console.log(`[DEBUG] Cliente ${client.name}:`);
+            console.log(`  - Total de purchases: ${purchases.length}`);
+            purchases.forEach((p: any, idx: number) => {
+              console.log(`  - Purchase ${idx}: status="${p.purchaseSalesStatus?.name}", totalValue=${p.totalValue}`);
+            });
+
+            const validPurchases = purchases.filter((p: any) =>
+              p.purchaseSalesStatus?.name === 'Aprovada' ||
+              p.purchaseSalesStatus?.name === 'Entregue'
+            );
+
+            console.log(`  - Valid purchases: ${validPurchases.length}`);
+
+            const totalSpent = validPurchases.reduce((sum: number, p: any) =>
+              sum + (p.totalValue || 0), 0
+            );
+
+            console.log(`  - Total spent: R$ ${totalSpent.toFixed(2)}`);
+
+            return {
+              id: client.id,
+              documentId: client.documentId,
+              name: client.name || 'Cliente',
+              totalSpent
+            };
+          } catch (error) {
+            errors++;
+            console.error(`[RANKING ORDINAL] Erro ao processar cliente ${client.name}:`, error);
+            return {
+              id: client.id,
+              documentId: client.documentId,
+              name: client.name || 'Cliente',
+              totalSpent: 0
+            };
+          }
+        })
+      );
+
+      // Ordenar por total gasto (decrescente) e atribuir posições
+      const sortedClients = clientsWithSpent.sort((a, b) => b.totalSpent - a.totalSpent);
+
+      // Atualizar rankingPosition de cada cliente
+      for (let i = 0; i < sortedClients.length; i++) {
+        const client = sortedClients[i];
+        const position = i + 1; // 1º, 2º, 3º...
+
+        try {
+          await strapi.entityService.update('api::client.client', client.id, {
+            data: {
+              rankingPosition: position,
+              lastRankingUpdate: new Date()
+            }
+          });
+
+          updated++;
+          console.log(
+            `[RANKING ORDINAL] ${position}º lugar - ${client.name} - R$ ${client.totalSpent.toFixed(2)}`
+          );
+
+        } catch (updateError) {
+          errors++;
+          console.error(`[RANKING ORDINAL] Erro ao atualizar cliente ${client.name}:`, updateError);
+        }
+      }
+
+      console.log(
+        `[RANKING ORDINAL] ✅ Cálculo concluído - Processados: ${processed}, Atualizados: ${updated}, Erros: ${errors}`
+      );
+
+      return { processed, updated, errors };
+
+    } catch (error) {
+      console.error('[RANKING ORDINAL] Erro no cálculo:', error);
+      return { processed, updated, errors };
+    }
+  }
 }

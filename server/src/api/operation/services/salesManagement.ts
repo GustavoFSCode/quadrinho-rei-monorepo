@@ -13,9 +13,7 @@ export class SalesManagement {
                     client: {
                         fields: ['name', 'cpf', 'phone']
                     },
-                    purchaseSalesStatus: {
-                        fields: ['name']
-                    },
+                    purchaseSalesStatus: true,
                     cartOrders: {
                         populate: {
                             product: {
@@ -66,46 +64,55 @@ export class SalesManagement {
     }
 
     public async editSalesStatus(ctx) {
-        const param = ctx.params;
-        const body = ctx.request.body;
+        try {
+            const param = ctx.params;
+            const body = ctx.request.body;
 
-        if (!param?.saleId) throw new ApplicationError("Erro ao encontrar venda");
+            if (!param?.saleId) throw new ApplicationError("Erro ao encontrar venda");
 
-        const sale = await strapi.documents('api::purchase.purchase').findOne({
-            documentId: param.saleId,
-            populate: {
-                coupons: {}
+            const sale = await strapi.documents('api::purchase.purchase').findOne({
+                documentId: param.saleId,
+                populate: {
+                    coupons: {}
+                }
+            })
+
+            if (!sale) throw new ApplicationError("Erro ao encontrar venda");
+
+            const statuses = await this.getSalesStatus(ctx);
+
+            console.log('statuses: ', statuses)
+
+            const foundStatus = statuses.filter((status) => status?.documentId === body?.status);
+
+            if (!foundStatus || foundStatus.length === 0) {
+                throw new ApplicationError("Erro ao encontrar status");
             }
-        })
 
-        if (!sale) throw new ApplicationError("Erro ao encontrar venda");
+            await strapi.documents('api::purchase.purchase').update({
+                documentId: sale.documentId,
+                data: {
+                    purchaseSalesStatus: body.status
+                } as any
+            })
 
-        const statuses = await this.getSalesStatus(ctx);
+            console.log(`✅ Status updated successfully for sale ${sale.documentId} to ${foundStatus[0].name}`);
 
-        console.log('statuses: ', statuses)
-
-        const foundStatus = statuses.filter((status) => status?.documentId === body?.status);
-
-        if (!foundStatus) throw new ApplicationError("Erro ao encontrar status");
-
-        await strapi.documents('api::purchase.purchase').update({
-            documentId: sale.documentId,
-            data: {
-                purchaseSalesStatus: body.status
+            if (foundStatus[0].name === "Pedido cancelado" || foundStatus[0].name === "Pedido recusado") {
+                for (const coupon of sale.coupons) {
+                    await strapi.documents('api::coupon.coupon').update({
+                        documentId: coupon.documentId,
+                        data: {
+                            couponStatus: "NaoUsado"
+                        }
+                    })
+                }
             }
-        })
 
-        if (foundStatus[0].name === "Pedido cancelado" || foundStatus[0].name === "Pedido recusado") {
-            for (const coupon of sale.coupons) {
-                await strapi.documents('api::coupon.coupon').update({
-                    documentId: coupon.documentId,
-                    data: {
-                        couponStatus: "NaoUsado"
-                    }
-                })
-            }
+            return "Status alterado com sucesso!";
+        } catch (error) {
+            console.error('❌ Error in editSalesStatus:', error);
+            throw error;
         }
-
-        return "Status alterado com sucesso!";
     }
 }

@@ -12,10 +12,10 @@ import {
 } from './styled';
 import Button from '@/components/Button';
 import CustomSelect from '@/components/Select';
-import { 
-  getTrades, 
-  getTradesStatuses, 
-  updateTradeStatus, 
+import {
+  getTrades,
+  getTradesStatuses,
+  updateTradeStatus,
   generateCoupon,
   Trade,
   TradeStatus,
@@ -30,13 +30,13 @@ interface TabelaProps {
   onTotalChange?: (total: number) => void;
 }
 
-const Tabela: React.FC<TabelaProps> = ({ 
-  currentPage = 1, 
-  itemsPerPage = 12, 
-  onTotalChange 
+const Tabela: React.FC<TabelaProps> = ({
+  currentPage = 1,
+  itemsPerPage = 12,
+  onTotalChange
 }) => {
   const queryClient = useQueryClient();
-  
+
   const { data: tradesResponse, isLoading: tradesLoading, error: tradesError } = useQuery({
     queryKey: ['trades', currentPage, itemsPerPage],
     queryFn: () => getTrades(currentPage, itemsPerPage),

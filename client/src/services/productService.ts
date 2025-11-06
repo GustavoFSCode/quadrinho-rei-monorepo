@@ -162,14 +162,14 @@ export async function deleteProduct(
 
 export async function getProductCategories(): Promise<ProductCategoriesResponse> {
   const { data } = await api.get<ProductCategoriesResponse>(
-    '/product-categories'
+    '/getProductCategories'
   );
   return data;
 }
 
 export async function getPrecificationTypes(): Promise<PrecificationTypesResponse> {
   const { data } = await api.get<PrecificationTypesResponse>(
-    '/precification-types'
+    '/getPrecificationTypes'
   );
   return data;
 }

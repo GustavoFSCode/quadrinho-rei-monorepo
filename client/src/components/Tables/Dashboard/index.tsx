@@ -32,6 +32,20 @@ ChartJS.register(
   ChartDataLabels,
 );
 
+// Paleta de cores para as categorias
+const colorPalette = [
+  { bg: 'rgba(147, 51, 234, 0.2)', border: 'rgba(147, 51, 234, 1)' },  // Purple
+  { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 1)' },  // Blue
+  { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 1)' },    // Red
+  { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 1)' },    // Green
+  { bg: 'rgba(251, 146, 60, 0.2)', border: 'rgba(251, 146, 60, 1)' },  // Orange
+  { bg: 'rgba(168, 85, 247, 0.2)', border: 'rgba(168, 85, 247, 1)' },  // Violet
+  { bg: 'rgba(236, 72, 153, 0.2)', border: 'rgba(236, 72, 153, 1)' },  // Pink
+  { bg: 'rgba(14, 165, 233, 0.2)', border: 'rgba(14, 165, 233, 1)' },  // Sky
+  { bg: 'rgba(132, 204, 22, 0.2)', border: 'rgba(132, 204, 22, 1)' },  // Lime
+  { bg: 'rgba(249, 115, 22, 0.2)', border: 'rgba(249, 115, 22, 1)' },  // Orange-600
+];
+
 // Períodos predefinidos para facilitar a seleção
 const periodOptions = [
   { value: 'last7days', label: 'Últimos 7 dias' },
@@ -135,6 +149,16 @@ const Tabela: React.FC = () => {
     }
   };
 
+  // Extrair todas as categorias únicas dos dados
+  const allCategories = React.useMemo(() => {
+    if (!salesData) return [];
+    const categoriesSet = new Set<string>();
+    salesData.forEach(item => {
+      Object.keys(item.categories).forEach(cat => categoriesSet.add(cat));
+    });
+    return Array.from(categoriesSet).sort();
+  }, [salesData]);
+
   // Preparar dados para o gráfico
   const chartData = {
     labels: salesData?.map(item => {
@@ -143,48 +167,79 @@ const Tabela: React.FC = () => {
                          'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       return `${monthNames[parseInt(month) - 1]} ${year}`;
     }) || [],
-    datasets: [
-      {
-        label: 'Quantidade de Vendas',
-        data: salesData?.map(item => item.totalValue) || [],
-        backgroundColor: 'rgba(147, 51, 234, 0.2)',
-        borderColor: 'rgba(147, 51, 234, 1)',
-        borderWidth: 3,
-        pointBackgroundColor: 'rgba(147, 51, 234, 1)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        fill: true,
-      },
-    ],
+    datasets: allCategories.map((category, index) => ({
+      label: category,
+      data: salesData?.map(item => item.categories[category] || 0) || [],
+      backgroundColor: colorPalette[index % colorPalette.length].bg,
+      borderColor: colorPalette[index % colorPalette.length].border,
+      borderWidth: 2,
+      pointBackgroundColor: colorPalette[index % colorPalette.length].border,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      fill: false,
+      tension: 0.3,
+    })),
   };
 
   // Calcular estatísticas
-  const totalSales = salesData?.reduce((acc, item) => acc + item.totalValue, 0) || 0;
+  const totalSales = salesData?.reduce((acc, item) => {
+    const monthTotal = Object.values(item.categories).reduce((sum, val) => sum + val, 0);
+    return acc + monthTotal;
+  }, 0) || 0;
   const averagePerMonth = salesData?.length ? totalSales / salesData.length : 0;
 
   const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'top',
         labels: {
-          font: { size: 14, weight: 'bold' }
-        }
+          font: { size: 12, weight: 'bold' },
+          padding: 15,
+          usePointStyle: true,
+        },
+        onClick: (e, legendItem, legend) => {
+          const index = legendItem.datasetIndex;
+          const ci = legend.chart;
+          if (ci.isDatasetVisible(index)) {
+            ci.hide(index);
+            legendItem.hidden = true;
+          } else {
+            ci.show(index);
+            legendItem.hidden = false;
+          }
+        },
       },
       title: {
         display: true,
         text: selectedCategory
-          ? `Vendas por Período - ${categories?.find(c => c.documentId === selectedCategory)?.name || 'Categoria Selecionada'}`
-          : 'Vendas por Período - Todas as Categorias',
+          ? `Vendas por Gênero - ${categories?.find(c => c.documentId === selectedCategory)?.name || 'Categoria Selecionada'}`
+          : 'Vendas por Gênero - Todas as Categorias',
         font: { size: 18, weight: 'bold' }
       },
       datalabels: {
-        anchor: 'end',
-        align: 'end',
-        font: { weight: 'bold' }
+        display: false, // Desabilitar labels nos pontos para evitar poluição visual
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += context.parsed.y + ' vendas';
+            }
+            return label;
+          }
+        }
+      }
     },
     scales: {
       x: {
