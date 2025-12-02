@@ -186,7 +186,6 @@ describe('Cadastro de Clientes - Marvel', () => {
       cy.get('#email').type(client.email);
       cy.get('#password').type(client.password);
       cy.get('#confirm_password').type(client.password);
-      cy.get('#ranking').type(client.ranking);
 
       // 4. Preenche o primeiro endereço (index 0) - Cobrança
       cy.get('#Address\\[0\\]\\.nameAddress').type(client.addressCob);

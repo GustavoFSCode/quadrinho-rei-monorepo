@@ -1,9 +1,9 @@
 import api from './api';
 
 export interface DashboardSalesData {
-  yearMonth: string; // formato 'YYYY-MM'
+  date: string; // formato 'YYYY-MM-DD'
   categories: {
-    [categoryName: string]: number; // nome da categoria -> quantidade vendida
+    [categoryName: string]: number; // nome da categoria -> valor total vendido (R$)
   };
 }
 
@@ -17,6 +17,7 @@ export interface DashboardFilters {
   category?: string;
   date1?: string; // formato 'YYYY-MM-DD'
   date2?: string; // formato 'YYYY-MM-DD'
+  periodType?: 'daily' | 'weekly' | 'monthly';
 }
 
 export async function getDashboardSales(filters?: DashboardFilters): Promise<DashboardSalesData[]> {
@@ -25,6 +26,7 @@ export async function getDashboardSales(filters?: DashboardFilters): Promise<Das
     if (filters?.category) params.category = filters.category;
     if (filters?.date1) params.date1 = filters.date1;
     if (filters?.date2) params.date2 = filters.date2;
+    if (filters?.periodType) params.periodType = filters.periodType;
 
     const { data } = await api.get<DashboardSalesData[]>('/getDashboard', { params });
     return data;

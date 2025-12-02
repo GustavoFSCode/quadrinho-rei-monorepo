@@ -57,6 +57,13 @@ const periodOptions = [
   { value: 'custom', label: 'Período customizado' },
 ];
 
+// Tipos de agrupamento do gráfico
+const periodTypeOptions = [
+  { value: 'daily', label: 'Diário' },
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'monthly', label: 'Mensal' },
+];
+
 // Função para calcular datas baseadas no período selecionado
 const getPeriodDates = (period: string): { date1: string; date2: string } | null => {
   const today = new Date();
@@ -104,6 +111,7 @@ const Tabela: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const [periodType, setPeriodType] = useState<string>('daily');
   const [filters, setFilters] = useState<DashboardFilters>({});
 
   // Inicializar com últimos 30 dias
@@ -128,17 +136,18 @@ const Tabela: React.FC = () => {
     enabled: true,
   });
 
-  // Atualizar filtros quando datas ou categoria mudar
+  // Atualizar filtros quando datas, categoria ou tipo de período mudar
   useEffect(() => {
     if (startDate && endDate) {
       const newFilters: DashboardFilters = {
         category: selectedCategory || undefined,
         date1: startDate,
         date2: endDate,
+        periodType: periodType as 'daily' | 'weekly' | 'monthly',
       };
       setFilters(newFilters);
     }
-  }, [selectedCategory, startDate, endDate]);
+  }, [selectedCategory, startDate, endDate, periodType]);
 
   // Função para aplicar período predefinido
   const applyPeriod = (period: string) => {
@@ -162,10 +171,22 @@ const Tabela: React.FC = () => {
   // Preparar dados para o gráfico
   const chartData = {
     labels: salesData?.map(item => {
-      const [year, month] = item.yearMonth.split('-');
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-                         'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return `${monthNames[parseInt(month) - 1]} ${year}`;
+      if (periodType === 'daily') {
+        // Formato diário: "2025-11-06" -> "06/11"
+        const [year, month, day] = item.date.split('-');
+        return `${day}/${month}`;
+      } else if (periodType === 'weekly') {
+        // Formato semanal: "2025-W45" -> "Sem 45/2025"
+        const [year, week] = item.date.split('-W');
+        return `Sem ${week}/${year}`;
+      } else if (periodType === 'monthly') {
+        // Formato mensal: "2025-11" -> "Nov/2025"
+        const [year, month] = item.date.split('-');
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                           'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        return `${monthNames[parseInt(month) - 1]}/${year}`;
+      }
+      return item.date;
     }) || [],
     datasets: allCategories.map((category, index) => ({
       label: category,
@@ -206,6 +227,8 @@ const Tabela: React.FC = () => {
         },
         onClick: (e, legendItem, legend) => {
           const index = legendItem.datasetIndex;
+          if (index === undefined) return;
+
           const ci = legend.chart;
           if (ci.isDatasetVisible(index)) {
             ci.hide(index);
@@ -234,7 +257,10 @@ const Tabela: React.FC = () => {
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += context.parsed.y + ' vendas';
+              label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
             }
             return label;
           }
@@ -253,12 +279,17 @@ const Tabela: React.FC = () => {
       y: {
         title: {
           display: true,
-          text: 'Quantidade de Vendas',
+          text: 'Valor de Vendas (R$)',
           font: { size: 14, weight: 'bold' }
         },
         beginAtZero: true,
         ticks: {
-          stepSize: 1
+          callback: function(value) {
+            return 'R$ ' + value.toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+          }
         }
       },
     },
@@ -280,18 +311,44 @@ const Tabela: React.FC = () => {
       <StatsHeader>
         <StatsCard>
           <StatsTitle>Total de Vendas</StatsTitle>
-          <StatsValue>{totalSales}</StatsValue>
-          <StatsSubtitle>no período selecionado</StatsSubtitle>
+          <StatsValue>
+            {totalSales.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            })}
+          </StatsValue>
+          <StatsSubtitle>em vendas no período</StatsSubtitle>
         </StatsCard>
         <StatsCard>
-          <StatsTitle>Média por Mês</StatsTitle>
-          <StatsValue>{Math.round(averagePerMonth)}</StatsValue>
-          <StatsSubtitle>vendas mensais</StatsSubtitle>
+          <StatsTitle>
+            {periodType === 'daily' ? 'Média por Dia' :
+             periodType === 'weekly' ? 'Média por Semana' :
+             'Média por Mês'}
+          </StatsTitle>
+          <StatsValue>
+            {averagePerMonth.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            })}
+          </StatsValue>
+          <StatsSubtitle>
+            {periodType === 'daily' ? 'valor médio diário' :
+             periodType === 'weekly' ? 'valor médio semanal' :
+             'valor médio mensal'}
+          </StatsSubtitle>
         </StatsCard>
         <StatsCard>
-          <StatsTitle>Meses com Vendas</StatsTitle>
+          <StatsTitle>
+            {periodType === 'daily' ? 'Dias com Vendas' :
+             periodType === 'weekly' ? 'Semanas com Vendas' :
+             'Meses com Vendas'}
+          </StatsTitle>
           <StatsValue>{salesData?.length || 0}</StatsValue>
-          <StatsSubtitle>períodos ativos</StatsSubtitle>
+          <StatsSubtitle>
+            {periodType === 'daily' ? 'dias com vendas' :
+             periodType === 'weekly' ? 'semanas com vendas' :
+             'meses com vendas'}
+          </StatsSubtitle>
         </StatsCard>
       </StatsHeader>
 
@@ -308,6 +365,18 @@ const Tabela: React.FC = () => {
               isClearable
               width="200px"
               onChange={opt => setSelectedCategory(opt?.value || null)}
+            />
+          </FilterGroup>
+
+          <FilterGroup>
+            <FilterLabel>Agrupamento:</FilterLabel>
+            <CustomSelect
+              name="periodType"
+              options={periodTypeOptions}
+              value={periodType}
+              placeholder="Selecione o período"
+              width="150px"
+              onChange={opt => setPeriodType(opt?.value || 'daily')}
             />
           </FilterGroup>
 

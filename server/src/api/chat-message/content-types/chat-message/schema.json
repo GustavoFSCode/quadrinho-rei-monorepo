@@ -34,6 +34,13 @@
     "isError": {
       "type": "boolean",
       "default": false
+    },
+    "feedback": {
+      "type": "enumeration",
+      "enum": ["positive", "negative"]
+    },
+    "feedback_timestamp": {
+      "type": "datetime"
     }
   }
 }

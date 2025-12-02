@@ -211,7 +211,7 @@ describe('Fluxo Completo de Venda E2E', () => {
     cy.log('Segundo cartão selecionado');
 
     // Inserir valor 27,5 no segundo cartão
-    cy.get('input[id^="card-value-"]').last().clear().type('15000');
+    cy.get('input[id^="card-value-"]').last().clear().type('30000');
     cy.wait(1000);
     cy.log('Valor R$ 27,50 inserido no segundo cartão');
 

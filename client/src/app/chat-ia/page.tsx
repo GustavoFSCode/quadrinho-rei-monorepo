@@ -15,6 +15,8 @@ import {
   MessageBubble,
   ReceivedMessage,
   SentMessage,
+  FeedbackButtons,
+  FeedbackButton,
 } from "./styled";
 import Button from "@/components/Button";
 import InputAudio from "@/components/Inputs/InputAudio";
@@ -199,6 +201,23 @@ export default function ChatIA() {
     toast.info("Funcionalidade de áudio em desenvolvimento. Use mensagens de texto por enquanto.");
   };
 
+  const handleFeedback = async (messageId: string, feedback: 'positive' | 'negative') => {
+    try {
+      await chatService.sendFeedback(messageId, feedback);
+
+      // Atualizar o estado local da mensagem
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, feedback }
+          : msg
+      ));
+
+      toast.success(feedback === 'positive' ? 'Obrigado pelo feedback!' : 'Feedback registrado');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao enviar feedback');
+    }
+  };
+
   // Se ainda está verificando autenticação, mostrar loading
   if (isAuthenticated === null) {
     return (
@@ -239,9 +258,33 @@ export default function ChatIA() {
                 <MessageBubble key={msg.id} sender={msg.sender === 'user' ? 'sent' : 'received'}>
                   {msg.type === "text" ? (
                     msg.sender === "ai" ? (
-                      <ReceivedMessage style={msg.isError ? { backgroundColor: '#ffebee', color: '#c62828' } : {}}>
-                        {msg.content}
-                      </ReceivedMessage>
+                      <>
+                        <ReceivedMessage style={msg.isError ? { backgroundColor: '#ffebee', color: '#c62828' } : {}}>
+                          {msg.content}
+                        </ReceivedMessage>
+                        {!msg.isError && msg.id !== 'welcome' && (
+                          <FeedbackButtons>
+                            <FeedbackButton
+                              type="positive"
+                              active={msg.feedback === 'positive'}
+                              onClick={() => handleFeedback(msg.id, 'positive')}
+                              disabled={!!msg.feedback}
+                              title="Gostei"
+                            >
+                              👍
+                            </FeedbackButton>
+                            <FeedbackButton
+                              type="negative"
+                              active={msg.feedback === 'negative'}
+                              onClick={() => handleFeedback(msg.id, 'negative')}
+                              disabled={!!msg.feedback}
+                              title="Não gostei"
+                            >
+                              👎
+                            </FeedbackButton>
+                          </FeedbackButtons>
+                        )}
+                      </>
                     ) : (
                       <SentMessage>{msg.content}</SentMessage>
                     )

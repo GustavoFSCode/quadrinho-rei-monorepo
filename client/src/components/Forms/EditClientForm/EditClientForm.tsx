@@ -73,7 +73,8 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ onClose, data }) => {
             gender: formData.gender,
             cpf: formData.cpf,
             phone: formData.phone,
-            typePhone: formData.typePhone
+            typePhone: formData.typePhone,
+            ranking: clientData.rankingPosition || 0
           },
           user: {
             username: formData.email,

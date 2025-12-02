@@ -308,6 +308,37 @@ export default factories.createCoreController(
         return ctx.internalServerError(error.message || 'Erro interno do servidor');
       }
     },
+    async chatMessageFeedback(ctx) {
+      try {
+        const { messageId, feedback } = ctx.request.body;
+
+        if (!messageId) {
+          return ctx.badRequest('messageId é obrigatório');
+        }
+
+        if (!feedback || !['positive', 'negative'].includes(feedback)) {
+          return ctx.badRequest('feedback deve ser "positive" ou "negative"');
+        }
+
+        // Atualizar mensagem com feedback
+        const updatedMessage = await strapi.entityService.update('api::chat-message.chat-message', messageId, {
+          data: {
+            feedback,
+            feedback_timestamp: new Date()
+          }
+        });
+
+        return ctx.send({
+          success: true,
+          message: 'Feedback registrado com sucesso',
+          data: updatedMessage
+        });
+
+      } catch (error) {
+        console.error('Error in chatMessageFeedback:', error);
+        return ctx.internalServerError(error.message || 'Erro ao registrar feedback');
+      }
+    },
     /* Database Cleanup */
     async cleanupDatabase(ctx) {
       const cleanupService = new DatabaseCleanupService();

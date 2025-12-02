@@ -12,6 +12,7 @@
     "strapi": "strapi"
   },
   "dependencies": {
+    "@google/genai": "^1.29.0",
     "@strapi/plugin-cloud": "5.10.0",
     "@strapi/plugin-users-permissions": "5.10.0",
     "@strapi/provider-upload-cloudinary": "^5.0.0",

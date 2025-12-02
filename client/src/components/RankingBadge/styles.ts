@@ -9,7 +9,7 @@ export const Container = styled.div`
 export const Position = styled.span`
   font-size: 1.25rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.neutral9};
+  color: ${({ theme }) => theme.colors.neutral6};
   min-width: 3rem;
   text-align: center;
 `;

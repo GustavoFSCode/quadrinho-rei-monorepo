@@ -149,3 +149,36 @@ export const ButtonBox = styled.div`
   height: 50px;
   justify-content: flex-end;
 `;
+
+export const FeedbackButtons = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+`;
+
+export const FeedbackButton = styled.button<{ active?: boolean; type?: 'positive' | 'negative' }>`
+  background: ${props => props.active ? (props.type === 'positive' ? '#4caf50' : '#f44336') : 'transparent'};
+  border: 1px solid ${props => props.active ? (props.type === 'positive' ? '#4caf50' : '#f44336') : '#ccc'};
+  color: ${props => props.active ? '#fff' : '#666'};
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  padding: 0;
+
+  &:hover {
+    background: ${props => props.active ? (props.type === 'positive' ? '#45a049' : '#e53935') : '#f0f0f0'};
+    border-color: ${props => props.type === 'positive' ? '#4caf50' : '#f44336'};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;

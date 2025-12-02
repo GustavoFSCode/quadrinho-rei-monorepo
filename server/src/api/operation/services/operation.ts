@@ -3,6 +3,7 @@
  */
 
 import { factories } from '@strapi/strapi';
+import { GoogleGenAI } from '@google/genai';
 
 interface ChatMessage {
   role: 'user' | 'model';
@@ -28,6 +29,9 @@ interface ProjectContext {
     totalCouponsUsed: number;
     totalProductsBought: number;
   };
+  userPreferences?: any[];
+  positiveFeedback?: number;
+  negativeFeedback?: number;
 }
 
 export default factories.createCoreService('api::operation.operation', () => ({
@@ -85,6 +89,14 @@ export default factories.createCoreService('api::operation.operation', () => ({
         }
       });
 
+      // Extrair preferências do usuário da mensagem
+      try {
+        await this.extractUserPreferences(clientId, message, conversation.id);
+      } catch (prefError) {
+        strapi.log.error('Error extracting preferences:', prefError);
+        // Não falhar o chat se a extração de preferências falhar
+      }
+
       // Verificar se a pergunta está no escopo do projeto
       if (!this.isQuestionInScope(message)) {
         const scopeMessage = "Desculpe, só posso ajudar com questões relacionadas à Quadrinho Rei, como informações sobre produtos, pedidos, trocas ou funcionamento da loja. Como posso ajudá-lo com algo relacionado aos nossos quadrinhos?";
@@ -110,6 +122,40 @@ export default factories.createCoreService('api::operation.operation', () => ({
       // Buscar contexto do projeto
       const context = await this.getProjectContext(clientId);
 
+      // Detectar se o usuário está pedindo recomendações
+      const recommendationKeywords = [
+        'recomendar', 'recomenda', 'recomende', 'recomendação', 'recomendações',
+        'sugerir', 'sugere', 'sugestão', 'sugestões',
+        'indicar', 'indica', 'indicação', 'indicações',
+        'o que comprar', 'o que você recomenda', 'me ajuda a escolher',
+        'qual quadrinho', 'quais quadrinhos', 'que hq', 'qual hq'
+      ];
+
+      const lowerMessage = message.toLowerCase();
+      const isAskingForRecommendations = recommendationKeywords.some(keyword =>
+        lowerMessage.includes(keyword)
+      );
+
+      let recommendedProductsText = '';
+      if (isAskingForRecommendations) {
+        strapi.log.info('User is asking for recommendations, generating...');
+        try {
+          const recommendations = await this.generateProductRecommendations(clientId, 5);
+
+          if (recommendations && recommendations.length > 0) {
+            recommendedProductsText = '\n\nPRODUTOS RECOMENDADOS COM BASE NAS PREFERÊNCIAS DO USUÁRIO:\n';
+            recommendations.forEach((product: any, index: number) => {
+              recommendedProductsText += `${index + 1}. ${product.title} - ${product.author} (${product.publisher}, ${product.year || 'ano desconhecido'}) - R$ ${product.priceSell} - ${product.stock} em estoque\n`;
+            });
+            recommendedProductsText += '\nIMPORTANTE: Apresente esses produtos de forma natural e explicativa, destacando por que eles combinam com as preferências do usuário.';
+
+            strapi.log.info(`Generated ${recommendations.length} recommendations for the user`);
+          }
+        } catch (recError) {
+          strapi.log.error('Error generating recommendations:', recError);
+        }
+      }
+
       // Preparar histórico da conversa para o Gemini
       const conversationHistory: ChatMessage[] = [];
       
@@ -129,7 +175,7 @@ DADOS DO USUÁRIO PARA REFERÊNCIA:
 - Total gasto: R$ ${context.userStats.totalSpent.toFixed(2)}
 - Pedidos realizados: ${context.userStats.totalPurchases}
 - Quadrinhos comprados: ${context.userStats.totalProductsBought}
-- Cupons utilizados: ${context.userStats.totalCouponsUsed}`;
+- Cupons utilizados: ${context.userStats.totalCouponsUsed}${recommendedProductsText}`;
 
       conversationHistory.push({
         role: 'user',
@@ -286,6 +332,29 @@ DADOS DO USUÁRIO PARA REFERÊNCIA:
       // Calcular estatísticas pessoais do usuário
       const userStats = await this.calculateUserStats(clientId);
 
+      // Buscar preferências do usuário
+      const userPreferences = await strapi.entityService.findMany('api::user-preference.user-preference' as any, {
+        filters: {
+          client: { id: clientId }
+        },
+        sort: 'confidence_score:desc',
+        limit: 10
+      }) as any[];
+
+      // Buscar feedback positivo e negativo do usuário
+      const allMessages = await strapi.entityService.findMany('api::chat-message.chat-message', {
+        filters: {
+          conversation: {
+            client: { id: clientId }
+          },
+          sender: 'ai',
+          feedback: { $notNull: true }
+        }
+      });
+
+      const positiveFeedback = allMessages.filter((m: any) => m.feedback === 'positive').length;
+      const negativeFeedback = allMessages.filter((m: any) => m.feedback === 'negative').length;
+
       return {
         products: (products || []).map(p => ({
           id: p.id,
@@ -310,19 +379,25 @@ DADOS DO USUÁRIO PARA REFERÊNCIA:
           id: s.id,
           name: s.name || 'Status desconhecido'
         })),
-        userStats
+        userStats,
+        userPreferences: userPreferences || [],
+        positiveFeedback,
+        negativeFeedback
       };
     } catch (error) {
       strapi.log.error('Error getting project context:', error);
       // Retornar contexto mínimo em caso de erro
       const userStats = await this.calculateUserStats(clientId);
-      
+
       return {
         products: [],
         productCategories: [],
         recentPurchases: [],
         tradeStatuses: [],
-        userStats
+        userStats,
+        userPreferences: [],
+        positiveFeedback: 0,
+        negativeFeedback: 0
       };
     }
   },
@@ -433,9 +508,395 @@ DADOS DO USUÁRIO PARA REFERÊNCIA:
     }
   },
 
+  async extractUserPreferences(clientId: number, message: string, conversationId: number) {
+    try {
+      const lowerMessage = message.toLowerCase();
+      const extractedPreferences: any[] = [];
+
+      // 1. Extrair preferências de AUTORES
+      const authorKeywords = ['gosto de', 'adoro', 'amo', 'curto', 'prefiro', 'favorito', 'fan de', 'fã de'];
+      const authorPatterns = [
+        /(?:gosto|adoro|amo|curto|prefiro|fan|fã)(?:\s+(?:de|do|da))?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
+        /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:é|são)\s+(?:meu|minha|meus|minhas)\s+(?:autor|autora|favorito)/gi
+      ];
+
+      authorPatterns.forEach(pattern => {
+        const matches = message.matchAll(pattern);
+        for (const match of matches) {
+          const author = match[1]?.trim();
+          if (author && author.length > 2 && author.length < 50) {
+            extractedPreferences.push({
+              preference_type: 'author',
+              preference_value: author,
+              confidence_score: 0.8
+            });
+          }
+        }
+      });
+
+      // 2. Extrair preferências de EDITORAS
+      const publishers = ['Marvel', 'DC Comics', 'DC', 'Image Comics', 'Dark Horse', 'Panini', 'Abril', 'JBC'];
+      publishers.forEach(publisher => {
+        if (lowerMessage.includes(publisher.toLowerCase())) {
+          const hasPreferenceKeyword = authorKeywords.some(keyword => lowerMessage.includes(keyword));
+          if (hasPreferenceKeyword) {
+            extractedPreferences.push({
+              preference_type: 'publisher',
+              preference_value: publisher,
+              confidence_score: 0.7
+            });
+          }
+        }
+      });
+
+      // 3. Extrair preferências de CATEGORIAS/GÊNEROS
+      const categoryMappings = {
+        'mangá': 'Mangá',
+        'manga': 'Mangá',
+        'super-herói': 'Super-Heróis',
+        'super herói': 'Super-Heróis',
+        'herói': 'Super-Heróis',
+        'dc': 'DC Comics',
+        'marvel': 'Marvel',
+        'terror': 'Terror',
+        'horror': 'Terror',
+        'suspense': 'Suspense',
+        'aventura': 'Aventura',
+        'ficção': 'Ficção Científica',
+        'sci-fi': 'Ficção Científica',
+        'fantasia': 'Fantasia',
+        'romance': 'Romance',
+        'infantil': 'Infantil',
+        'jovem': 'Young Adult'
+      };
+
+      Object.entries(categoryMappings).forEach(([keyword, category]) => {
+        if (lowerMessage.includes(keyword)) {
+          const hasPreferenceKeyword = authorKeywords.some(kw => lowerMessage.includes(kw)) ||
+                                       lowerMessage.includes('só') ||
+                                       lowerMessage.includes('apenas');
+          if (hasPreferenceKeyword) {
+            extractedPreferences.push({
+              preference_type: 'category',
+              preference_value: category,
+              confidence_score: 0.75
+            });
+          }
+        }
+      });
+
+      // 4. Extrair preferências de FAIXA DE PREÇO
+      const pricePatterns = [
+        /(?:até|no máximo|máximo de|gastaria até)\s+R?\$?\s*(\d+(?:,\d{2})?)/gi,
+        /(?:entre|de)\s+R?\$?\s*(\d+(?:,\d{2})?)\s+(?:a|até|e)\s+R?\$?\s*(\d+(?:,\d{2})?)/gi,
+        /(?:barato|mais barato|econômico|em conta)/gi
+      ];
+
+      pricePatterns.forEach((pattern, index) => {
+        const matches = message.matchAll(pattern);
+        for (const match of matches) {
+          let priceRange = '';
+          if (index === 0 && match[1]) {
+            // "até X"
+            priceRange = `0-${match[1].replace(',', '.')}`;
+          } else if (index === 1 && match[1] && match[2]) {
+            // "de X a Y"
+            priceRange = `${match[1].replace(',', '.')}-${match[2].replace(',', '.')}`;
+          } else if (index === 2) {
+            // "barato"
+            priceRange = '0-50';
+          }
+
+          if (priceRange) {
+            extractedPreferences.push({
+              preference_type: 'price_range',
+              preference_value: priceRange,
+              confidence_score: 0.6
+            });
+          }
+        }
+      });
+
+      // 5. Extrair preferências de FAIXA DE ANO
+      const yearPatterns = [
+        /(?:anos?|década de)\s+(\d{4}|\d{2})/gi,
+        /(?:clássicos?|antigos?|vintage)/gi,
+        /(?:novos?|recentes?|lançamentos?)/gi
+      ];
+
+      yearPatterns.forEach((pattern, index) => {
+        const matches = message.matchAll(pattern);
+        for (const match of matches) {
+          let yearRange = '';
+          const currentYear = new Date().getFullYear();
+
+          if (index === 0 && match[1]) {
+            // "anos 90", "década de 2000"
+            const year = match[1].length === 2 ? `19${match[1]}` : match[1];
+            yearRange = `${year}-${parseInt(year) + 9}`;
+          } else if (index === 1) {
+            // "clássicos"
+            yearRange = `1950-1999`;
+          } else if (index === 2) {
+            // "novos/recentes"
+            yearRange = `${currentYear - 2}-${currentYear}`;
+          }
+
+          if (yearRange) {
+            extractedPreferences.push({
+              preference_type: 'year_range',
+              preference_value: yearRange,
+              confidence_score: 0.65
+            });
+          }
+        }
+      });
+
+      // Salvar preferências extraídas no banco de dados
+      for (const pref of extractedPreferences) {
+        // Verificar se já existe uma preferência similar
+        const existingPrefs = await strapi.entityService.findMany('api::user-preference.user-preference' as any, {
+          filters: {
+            client: { id: clientId },
+            preference_type: pref.preference_type,
+            preference_value: pref.preference_value
+          }
+        }) as any[];
+
+        if (existingPrefs.length === 0) {
+          // Criar nova preferência
+          await strapi.entityService.create('api::user-preference.user-preference' as any, {
+            data: {
+              client: clientId,
+              preference_type: pref.preference_type,
+              preference_value: pref.preference_value,
+              confidence_score: pref.confidence_score,
+              extracted_from_conversation: conversationId
+            }
+          });
+
+          strapi.log.info(`New preference extracted: ${pref.preference_type} = ${pref.preference_value}`);
+        } else {
+          // Atualizar confidence score se necessário
+          const existing = existingPrefs[0];
+          const newScore = Math.min(1, existing.confidence_score + 0.1);
+
+          await strapi.entityService.update('api::user-preference.user-preference' as any, existing.id, {
+            data: {
+              confidence_score: newScore
+            }
+          });
+
+          strapi.log.info(`Preference reinforced: ${pref.preference_type} = ${pref.preference_value} (score: ${newScore})`);
+        }
+      }
+
+      return extractedPreferences;
+
+    } catch (error) {
+      strapi.log.error('Error extracting user preferences:', error);
+      return [];
+    }
+  },
+
+  async generateProductRecommendations(clientId: number, limit: number = 8) {
+    try {
+      // 1. Buscar preferências do usuário ordenadas por confidence score
+      const preferences = await strapi.entityService.findMany('api::user-preference.user-preference' as any, {
+        filters: {
+          client: { id: clientId }
+        },
+        sort: 'confidence_score:desc'
+      }) as any[];
+
+      if (!preferences || preferences.length === 0) {
+        strapi.log.info(`No preferences found for client ${clientId}, returning random popular products`);
+        // Se não houver preferências, retornar produtos populares/recentes
+        return await strapi.entityService.findMany('api::product.product', {
+          filters: { active: true, stock: { $gt: 0 } },
+          populate: ['productCategories'],
+          limit,
+          sort: 'createdAt:desc'
+        });
+      }
+
+      strapi.log.info(`Found ${preferences.length} preferences for client ${clientId}`);
+
+      // 2. Construir filtros baseados nas preferências
+      const filterConditions: any = {
+        active: true,
+        stock: { $gt: 0 },
+        $or: []
+      };
+
+      // Agrupar preferências por tipo
+      const prefsByType: any = {
+        author: [],
+        publisher: [],
+        category: [],
+        price_range: [],
+        year_range: []
+      };
+
+      preferences.forEach((pref: any) => {
+        if (prefsByType[pref.preference_type]) {
+          prefsByType[pref.preference_type].push(pref);
+        }
+      });
+
+      // Adicionar filtros para autores
+      if (prefsByType.author.length > 0) {
+        prefsByType.author.forEach((pref: any) => {
+          filterConditions.$or.push({
+            author: { $containsi: pref.preference_value }
+          });
+        });
+      }
+
+      // Adicionar filtros para editoras
+      if (prefsByType.publisher.length > 0) {
+        prefsByType.publisher.forEach((pref: any) => {
+          filterConditions.$or.push({
+            publisher: { $containsi: pref.preference_value }
+          });
+        });
+      }
+
+      // Adicionar filtros para categorias
+      if (prefsByType.category.length > 0) {
+        prefsByType.category.forEach((pref: any) => {
+          filterConditions.$or.push({
+            productCategories: {
+              name: { $containsi: pref.preference_value }
+            }
+          });
+        });
+      }
+
+      // Adicionar filtros para faixa de preço
+      if (prefsByType.price_range.length > 0) {
+        const priceRanges = prefsByType.price_range.map((pref: any) => {
+          const [min, max] = pref.preference_value.split('-').map(parseFloat);
+          return { min, max };
+        });
+
+        // Usar a faixa de preço mais confiável
+        const bestPriceRange = priceRanges[0];
+        filterConditions.priceSell = {
+          $gte: bestPriceRange.min,
+          $lte: bestPriceRange.max
+        };
+      }
+
+      // Adicionar filtros para faixa de ano
+      if (prefsByType.year_range.length > 0) {
+        const yearRanges = prefsByType.year_range.map((pref: any) => {
+          const [min, max] = pref.preference_value.split('-').map(parseInt);
+          return { min, max };
+        });
+
+        const bestYearRange = yearRanges[0];
+        filterConditions.year = {
+          $gte: bestYearRange.min,
+          $lte: bestYearRange.max
+        };
+      }
+
+      // Se não houver condições $or, remover o campo
+      if (filterConditions.$or.length === 0) {
+        delete filterConditions.$or;
+      }
+
+      strapi.log.info('Recommendation filters:', JSON.stringify(filterConditions, null, 2));
+
+      // 3. Buscar produtos que matcham as preferências
+      const recommendedProducts = await strapi.entityService.findMany('api::product.product', {
+        filters: filterConditions,
+        populate: ['productCategories'],
+        limit: limit * 2, // Buscar mais para depois filtrar os melhores
+        sort: ['stock:desc', 'createdAt:desc']
+      });
+
+      strapi.log.info(`Found ${recommendedProducts.length} products matching preferences`);
+
+      // 4. Calcular score de relevância para cada produto
+      const scoredProducts = recommendedProducts.map((product: any) => {
+        let relevanceScore = 0;
+
+        preferences.forEach((pref: any) => {
+          const confidenceWeight = pref.confidence_score;
+
+          switch (pref.preference_type) {
+            case 'author':
+              if (product.author?.toLowerCase().includes(pref.preference_value.toLowerCase())) {
+                relevanceScore += 3 * confidenceWeight;
+              }
+              break;
+
+            case 'publisher':
+              if (product.publisher?.toLowerCase().includes(pref.preference_value.toLowerCase())) {
+                relevanceScore += 2.5 * confidenceWeight;
+              }
+              break;
+
+            case 'category':
+              if (product.productCategories?.some((cat: any) =>
+                  cat.name?.toLowerCase().includes(pref.preference_value.toLowerCase())
+              )) {
+                relevanceScore += 2 * confidenceWeight;
+              }
+              break;
+
+            case 'price_range':
+              const [minPrice, maxPrice] = pref.preference_value.split('-').map(parseFloat);
+              if (product.priceSell >= minPrice && product.priceSell <= maxPrice) {
+                relevanceScore += 1.5 * confidenceWeight;
+              }
+              break;
+
+            case 'year_range':
+              const [minYear, maxYear] = pref.preference_value.split('-').map(parseInt);
+              if (product.year && product.year >= minYear && product.year <= maxYear) {
+                relevanceScore += 1 * confidenceWeight;
+              }
+              break;
+          }
+        });
+
+        // Bonus para produtos com estoque alto
+        if (product.stock > 10) {
+          relevanceScore += 0.5;
+        }
+
+        return {
+          ...product,
+          relevanceScore
+        };
+      });
+
+      // 5. Ordenar por relevância e limitar ao número solicitado
+      const topRecommendations = scoredProducts
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .slice(0, limit);
+
+      strapi.log.info(`Returning top ${topRecommendations.length} recommendations`);
+
+      return topRecommendations.map(({ relevanceScore, ...product }) => product);
+
+    } catch (error) {
+      strapi.log.error('Error generating product recommendations:', error);
+      // Em caso de erro, retornar produtos populares
+      return await strapi.entityService.findMany('api::product.product', {
+        filters: { active: true, stock: { $gt: 0 } },
+        populate: ['productCategories'],
+        limit,
+        sort: 'createdAt:desc'
+      });
+    }
+  },
+
   async callGeminiAPI(messages: ChatMessage[], context: ProjectContext): Promise<string> {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
     console.log('=== GEMINI API CHECK ===');
     console.log('API Key configured:', GEMINI_API_KEY ? 'YES' : 'NO');
@@ -450,81 +911,125 @@ DADOS DO USUÁRIO PARA REFERÊNCIA:
       return `Olá! Esta é uma resposta de teste do chat-IA da Quadrinho Rei. Você disse: "${lastMessage.parts[0].text}". Para ativar as respostas reais da IA, configure uma chave válida do Gemini API no arquivo .env conforme descrito no CLAUDE.md.`;
     }
 
-    const systemPrompt = this.buildSystemPrompt(context);
-    
-    console.log('=== SYSTEM PROMPT BEING SENT TO GEMINI ===');
-    console.log('Prompt includes user stats:', systemPrompt.includes(`R$ ${context.userStats.totalSpent.toFixed(2)}`));
-    console.log('Stats values in prompt:');
-    console.log(`- totalSpent: ${context.userStats.totalSpent}`);
-    console.log(`- totalPurchases: ${context.userStats.totalPurchases}`);
-    console.log(`- totalProductsBought: ${context.userStats.totalProductsBought}`);
-    console.log('==========================================');
-    
-    const payload = {
-      contents: [
+    try {
+      // Inicializar o cliente do Google Gemini
+      const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+      const systemPrompt = this.buildSystemPrompt(context);
+
+      console.log('=== SYSTEM PROMPT BEING SENT TO GEMINI ===');
+      console.log('Prompt includes user stats:', systemPrompt.includes(`R$ ${context.userStats.totalSpent.toFixed(2)}`));
+      console.log('Stats values in prompt:');
+      console.log(`- totalSpent: ${context.userStats.totalSpent}`);
+      console.log(`- totalPurchases: ${context.userStats.totalPurchases}`);
+      console.log(`- totalProductsBought: ${context.userStats.totalProductsBought}`);
+      console.log('==========================================');
+
+      // Construir o conteúdo completo da conversa
+      const allContents = [
         {
-          role: 'user',
+          role: 'user' as const,
           parts: [{ text: systemPrompt }]
         },
         ...messages
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-        topP: 0.8,
-        topK: 10
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH", 
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+      ];
+
+      console.log('=== PAYLOAD BEING SENT TO GEMINI ===');
+      console.log('System prompt starts with:', systemPrompt.substring(0, 200) + '...');
+      console.log('Last user message:', messages[messages.length - 1]?.parts[0]?.text || 'N/A');
+      console.log('Total messages in conversation:', messages.length);
+      console.log('====================================');
+
+      // Chamar a API usando a biblioteca oficial
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: allContents.map(content => ({
+          role: content.role,
+          parts: content.parts.map(part => ({ text: part.text }))
+        })),
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+          topP: 0.8,
+          topK: 10
         }
-      ]
-    };
+      });
 
-    console.log('=== PAYLOAD BEING SENT TO GEMINI ===');
-    console.log('System prompt starts with:', payload.contents[0].parts[0].text.substring(0, 200) + '...');
-    console.log('Last user message:', payload.contents[payload.contents.length - 1].parts[0].text);
-    console.log('Total contents in payload:', payload.contents.length);
-    console.log('====================================');
+      console.log('=== GEMINI RESPONSE RECEIVED ===');
+      console.log('Response text length:', response.text?.length || 0);
+      console.log('================================');
 
-    const response = await fetch(GEMINI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
+      if (!response.text) {
+        throw new Error('Nenhuma resposta gerada pela IA');
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      strapi.log.error('Gemini API error:', errorText);
-      throw new Error(`Erro na API do Gemini: ${response.status}`);
+      return response.text;
+
+    } catch (error: any) {
+      console.log('=== GEMINI API ERROR DETAILS ===');
+      console.log('Error message:', error.message);
+      console.log('Error stack:', error.stack);
+      console.log('================================');
+      strapi.log.error('Gemini API error:', error);
+      throw new Error(`Erro na API do Gemini: ${error.message}`);
     }
-
-    const data: any = await response.json();
-    
-    if (!data.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
-      throw new Error('Nenhuma resposta gerada pela IA');
-    }
-
-    return data.candidates[0].content.parts[0].text;
   },
 
   buildSystemPrompt(context: ProjectContext): string {
-    const prompt = `Você é o Alfred, assistente virtual da "Quadrinho Rei", uma loja online especializada em quadrinhos e HQs. 
+    // Construir seção de preferências do usuário
+    let preferencesSection = '';
+    if (context.userPreferences && context.userPreferences.length > 0) {
+      const prefsByType: any = {
+        author: [],
+        publisher: [],
+        category: [],
+        price_range: [],
+        year_range: [],
+        genre: []
+      };
+
+      context.userPreferences.forEach((pref: any) => {
+        if (prefsByType[pref.preference_type]) {
+          prefsByType[pref.preference_type].push(pref.preference_value);
+        }
+      });
+
+      preferencesSection = '\n\nPREFERÊNCIAS CONHECIDAS DO USUÁRIO:';
+
+      if (prefsByType.author.length > 0) {
+        preferencesSection += `\n- Autores favoritos: ${prefsByType.author.join(', ')}`;
+      }
+      if (prefsByType.publisher.length > 0) {
+        preferencesSection += `\n- Editoras preferidas: ${prefsByType.publisher.join(', ')}`;
+      }
+      if (prefsByType.category.length > 0) {
+        preferencesSection += `\n- Categorias de interesse: ${prefsByType.category.join(', ')}`;
+      }
+      if (prefsByType.price_range.length > 0) {
+        preferencesSection += `\n- Faixa de preço: R$ ${prefsByType.price_range[0]}`;
+      }
+      if (prefsByType.year_range.length > 0) {
+        preferencesSection += `\n- Período de interesse: ${prefsByType.year_range[0]}`;
+      }
+
+      preferencesSection += '\n\nIMPORTANTE: Use essas preferências ao fazer recomendações. Priorize produtos que se alinham com os gostos do usuário.';
+    }
+
+    // Construir seção de feedback
+    let feedbackSection = '';
+    if (context.positiveFeedback !== undefined && context.negativeFeedback !== undefined) {
+      const totalFeedback = context.positiveFeedback + context.negativeFeedback;
+      if (totalFeedback > 0) {
+        const satisfactionRate = Math.round((context.positiveFeedback / totalFeedback) * 100);
+        feedbackSection = `\n\nHISTÓRICO DE FEEDBACK:
+- Respostas avaliadas positivamente: ${context.positiveFeedback}
+- Respostas avaliadas negativamente: ${context.negativeFeedback}
+- Taxa de satisfação: ${satisfactionRate}%
+${context.negativeFeedback > context.positiveFeedback ? '\nATENÇÃO: O usuário tem dado mais feedback negativo. Seja mais claro, direto e útil nas respostas.' : ''}`;
+      }
+    }
+
+    const prompt = `Você é o Alfred, assistente virtual da "Quadrinho Rei", uma loja online especializada em quadrinhos e HQs.
 
 INSTRUÇÕES IMPORTANTES:
 - Responda APENAS sobre assuntos relacionados à loja, produtos, pedidos, trocas e quadrinhos em geral
@@ -533,6 +1038,7 @@ INSTRUÇÕES IMPORTANTES:
 - Use linguagem brasileira informal mas profissional
 - Não invente informações que não estão no contexto fornecido
 - Quando perguntarem sobre dados pessoais do usuário, use as estatísticas fornecidas no contexto
+- Quando solicitado recomendações (palavras-chave: "recomendar", "sugerir", "o que comprar", "indicar"), use as preferências do usuário para personalizar as sugestões
 
 CONTEXTO DA LOJA:
 Produtos disponíveis: ${context.products.slice(0, 10).map(p => `${p.title} (${p.author}, ${p.publisher}) - R$ ${p.priceSell}`).join(', ')}
@@ -545,7 +1051,7 @@ ESTATÍSTICAS PESSOAIS DO USUÁRIO:
 - Total gasto em quadrinhos: R$ ${context.userStats.totalSpent.toFixed(2)}
 - Número total de pedidos realizados: ${context.userStats.totalPurchases}
 - Cupons já utilizados: ${context.userStats.totalCouponsUsed}
-- Total de quadrinhos comprados: ${context.userStats.totalProductsBought}
+- Total de quadrinhos comprados: ${context.userStats.totalProductsBought}${preferencesSection}${feedbackSection}
 
 A loja oferece:
 - Venda de quadrinhos nacionais e importados
@@ -558,6 +1064,7 @@ COMO RESPONDER PERGUNTAS ESPECÍFICAS DO USUÁRIO:
 - "Quantos pedidos eu fiz?" → Use o número de pedidos: ${context.userStats.totalPurchases}
 - "Quantos cupons eu usei?" → Use o número de cupons: ${context.userStats.totalCouponsUsed}
 - "Quantos quadrinhos eu comprei?" → Use o total de produtos: ${context.userStats.totalProductsBought}
+- "O que você me recomenda?" → Use as preferências do usuário para sugerir produtos alinhados aos seus gostos
 
 Responda sempre de forma útil e direcionada aos produtos e serviços da Quadrinho Rei.`;
 

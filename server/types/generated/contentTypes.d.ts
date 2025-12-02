@@ -741,6 +741,8 @@ export interface ApiChatMessageChatMessage extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    feedback: Schema.Attribute.Enumeration<['positive', 'negative']>;
+    feedback_timestamp: Schema.Attribute.DateTime;
     isError: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -794,6 +796,10 @@ export interface ApiClientClient extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
     phone: Schema.Attribute.String;
+    preferences: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-preference.user-preference'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     purchases: Schema.Attribute.Relation<'oneToMany', 'api::purchase.purchase'>;
     rankingPosition: Schema.Attribute.Integer;
@@ -1179,6 +1185,54 @@ export interface ApiTradeTrade extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::trade-status.trade-status'
     >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiUserPreferenceUserPreference
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'user_preferences';
+  info: {
+    description: 'User preferences extracted from chat conversations';
+    displayName: 'User Preference';
+    pluralName: 'user-preferences';
+    singularName: 'user-preference';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    client: Schema.Attribute.Relation<'manyToOne', 'api::client.client'>;
+    confidence_score: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 1;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0.5>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    extracted_from_conversation: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::chat-conversation.chat-conversation'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-preference.user-preference'
+    > &
+      Schema.Attribute.Private;
+    preference_type: Schema.Attribute.Enumeration<
+      ['author', 'publisher', 'category', 'year_range', 'price_range', 'genre']
+    > &
+      Schema.Attribute.Required;
+    preference_value: Schema.Attribute.Text & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1716,6 +1770,7 @@ declare module '@strapi/strapi' {
       'api::purchase.purchase': ApiPurchasePurchase;
       'api::trade-status.trade-status': ApiTradeStatusTradeStatus;
       'api::trade.trade': ApiTradeTrade;
+      'api::user-preference.user-preference': ApiUserPreferenceUserPreference;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

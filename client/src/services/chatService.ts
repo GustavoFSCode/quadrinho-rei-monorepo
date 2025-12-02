@@ -7,6 +7,8 @@ export interface ChatMessage {
   content: string;
   createdAt?: string;
   isError?: boolean;
+  feedback?: 'positive' | 'negative' | null;
+  feedback_timestamp?: string;
 }
 
 export interface ChatConversation {
@@ -78,6 +80,18 @@ class ChatService {
     }
   }
 
+  async sendFeedback(messageId: string, feedback: 'positive' | 'negative'): Promise<void> {
+    try {
+      await api.post(`/chatMessageFeedback`, {
+        messageId: parseInt(messageId),
+        feedback
+      });
+    } catch (error: any) {
+      console.error('Error sending feedback:', error);
+      throw new Error('Erro ao enviar feedback. Tente novamente.');
+    }
+  }
+
   // Método para converter mensagens do formato do backend para o formato do frontend
   formatMessages(messages: any[]): ChatMessage[] {
     return messages.map(msg => ({
@@ -86,7 +100,9 @@ class ChatService {
       type: msg.messageType || 'text',
       content: msg.content,
       createdAt: msg.createdAt,
-      isError: msg.isError || false
+      isError: msg.isError || false,
+      feedback: msg.feedback || null,
+      feedback_timestamp: msg.feedback_timestamp
     }));
   }
 

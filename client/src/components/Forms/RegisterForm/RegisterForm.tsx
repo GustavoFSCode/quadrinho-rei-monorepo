@@ -91,6 +91,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onClose, onClientCreated })
         cpf: data.cpf,
         phone: data.phone,
         typePhone: data.typePhone,
+        ranking: 0,
         Address: formattedAddresses,
         Card: data.Cards ?? []
       };

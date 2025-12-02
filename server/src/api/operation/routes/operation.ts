@@ -298,6 +298,11 @@ export default {
       path: "/getChatHistory/:conversationId?",
       handler: "operation.getChatHistory"
     },
+    {
+      method: "POST",
+      path: "/chatMessageFeedback",
+      handler: "operation.chatMessageFeedback"
+    },
     /* Database Cleanup */
     {
       method: "POST",
