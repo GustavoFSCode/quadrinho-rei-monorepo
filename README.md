@@ -1,10 +1,6 @@
 <h1 align="center"> Quadrinho Rei </h1>
 
 <p align="center">
-  <img alt="Logo do Quadrinho Rei" src="client/public/assets/images/logo.png" width="180">
-</p>
-
-<p align="center">
   E-commerce de quadrinhos com catálogo, gestão de pedidos, estoque, trocas e um assistente com inteligência artificial. <br/>
   Projeto acadêmico full stack desenvolvido com Next.js, TypeScript, Strapi e PostgreSQL.
 </p>
